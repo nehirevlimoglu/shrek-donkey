@@ -16,10 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from tutorials.views.views import main_page 
-
+from tutorials.views.views import log_in, home_page, log_out  # Import your views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', main_page, name='main-page'),
+    path('log_in/', log_in, name='log-in'),  # ✅ Ensure this matches the form action
+    path('homepage/', home_page, name='home-page'),
+    path('logout/', log_out, name='log-out'),
+    path('', home_page, name='home'),
 ]
+

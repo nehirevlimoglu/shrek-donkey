@@ -44,17 +44,17 @@ class Command(BaseCommand):
 
     def generate_random_users(self):
         user_count = User.objects.count()
-        employer_count = User.objects.filter(role='employer').count()
-        applicant_count = User.objects.filter(role='job_seeker').count()
+        employer_count = User.objects.filter(role="Employer').count()
+        applicant_count = User.objects.filter(role='Job Seeker').count()
 
         while user_count < self.USER_COUNT:
             print(f"Seeding user {user_count + 1}/{self.USER_COUNT}", end='\r')
 
             if employer_count < self.EMPLOYER_COUNT:
-                self.generate_user('employer')
+                self.generate_user('Employer')
                 employer_count += 1
             else:
-                self.generate_user('job_seeker')
+                self.generate_user('Job Seeker')
                 applicant_count += 1
 
             user_count = User.objects.count()
