@@ -1,13 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-class User(AbstractUser):
-    ROLE_CHOICES = [
-        ('employer', 'Employer'),
-        ('job_seeker', 'Job Seeker'),
-    ]
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
-    profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
 
 class JobPosition(models.Model):
     employer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="job_posts")

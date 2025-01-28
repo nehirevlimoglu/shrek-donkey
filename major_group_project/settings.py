@@ -26,6 +26,8 @@ SECRET_KEY = 'django-insecure-if(vnx@arrljzcbhxag+))$_5%5d^y1f64$jh@s#*q%onf%9tk
 DEBUG = True
 
 ALLOWED_HOSTS = []
+AUTH_USER_MODEL = 'tutorials.User'
+
 
 
 # Application definition
@@ -117,6 +119,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# User model for authentication and login purposes
+AUTH_USER_MODEL = 'tutorials.User'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
