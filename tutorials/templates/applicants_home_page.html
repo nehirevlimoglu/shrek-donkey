@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Recommendations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .navbar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background-color: #0073e6;
+            color: white;
+        }
+        .left-section, .right-section {
+            display: flex;
+            align-items: center;
+        }
+        .right-section {
+            flex-direction: column;
+            align-items: flex-end;
+        }
+        .filter-button, .account-button, .fav-button, .applied-button {
+            background-color: white;
+            color: #0073e6;
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .job-listings {
+            width: 80%;
+            margin-top: 20px;
+        }
+        .job-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+    <script>
+        function loadJobs() {
+            const jobs = [
+                { title: "Software Engineer", company: "TechCorp", location: "San Francisco, CA", salary: "$120,000/year" },
+                { title: "Marketing Manager", company: "MarketPros", location: "New York, NY", salary: "$90,000/year" },
+                { title: "Data Analyst", company: "DataVision", location: "Austin, TX", salary: "$85,000/year" }
+            ];
+            
+            const jobListings = document.querySelector(".job-listings");
+            jobListings.innerHTML = "";
+            
+            jobs.forEach(job => {
+                const jobCard = document.createElement("div");
+                jobCard.classList.add("job-card");
+                jobCard.innerHTML = `
+                    <h3>${job.title}</h3>
+                    <p>Company: ${job.company}</p>
+                    <p>Location: ${job.location}</p>
+                    <p>Salary: ${job.salary}</p>
+                `;
+                jobListings.appendChild(jobCard);
+            });
+        }
+        
+        window.onload = loadJobs;
+    </script>
+</head>
+<body>
+    <div class="navbar">
+        <div class="left-section">
+            <button class="filter-button">Filter Jobs</button>
+        </div>
+        <div class="right-section">
+            <button class="account-button">Account</button>
+            <button class="fav-button">Favourites</button>
+            <button class="applied-button">Applied Jobs</button>
+        </div>
+    </div>
+    <div class="job-listings">
+    </div>
+</body>
+</html>
