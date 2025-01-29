@@ -1,51 +1,143 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+/* General reset */
+* {
     margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.login-container {
-    background: white;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+body {
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    height: 100vh;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #E4E4DE, #C4C5BA); /* Ivory to sage gradient */
+    color: #1B1B1B;
+}
+
+/* Full-width Container (No White Frame) */
+.container {
+    display: flex;
+    width: 90%;
+    max-width: 1100px;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+/* Left Section with Soft Shadow */
+.left-section {
+    background: linear-gradient(135deg, #595F39, #C4C5BA); /* Muted moss to sage gradient */
+    color: white;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     text-align: center;
-    width: 300px;
+    padding: 60px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    border-radius: 20px 0 0 20px;
+}
+
+.left-section h1 {
+    font-size: 36px;
+    margin-bottom: 15px;
+}
+
+.left-section p {
+    font-size: 18px;
+    opacity: 0.9;
+}
+
+/* Right Section with Soft Background */
+.right-section {
+    flex: 1;
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: rgba(228, 228, 222, 0.95); /* Semi-transparent ivory */
+    border-radius: 0 20px 20px 0;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 
 h2 {
-    margin-bottom: 20px;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 28px;
+    font-weight: 600;
+}
+
+/* Bigger Input Fields */
+form {
+    display: flex;
+    flex-direction: column;
 }
 
 label {
-    display: block;
-    text-align: left;
-    margin-bottom: 5px;
+    font-weight: 500;
+    margin: 12px 0 6px;
+    font-size: 18px;
 }
 
 input {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    padding: 15px;
+    border: 1px solid #C4C5BA;
+    border-radius: 10px;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    background: #F5F5F1;
+    color: #1B1B1B;
 }
 
+input:focus {
+    border: 1px solid #595F39;
+    box-shadow: 0 3px 8px rgba(89, 95, 57, 0.3);
+}
+
+/* Larger Login Button */
 button {
+    margin-top: 20px;
     width: 100%;
-    padding: 10px;
-    background-color: #28a745;
+    padding: 15px;
+    background-color: #595F39;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: bold;
     cursor: pointer;
-    font-size: 16px;
+    transition: 0.3s;
+    box-shadow: 0 4px 8px rgba(89, 95, 57, 0.3);
 }
 
 button:hover {
-    background-color: #218838;
+    background-color: #3F4728;
+}
+
+/* Forgot Password */
+.forgot-password {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.forgot-password a {
+    color: #595F39;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    .left-section {
+        display: none;
+    }
 }
