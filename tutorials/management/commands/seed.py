@@ -3,23 +3,24 @@ from tutorials.models.user_model import User
 from faker import Faker
 
 user_fixtures = [
-    {'username': '@damla', 'email': 'Damla@example.org', 'first_name': 'Damla', 'last_name': 'Sen', 'role': 'job_seeker'},
+    {'username': '@damla', 'email': 'Damla@example.org', 'first_name': 'Damla', 'last_name': 'Sen', 'role': 'Employer'},
     {'username': '@tan', 'email': 'Tan@example.org', 'first_name': 'Tan', 'last_name': 'Yukseloglu', 'role': 'employer'},
     {'username': '@rares', 'email': 'Rares@example.org', 'first_name': 'Rares', 'last_name': 'Filimon', 'role': 'job_seeker'},
     {'username': '@mert', 'email': 'Mert@example.org', 'first_name': 'Mert', 'last_name': 'Johnson', 'role': 'employer'},
-    {'username': '@jj', 'email': 'Jj@example.org', 'first_name': 'JJ', 'last_name': 'Zhou', 'role': 'job_seeker'},
+    {'username': '@jj', 'email': 'Jj@example.org', 'first_name': 'JJ', 'last_name': 'Zhou', 'role': 'Admin'},
     {'username': '@finn', 'email': 'Finn@example.org', 'first_name': 'Finn', 'last_name': 'Corney', 'role': 'employer'},
     {'username': '@liam', 'email': 'Liam@example.org', 'first_name': 'Liam', 'last_name': 'Ferran', 'role': 'job_seeker'},
-    {'username': '@trong', 'email': 'Trong@example.org', 'first_name': 'Trong', 'last_name': 'Vu', 'role': 'job_seeker'},
+    {'username': '@trong', 'email': 'Trong@example.org', 'first_name': 'Trong', 'last_name': 'Vu', 'role': 'Admin'},
     {'username': '@nehir', 'email': 'Nehir@example.org', 'first_name': 'Nehir', 'last_name': 'Evlimoglu', 'role': 'employer'},
 ]
 
 class Command(BaseCommand):
     """Build automation command to seed the database."""
 
-    USER_COUNT = 20
+    USER_COUNT = 25
     EMPLOYER_COUNT = 5
-    APPLICANT_COUNT = 25
+    APPLICANT_COUNT = 15
+    ADMIN_COUNT = 5
     DEFAULT_PASSWORD = 'Password123'
     help = 'Seeds the database with sample data'
 
@@ -44,8 +45,9 @@ class Command(BaseCommand):
 
     def generate_random_users(self):
         user_count = User.objects.count()
-        employer_count = User.objects.filter(role="Employer').count()
+        employer_count = User.objects.filter(role='Employer').count()
         applicant_count = User.objects.filter(role='Job Seeker').count()
+        admin_count = User.objects.filter(role='Admin').count()
 
         while user_count < self.USER_COUNT:
             print(f"Seeding user {user_count + 1}/{self.USER_COUNT}", end='\r')
@@ -53,6 +55,9 @@ class Command(BaseCommand):
             if employer_count < self.EMPLOYER_COUNT:
                 self.generate_user('Employer')
                 employer_count += 1
+            elif admin_count < self.ADMIN_COUNT:
+                self.generate_user('Admin')
+                admin_count += 1
             else:
                 self.generate_user('Job Seeker')
                 applicant_count += 1
