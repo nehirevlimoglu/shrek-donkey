@@ -1,0 +1,54 @@
+/* General Styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f4f4f4;
+}
+
+/* Navigation Bar */
+.navbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background-color: #0073e6;
+    color: white;
+}
+
+/* Left & Right Sections */
+.left-section, .right-section {
+    display: flex;
+    align-items: center;
+}
+
+/* Align Right Section in a Row Instead of Column */
+.right-section {
+    flex-direction: row;
+}
+
+/* Button Styles */
+.filter-button, .account-button, .fav-button, .applied-button {
+    background-color: white;
+    color: #0073e6;
+    padding: 10px 15px;
+    margin: 5px;
+    border: 1px solid #0073e6;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Button Hover Effects */
+.filter-button:hover, 
+.account-button:hover, 
+.fav-button:hover, 
+.applied-button:hover {
+    background-color: #005bb5;
+    color: white;
+}
+
+

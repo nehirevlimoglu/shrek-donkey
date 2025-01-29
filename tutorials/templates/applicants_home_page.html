@@ -1,55 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Recommendations</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .navbar {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 15px;
-            background-color: #0073e6;
-            color: white;
-        }
-        .left-section, .right-section {
-            display: flex;
-            align-items: center;
-        }
-        .right-section {
-            flex-direction: column;
-            align-items: flex-end;
-        }
-        .filter-button, .account-button, .fav-button, .applied-button {
-            background-color: white;
-            color: #0073e6;
-            padding: 10px;
-            margin: 5px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        .job-listings {
-            width: 80%;
-            margin-top: 20px;
-        }
-        .job-card {
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 5px;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/applicants_home_page.css' %}"> <!-- Linking the external CSS file -->
     <script>
         function loadJobs() {
             const jobs = [
