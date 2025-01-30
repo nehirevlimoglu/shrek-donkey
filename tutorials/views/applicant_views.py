@@ -1,22 +1,33 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from tutorials.models.applicants_models import Applicant
-from tutorials.forms.applicants_forms import ApplicantForm
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+
+def job_recommendations(request):
+    jobs = [
+        {"title": "Software Engineer", "company": "TechCorp", "location": "San Francisco, CA", "salary": "$120,000/year"},
+        {"title": "Marketing Manager", "company": "MarketPros", "location": "New York, NY", "salary": "$90,000/year"},
+        {"title": "Data Analyst", "company": "DataVision", "location": "Austin, TX", "salary": "$85,000/year"}
+    ]
+    return render(request, 'job_recommendations.html', {'jobs': jobs})
 
 def applicants_home_page(request):
     return render(request, 'applicants_home_page.html')
 
-def applicants_account(request):
-    # Placeholder values for testing
-    applicant_data = {
-        'name': 'John',
-        'surname': 'Doe',
-        'degree': 'Bachelor of Computer Science',
-        'salary_preferences': '$70,000 - $100,000/year',
-        'job_preferences': 'Software Developer, Data Analyst',
-        'location_preferences': 'Remote, New York, San Francisco',
-        'cv': None,  # No CV uploaded yet
-    }
+def log_in(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
 
-    return render(request, 'applicants/account.html', {'applicant': applicant_data})
+        if user is not None:
+            login(request, user)
+            return redirect('applicants_home_page')
+        else:
+            messages.error(request, "Invalid username or password.")
+    
+    return render(request, 'log_in.html')
+
+def log_out(request):
+    logout(request)
+    return redirect('log-in')
 

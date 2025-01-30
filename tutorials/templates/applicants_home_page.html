@@ -4,48 +4,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Recommendations</title>
+    <title>Applicants Home Page</title>
     <link rel="stylesheet" href="{% static 'css/applicants_home_page.css' %}">
     <script>
+        // Function to toggle the filter dropdown visibility
+        function toggleDropdown() {
+            const dropdown = document.querySelector('.filter-dropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Function to dynamically load job listings
         function loadJobs() {
             const jobs = [
-                { title: "Software Engineer", company: "TechCorp", location: "San Francisco, CA", salary: "$120,000/year" },
-                { title: "Marketing Manager", company: "MarketPros", location: "New York, NY", salary: "$90,000/year" },
-                { title: "Data Analyst", company: "DataVision", location: "Austin, TX", salary: "$85,000/year" },
-                { title: "Product Manager", company: "InnovateNow", location: "Seattle, WA", salary: "$110,000/year" },
-                { title: "UI/UX Designer", company: "CreativeDesign", location: "Chicago, IL", salary: "$95,000/year" }
+                { title: "Software Engineer", company: "TechCorp", location: "San Francisco, CA", salary: "$120,000/year", job_type: "Full-Time" },
+                { title: "Marketing Manager", company: "MarketPros", location: "New York, NY", salary: "$90,000/year", job_type: "Part-Time" },
+                { title: "Data Analyst", company: "DataVision", location: "Austin, TX", salary: "$85,000/year", job_type: "Contract" }
             ];
             
             const jobListings = document.querySelector(".job-listings");
-            jobListings.innerHTML = "";
+            jobListings.innerHTML = ""; // Clear any existing job listings
             
+            // Loop through the jobs array and create job cards
             jobs.forEach(job => {
                 const jobCard = document.createElement("div");
                 jobCard.classList.add("job-card");
                 jobCard.innerHTML = `
                     <h3>${job.title}</h3>
-                    <p>Company: ${job.company}</p>
-                    <p>Location: ${job.location}</p>
-                    <p>Salary: ${job.salary}</p>
+                    <p><strong>Company:</strong> ${job.company}</p>
+                    <p><strong>Location:</strong> ${job.location}</p>
+                    <p><strong>Salary:</strong> ${job.salary}</p>
+                    <p><strong>Job Type:</strong> ${job.job_type}</p>
                 `;
                 jobListings.appendChild(jobCard);
             });
         }
-        
+
+        // Call loadJobs function when the page loads
         window.onload = loadJobs;
     </script>
 </head>
 <body>
     <div class="navbar">
         <div class="left-section">
-            <button class="filter-button">Filter Jobs</button>
+            <button class="filter-button" onclick="toggleDropdown()">Filter Jobs</button>
+            <div class="filter-dropdown">
+                <form id="filter-form">
+                    <label for="location">Location:</label>
+                    <input type="text" id="location" name="location" placeholder="e.g., San Francisco"><br>
+
+                    <label for="salary">Salary:</label>
+                    <input type="number" id="salary" name="salary" placeholder="e.g., 100000"><br>
+
+                    <label for="company">Company:</label>
+                    <input type="text" id="company" name="company" placeholder="e.g., TechCorp"><br>
+
+                    <label for="job-type">Job Type:</label>
+                    <select id="job-type" name="job_type">
+                        <option value="">Select Job Type</option>
+                        <option value="full-time">Full-Time</option>
+                        <option value="part-time">Part-Time</option>
+                        <option value="contract">Contract</option>
+                        <option value="internship">Internship</option>
+                    </select><br>
+
+                    <button type="submit" class="apply-filters">Apply Filters</button>
+                </form>
+            </div>
         </div>
         <div class="right-section">
-            <button class="account-button" onclick="window.location.href='{% url 'applicants_account' %}'">Account</button>
-            <button class="fav-button">Favourites</button>
-            <button class="applied-button">Applied Jobs</button>
+            <a href="/account" class="nav-link">Account</a>
+            <a href="/favourites" class="nav-link">Favourites</a>
+            <a href="/applied-jobs" class="nav-link">Applied Jobs</a>
         </div>
     </div>
-    <div class="job-listings"></div>
+    <div class="job-listings">
+        <!-- Jobs will be dynamically loaded here -->
+    </div>
 </body>
 </html>

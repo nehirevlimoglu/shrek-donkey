@@ -19,7 +19,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, blank=False)
     ROLE_CHOICES = [
         ('employer', 'Employer'),
-        ('applicant', 'Applicant'),
+        ('job_seeker', 'Job Seeker'),
     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
@@ -46,5 +46,3 @@ class User(AbstractUser):
         """Return a URL to a miniature version of the user's gravatar."""
         
         return self.gravatar(size=60)
-    
-    

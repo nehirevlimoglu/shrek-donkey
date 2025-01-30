@@ -22,3 +22,18 @@ def home_page(request):
 def log_out(request):
     logout(request)
     return redirect('log-in')  # Redirect to login page after logout
+
+
+#m
+def account(request):
+    return render(request, 'account.html')
+
+def favourites(request):
+    return render(request, 'favourites.html')
+
+def applied_jobs(request):
+    return render(request, 'applied_jobs.html')
+
+
+
+
