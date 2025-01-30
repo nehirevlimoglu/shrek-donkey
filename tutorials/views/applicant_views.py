@@ -4,6 +4,7 @@ from django.contrib import messages
 from tutorials.models.applicants_models import Applicant 
 from tutorials.forms.applicants_forms import ApplicantForm 
 
+
 def job_recommendations(request):
     jobs = [
         {"title": "Software Engineer", "company": "TechCorp", "location": "San Francisco, CA", "salary": "$120,000/year"},
@@ -34,24 +35,28 @@ def log_out(request):
     return redirect('log-in')
 
 
+
 def applicants_account(request, applicant_id=None):
     """ Display and update the applicant's profile. """
+    
+    # If applicant_id is provided, fetch the specific applicant; otherwise, default to the first one (if needed)
     if applicant_id:
         applicant = get_object_or_404(Applicant, id=applicant_id)
     else:
-        # Default to the first applicant or handle as needed
+        # Try to get the first applicant associated with the logged-in user (optional logic)
         applicant = Applicant.objects.first()
-        if not applicant:
-            return render(request, "no_applicant.html", {"message": "No applicant found."})
 
     if request.method == "POST":
         form = ApplicantForm(request.POST, request.FILES, instance=applicant)
         if form.is_valid():
             form.save()
+            messages.success(request, "Your account has been updated successfully!")
+            return redirect('applicants-account')  # Redirect to the same page to see updated info
+        else:
+            messages.error(request, "There was an error saving your account information.")
     else:
         form = ApplicantForm(instance=applicant)
 
     return render(request, "applicants_account.html", {"form": form, "applicant": applicant})
-
 
 

@@ -49,45 +49,111 @@
         .button:hover {
             background-color: #005bb5;
         }
+        .messages {
+            margin-bottom: 1em;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #eef;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Applicant Account</h1>
-        <div class="field">
-            <label>Name:</label>
-            <p>{{ applicant.name }}</p>
-        </div>
-        <div class="field">
-            <label>Surname:</label>
-            <p>{{ applicant.surname }}</p>
-        </div>
-        <div class="field">
-            <label>Degree:</label>
-            <p>{{ applicant.degree }}</p>
-        </div>
-        <div class="field">
-            <label>Salary Preferences:</label>
-            <p>{{ applicant.salary_preferences }}</p>
-        </div>
-        <div class="field">
-            <label>Job Preferences:</label>
-            <p>{{ applicant.job_preferences }}</p>
-        </div>
-        <div class="field">
-            <label>Location Preferences:</label>
-            <p>{{ applicant.location_preferences }}</p>
-        </div>
-        <div class="cv-upload">
-            <label>Upload CV:</label>
-            <input type="file" name="cv">
-            {% if applicant.cv %}
-                <p>Uploaded CV: <a href="{{ applicant.cv.url }}">Download CV</a></p>
-            {% else %}
-                <p>No CV uploaded yet.</p>
-            {% endif %}
-        </div>
-        <button class="button">Save Changes</button>
+
+        <!-- Display success or error messages -->
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <p class="message">{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Form to handle updating applicant info -->
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- First Name -->
+            <div class="field">
+                <label for="id_first_name">First Name:</label>
+                <input
+                    type="text"
+                    id="id_first_name"
+                    name="first_name"
+                    value="{{ form.initial.first_name|default_if_none:'' }}"
+                />
+            </div>
+
+            <!-- Last Name -->
+            <div class="field">
+                <label for="id_last_name">Last Name:</label>
+                <input
+                    type="text"
+                    id="id_last_name"
+                    name="last_name"
+                    value="{{ form.initial.last_name|default_if_none:'' }}"
+                />
+            </div>
+
+            <!-- Degree -->
+            <div class="field">
+                <label for="id_degree">Degree:</label>
+                <input
+                    type="text"
+                    id="id_degree"
+                    name="degree"
+                    value="{{ applicant.degree|default_if_none:'' }}"
+                />
+            </div>
+
+            <!-- Salary Preferences -->
+            <div class="field">
+                <label for="id_salary_preferences">Salary Preferences:</label>
+                <input
+                    type="text"
+                    id="id_salary_preferences"
+                    name="salary_preferences"
+                    value="{{ applicant.salary_preferences|default_if_none:'' }}"
+                />
+            </div>
+
+            <!-- Job Preferences (NOTE: In your form, it's a Textarea widget) -->
+            <div class="field">
+                <label for="id_job_preferences">Job Preferences:</label>
+                <textarea
+                    id="id_job_preferences"
+                    name="job_preferences"
+                    rows="3"
+                >{{ applicant.job_preferences|default_if_none:'' }}</textarea>
+            </div>
+
+            <!-- Location Preferences -->
+            <div class="field">
+                <label for="id_location_preferences">Location Preferences:</label>
+                <input
+                    type="text"
+                    id="id_location_preferences"
+                    name="location_preferences"
+                    value="{{ applicant.location_preferences|default_if_none:'' }}"
+                />
+            </div>
+
+            <!-- CV -->
+            <div class="cv-upload">
+                <label for="id_cv">Upload CV:</label>
+                <input type="file" name="cv" id="id_cv">
+                {% if applicant.cv %}
+                    <p>Uploaded CV:
+                        <a href="{{ applicant.cv.url }}" target="_blank">Download CV</a>
+                    </p>
+                {% else %}
+                    <p>No CV uploaded yet.</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="button">Save Changes</button>
+        </form>
     </div>
 </body>
 </html>
