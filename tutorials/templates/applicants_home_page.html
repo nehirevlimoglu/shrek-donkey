@@ -13,6 +13,12 @@
             dropdown.classList.toggle('show');
         }
 
+        // Function to toggle favorite status
+        function toggleFavorite(starElement) {
+            starElement.classList.toggle('active');
+            // Here you can add logic to save to favorites
+        }
+
         // Function to dynamically load job listings
         function loadJobs() {
             const jobs = [
@@ -24,7 +30,6 @@
             const jobListings = document.querySelector(".job-listings");
             jobListings.innerHTML = ""; // Clear any existing job listings
             
-            // Loop through the jobs array and create job cards
             jobs.forEach(job => {
                 const jobCard = document.createElement("div");
                 jobCard.classList.add("job-card");
@@ -34,6 +39,7 @@
                     <p><strong>Location:</strong> ${job.location}</p>
                     <p><strong>Salary:</strong> ${job.salary}</p>
                     <p><strong>Job Type:</strong> ${job.job_type}</p>
+                    <div class="favorite-star" onclick="toggleFavorite(this)">★</div>
                 `;
                 jobListings.appendChild(jobCard);
             });
