@@ -1,6 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from tutorials.models.applicants_models import Applicant 
+from tutorials.forms.applicants_forms import ApplicantForm 
 
 def job_recommendations(request):
     jobs = [
@@ -30,4 +32,26 @@ def log_in(request):
 def log_out(request):
     logout(request)
     return redirect('log-in')
+
+
+def applicants_account(request, applicant_id=None):
+    """ Display and update the applicant's profile. """
+    if applicant_id:
+        applicant = get_object_or_404(Applicant, id=applicant_id)
+    else:
+        # Default to the first applicant or handle as needed
+        applicant = Applicant.objects.first()
+        if not applicant:
+            return render(request, "no_applicant.html", {"message": "No applicant found."})
+
+    if request.method == "POST":
+        form = ApplicantForm(request.POST, request.FILES, instance=applicant)
+        if form.is_valid():
+            form.save()
+    else:
+        form = ApplicantForm(instance=applicant)
+
+    return render(request, "applicants_account.html", {"form": form, "applicant": applicant})
+
+
 
