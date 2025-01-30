@@ -5,13 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Job Recommendations</title>
-    <link rel="stylesheet" href="{% static 'css/applicants_home_page.css' %}"> <!-- Linking the external CSS file -->
+    <link rel="stylesheet" href="{% static 'css/applicants_home_page.css' %}">
     <script>
         function loadJobs() {
             const jobs = [
                 { title: "Software Engineer", company: "TechCorp", location: "San Francisco, CA", salary: "$120,000/year" },
                 { title: "Marketing Manager", company: "MarketPros", location: "New York, NY", salary: "$90,000/year" },
-                { title: "Data Analyst", company: "DataVision", location: "Austin, TX", salary: "$85,000/year" }
+                { title: "Data Analyst", company: "DataVision", location: "Austin, TX", salary: "$85,000/year" },
+                { title: "Product Manager", company: "InnovateNow", location: "Seattle, WA", salary: "$110,000/year" },
+                { title: "UI/UX Designer", company: "CreativeDesign", location: "Chicago, IL", salary: "$95,000/year" }
             ];
             
             const jobListings = document.querySelector(".job-listings");
@@ -39,12 +41,11 @@
             <button class="filter-button">Filter Jobs</button>
         </div>
         <div class="right-section">
-            <button class="account-button">Account</button>
+            <button class="account-button" onclick="window.location.href='{% url 'applicants_account' %}'">Account</button>
             <button class="fav-button">Favourites</button>
             <button class="applied-button">Applied Jobs</button>
         </div>
     </div>
-    <div class="job-listings">
-    </div>
+    <div class="job-listings"></div>
 </body>
 </html>

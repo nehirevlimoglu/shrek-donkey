@@ -129,3 +129,14 @@ AUTH_USER_MODEL = 'tutorials.User'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Redirect unauthenticated users to this login page
+LOGIN_URL = '/log_in/'
+
+# Redirect users to this page after login (optional, adjust as needed)
+LOGIN_REDIRECT_URL = '/account/'
+
+# Redirect users to this page after logout (optional, adjust as needed)
+LOGOUT_REDIRECT_URL = '/'
+
+#
