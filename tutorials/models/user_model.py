@@ -20,6 +20,7 @@ class User(AbstractUser):
     ROLE_CHOICES = [
         ('employer', 'Employer'),
         ('job_seeker', 'Job Seeker'),
+        ('admin', 'Admin')
     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
