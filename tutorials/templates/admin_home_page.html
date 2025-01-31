@@ -1,0 +1,102 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Swamp Hiring</title>
+    <link rel="stylesheet" href="{% static 'css/admin_home_page.css' %}">
+</head>
+<body>
+    <div class="dashboard-container">  <!-- ✅ This ensures they stay together -->
+
+        <aside class="sidebar">
+            <h2>Swamp Hirin</h2>
+            <nav>
+                <ul>
+                    <li><a href="#">🏠 Dashboard</a></li>
+                    <li><a href="#">📄 Job Listings</a></li>
+                    <li><a href="#">👤 User Management</a></li>
+                    <li><a href="#">📊 Reports</a></li>
+                    <li><a href="#">⚙️ Settings</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content">
+            <header>
+                <h1>Welcome Back, {{user.first_name}} 👋</h1>
+                <form action="{% url 'log-out' %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">Log Out</button>
+                </form>
+            </header>
+
+            <!-- Overview Section -->
+            <section class="overview">
+                <div class="card">
+                    <h3>Total Job Listings</h3>
+                    <p>152</p>
+                </div>
+                <div class="card">
+                    <h3>Pending Applications</h3>
+                    <p>34</p>
+                </div>
+                <div class="card">
+                    <h3>Active Users</h3>
+                    <p>2,480</p>
+                </div>
+                <div class="card">
+                    <h3>New Hires This Month</h3>
+                    <p>26</p>
+                </div>
+            </section>
+
+            <!-- Data Analytics Section -->
+            <section class="data-analytics">
+                <div class="chart-container">
+                    <h3>Application Trends</h3>
+                    <canvas id="applicationsChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>User Growth</h3>
+                    <canvas id="userGrowthChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Job Listings Overview -->
+            <section class="job-listings">
+                <h2>Recent Job Listings</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Job Title</th>
+                            <th>Company</th>
+                            <th>Status</th>
+                            <th>Applicants</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Software Engineer</td>
+                            <td>ABC Tech</td>
+                            <td>Open</td>
+                            <td>120</td>
+                            <td><button class="view-btn">View</button></td>
+                        </tr>
+                        <tr>
+                            <td>Product Manager</td>
+                            <td>XYZ Corp</td>
+                            <td>Closed</td>
+                            <td>80</td>
+                            <td><button class="view-btn">View</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>  <!-- ✅ Closing div for .dashboard-container -->
+</body>
+</html>
