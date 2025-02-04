@@ -1,11 +1,106 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Account</title>
+    <title>Favourites</title>
+    <link rel="stylesheet" href="{% static 'css/applicants_home_page.css' %}">
+    <script>
+        // Function to toggle the filter dropdown visibility
+        function toggleDropdown() {
+            const dropdown = document.querySelector('.filter-dropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Function to toggle favorite status
+        function toggleFavorite(starElement) {
+            starElement.classList.toggle('active');
+            // Backend integration will be added later
+        }
+
+        // Function to apply filters
+        function applyFilters(event) {
+            event.preventDefault();
+            // Filter logic will be added later
+            const location = document.getElementById('location').value;
+            const salary = document.getElementById('salary').value;
+            const company = document.getElementById('company').value;
+            const jobType = document.getElementById('job-type').value;
+            
+            console.log('Filters applied:', { location, salary, company, jobType });
+            // Will add actual filter implementation later
+        }
+
+        // Function to load favorite job listings
+        function loadFavoriteJobs() {
+            const favoriteJobs = [
+                { title: "Software Engineer", company: "TechCorp", location: "San Francisco, CA", salary: "$120,000/year", job_type: "Full-Time" },
+                { title: "Marketing Manager", company: "MarketPros", location: "New York, NY", salary: "$90,000/year", job_type: "Part-Time" }
+            ];
+            
+            const jobListings = document.querySelector(".job-listings");
+            jobListings.innerHTML = ""; // Clear existing listings
+            
+            favoriteJobs.forEach(job => {
+                const jobCard = document.createElement("div");
+                jobCard.classList.add("job-card");
+                jobCard.innerHTML = `
+                    <h3>${job.title}</h3>
+                    <p><strong>Company:</strong> ${job.company}</p>
+                    <p><strong>Location:</strong> ${job.location}</p>
+                    <p><strong>Salary:</strong> ${job.salary}</p>
+                    <p><strong>Job Type:</strong> ${job.job_type}</p>
+                    <div class="favorite-star active" onclick="toggleFavorite(this)">★</div>
+                `;
+                jobListings.appendChild(jobCard);
+            });
+        }
+
+        // Initialize when page loads
+        window.onload = function() {
+            loadFavoriteJobs();
+            // Add event listener for filter form
+            document.getElementById('filter-form').addEventListener('submit', applyFilters);
+        };
+    </script>
 </head>
 <body>
-    <h1>Welcome to the Favourites</h1>
+    <div class="navbar">
+        <div class="left-section">
+            <button class="filter-button" onclick="toggleDropdown()">Filter Jobs</button>
+            <div class="filter-dropdown">
+                <form id="filter-form">
+                    <label for="location">Location:</label>
+                    <input type="text" id="location" name="location" placeholder="e.g., San Francisco"><br>
+
+                    <label for="salary">Salary:</label>
+                    <input type="number" id="salary" name="salary" placeholder="e.g., 100000"><br>
+
+                    <label for="company">Company:</label>
+                    <input type="text" id="company" name="company" placeholder="e.g., TechCorp"><br>
+
+                    <label for="job-type">Job Type:</label>
+                    <select id="job-type" name="job_type">
+                        <option value="">Select Job Type</option>
+                        <option value="full-time">Full-Time</option>
+                        <option value="part-time">Part-Time</option>
+                        <option value="contract">Contract</option>
+                        <option value="internship">Internship</option>
+                    </select><br>
+
+                    <button type="submit" class="apply-filters">Apply Filters</button>
+                </form>
+            </div>
+        </div>
+        <div class="right-section">
+            <a href="{% url 'applicants-account' %}" class="nav-link">Account</a>
+            <a href="{% url 'applicants-home-page' %}" class="nav-link">Home</a>
+            <a href="{% url 'applied-jobs' %}" class="nav-link">Applied Jobs</a>
+        </div>
+    </div>
+    <div class="job-listings">
+        <!-- Favorite jobs will be dynamically loaded here -->
+    </div>
 </body>
 </html>
