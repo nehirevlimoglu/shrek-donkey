@@ -16,15 +16,15 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from tutorials.views.views import log_in, home_page, log_out
+from tutorials.views.views import log_in, home_page, log_out  
 from tutorials.views.admin_views import admin_home_page
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('log_in/', log_in, name='log-in'),  # ✅ Ensure this matches the form action
+    path('log_in/', log_in, name='log-in'),  
     path('homepage/', home_page, name='home-page'),
     path('logout/', log_out, name='log-out'),
     path('', home_page, name='home'),
-    path('admin-homepage/', admin_home_page, name='admin-homepage'),
+    path('admin_home_page/', admin_home_page, name='admin_home_page'),
 ]
 

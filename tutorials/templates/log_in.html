@@ -18,17 +18,18 @@
         <!-- Login Section -->
         <div class="right-section">
             <h2>Welcome Back!</h2>
-            <form action="{% url 'log-in' %}" method="POST">
-                {% csrf_token %}
+            <form method="POST" action="{% url 'log-in' %}">
+                {% csrf_token %}  <!-- ✅ This is REQUIRED for Django security -->
+                
                 <label for="username">Username:</label>
                 <input type="text" id="username" name="username" required>
-                
+            
                 <label for="password">Password:</label>
                 <input type="password" id="password" name="password" required>
-                
+            
                 <button type="submit">Log in</button>
-                </div>
             </form>
+            
         </div>
     </div>
 </body>
