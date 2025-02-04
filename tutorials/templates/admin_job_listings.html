@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Listings | Swamp Hiring</title>
+    <link rel="stylesheet" href="{% static 'css/admin_job_listings.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="job-listings-container">
+        <h1>Available Job Listings</h1>
+        <div class="listings">
+            {% for i in "x"|rjust:50 %}
+            <div class="job-card">
+                <h2>Job Title {{ forloop.counter }}</h2>
+                <p><strong>Company:</strong> Company {{ forloop.counter }}</p>
+                <p><strong>Location:</strong> City {{ forloop.counter }}, Country</p>
+                <p><strong>Salary:</strong> ${{ forloop.counter }}0,000 per year</p>
+                <button class="apply-btn">Apply Now</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

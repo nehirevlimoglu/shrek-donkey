@@ -1,0 +1,71 @@
+/* General reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background: #F8F9FA;
+    color: #1A202C;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow-y: auto;
+    height: 100vh;
+    width: 100vw;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    width: 100%;
+}
+
+/* Listings */
+.listings {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    max-width: 1600px; /* Increased width */
+    align-items: center;
+}
+
+.job-card {
+    background: #E2E8F0;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 100%;
+    max-width: 1400px; /* Make it wider */
+}
+
+.job-card h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.job-card p {
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.apply-btn {
+    background: #1A73E8;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.apply-btn:hover {
+    background: #1558B5;
+}

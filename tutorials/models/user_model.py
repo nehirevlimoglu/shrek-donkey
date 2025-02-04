@@ -23,7 +23,6 @@ class User(AbstractUser):
         ('Admin', 'Admin')
     ]
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
-    profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
 
 
     class Meta:
