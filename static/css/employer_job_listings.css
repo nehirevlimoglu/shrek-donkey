@@ -134,47 +134,44 @@ header {
     color: #1A202C;
 }
 
-/* Table Styling */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+/* Job Listings */
+.job-listings {
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-table th, table td {
-    padding: 15px;
-    text-align: left;
-}
-
-table th {
-    background: #E2E8F0;
-    color: #1A202C;
-}
-
-table td {
+.job-listing {
     background: #FFFFFF;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #E2E8F0;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.job-listing a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+/* Hover effects for a nice interactive feel */
+.job-listing:hover {
+    background: #E2E8F0;
+    transform: translateY(-3px);
+}
+
+/* Job Title Styling */
+.job-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
     color: #1A202C;
 }
 
-.resume-link {
-    color: #1A73E8;
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.resume-link:hover {
-    text-decoration: underline;
-}
-
-.view-btn {
-    padding: 5px 10px;
-    background: #1A73E8;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-}
-
-.view-btn:hover {
-    background: #1558B5;
+/* Job Description Styling */
+.job-description {
+    font-size: 16px;
+    color: #4A5568;
 }

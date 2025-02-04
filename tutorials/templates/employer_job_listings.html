@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Listings | Swamp Hiring</title>
+    <link rel="stylesheet" href="{% static 'css/employer_job_listings.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <h2>Swamp Hiring</h2>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'employer_home_page' %}">Dashboard</a></li>
+                    <li><a href="{% url 'employer_job_listings' %}">My Job Listings</a></li>
+                    <li><a href="{% url 'employer_reports' %}">Reports</a></li>
+                    <li><a href="{% url 'employer_settings' %}">Settings</a></li>    
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <header>
+                <h1>Welcome Back, {{ user.first_name }} 👋</h1>
+                <form action="{% url 'log-out' %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">Log Out</button>
+                </form>
+            </header>
+
+            <section class="job-listings">
+                <h2>Job Listings</h2>
+
+                <!-- Job Listing 1 -->
+                <div class="job-listing">
+                    <a href="job-details.html?id=1">
+                        <h2 class="job-title">Software Engineer</h2>
+                        <p class="job-description">Join our dynamic tech team working on innovative projects.</p>
+                    </a>
+                </div>
+
+                <!-- Job Listing 2 -->
+                <div class="job-listing">
+                    <a href="job-details.html?id=2">
+                        <h2 class="job-title">Product Manager</h2>
+                        <p class="job-description">Help us design and implement product strategies for success.</p>
+                    </a>
+                </div>
+
+                <!-- Job Listing 3 -->
+                <div class="job-listing">
+                    <a href="job-details.html?id=3">
+                        <h2 class="job-title">Data Scientist</h2>
+                        <p class="job-description">Analyze complex data sets to drive business insights and decisions.</p>
+                    </a>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
