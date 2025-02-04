@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employer Dashboard | Swamp Hiring</title>
+    <link rel="stylesheet" href="{% static 'css/employer_dashboard.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <h2>Swamp Hiring</h2>
+            <nav>
+                <ul>
+                    <li><a href="#">Dashboard</a></li>
+                    <li><a href="{% url 'post_job' %}" class="post-job-btn">Post a Job</a></li>
+                    <li><a href="{% url 'employer_job_listings' %}">My Job Listings</a></li>
+                    <li><a href="{% url 'applicants' %}">Applicants</a></li>
+                    <li><a href="#">Reports</a></li>
+                    <li><a href="#">Settings</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <header>
+                <h1>Welcome Back, {{ user.first_name }} 👋</h1>
+                <form action="{% url 'log-out' %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">Log Out</button>
+                </form>
+            </header>
+
+            <section class="overview">
+                <div class="card">
+                    <h3>Total Jobs Posted</h3>
+                    <p>15</p>
+                </div>
+                <div class="card">
+                    <h3>Active Listings</h3>
+                    <p>6</p>
+                </div>
+                <div class="card">
+                    <h3>Total Applicants</h3>
+                    <p>243</p>
+                </div>
+                <div class="card">
+                    <h3>Hires This Month</h3>
+                    <p>8</p>
+                </div>
+            </section>
+
+            <section class="recent-applicants">
+                <h2>Recent Applicants</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Applicant Name</th>
+                            <th>Job Applied</th>
+                            <th>Status</th>
+                            <th>Resume</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>John Doe</td>
+                            <td>Software Engineer</td>
+                            <td><span class="badge under-review">Under Review</span></td>
+                            <td><a href="#" class="resume-link">View Resume</a></td>
+                            <td><button class="view-btn">Review</button></td>
+                        </tr>
+                        <tr>
+                            <td>Jane Smith</td>
+                            <td>Project Manager</td>
+                            <td><span class="badge interviewed">Interviewed</span></td>
+                            <td><a href="#" class="resume-link">View Resume</a></td>
+                            <td><button class="view-btn">Review</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
