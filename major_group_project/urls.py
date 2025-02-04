@@ -17,8 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from tutorials.views.views import log_in, home_page, log_out  # Import your views
-from tutorials.views.applicant_views import applicants_home_page, applicants_account 
-from tutorials.views.views import account, favourites, applied_jobs
+from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs
+from tutorials.views.views import account, favourites
+
 urlpatterns =[
     path('admin/', admin.site.urls),
     path('log_in/', log_in, name='log-in'),  # ✅ Ensure this matches the form action
@@ -27,7 +28,7 @@ urlpatterns =[
     path('', home_page, name='home'),
     path('applicants_home_page/', applicants_home_page, name='applicants-home-page'), #m
     path('favourites/', favourites, name='favourites'),
-    path('applied-jobs/', applied_jobs, name='applied-jobs'),
+    path('applicants-applied-jobs/', applicants_applied_jobs, name='applicants-applied-jobs'),
     path("applicants_account/", applicants_account, name="applicants-account"),
 ]
 

@@ -1,0 +1,174 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Applied Jobs</title>
+  <!-- Reuse the same external CSS used by favourites.html -->
+  <link rel="stylesheet" href="{% static 'css/applicants_home_page.css' %}">
+  <style>
+    /* Additional styling for the job cards if needed */
+    .job-card {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .job-info {
+      max-width: 85%;
+    }
+    .job-title {
+      color: #007bff; /* Blue job title */
+      margin: 0;
+      margin-bottom: 0.5rem;
+      font-size: 1.2rem;
+    }
+    .star {
+      font-size: 1.6rem;
+      color: gold;
+      margin-left: 1rem;
+      cursor: pointer;
+    }
+    .star {
+      color: gray;
+      transition: color 0.3s;
+    }
+
+    .star.active {
+      color: gold;
+    }
+  </style>
+  <script>
+    // Function to toggle the filter dropdown visibility
+    function toggleDropdown() {
+        const dropdown = document.querySelector('.filter-dropdown');
+        dropdown.classList.toggle('show');
+    }
+
+    // Function to apply filters
+    function applyFilters(event) {
+        event.preventDefault();
+        // Filter logic goes here
+        const location = document.getElementById('location').value;
+        const salary = document.getElementById('salary').value;
+        const company = document.getElementById('company').value;
+        const jobType = document.getElementById('job-type').value;
+        
+        console.log('Filters applied:', { location, salary, company, jobType });
+        // Implement your actual filter logic as needed
+    }
+
+    // Function to toggle favorite status (or you might want a different action for “applied jobs”)
+    function toggleFavorite(starElement) {
+        starElement.classList.toggle('active');
+        // Insert backend integration logic here if necessary
+    }
+
+    // Function to load your "applied jobs"
+    function loadAppliedJobs() {
+      const appliedJobs = [
+        {
+          title: 'Software Engineer',
+          company: 'TechCorp',
+          location: 'San Francisco, CA',
+          salary: '$120,000/year',
+          jobType: 'Full-Time',
+          status: 'In Review'
+        },
+        {
+          title: 'Marketing Manager',
+          company: 'MarketPros',
+          location: 'New York, NY',
+          salary: '$90,000/year',
+          jobType: 'Part-Time',
+          status: 'Interview Scheduled'
+        },
+        {
+          title: 'Data Analyst',
+          company: 'DataVision',
+          location: 'Austin, TX',
+          salary: '$85,000/year',
+          jobType: 'Contract',
+          status: 'Application Sent'
+        }
+      ];
+
+      const jobListings = document.querySelector('.job-listings');
+      jobListings.innerHTML = ''; // Clear existing listings
+
+      appliedJobs.forEach(job => {
+        const jobCard = document.createElement('div');
+        jobCard.classList.add('job-card');
+
+        // You can decide if the star is relevant for "applied" jobs
+        // or remove it if you don't need a "favorite" toggle here.
+        jobCard.innerHTML = `
+          <div class="job-info">
+            <h2 class="job-title">${job.title}</h2>
+            <p><strong>Company:</strong> ${job.company}</p>
+            <p><strong>Location:</strong> ${job.location}</p>
+            <p><strong>Salary:</strong> ${job.salary}</p>
+            <p><strong>Job Type:</strong> ${job.jobType}</p>
+            <p><strong>Status:</strong> ${job.status}</p>
+          </div>
+          <span class="star" onclick="toggleFavorite(this)">&#9733;</span>
+        `;
+        jobListings.appendChild(jobCard);
+      });
+    }
+
+    window.onload = function() {
+      // When the page loads, set up the filter form and load the applied jobs
+      document.getElementById('filter-form').addEventListener('submit', applyFilters);
+      loadAppliedJobs();
+    };
+  </script>
+</head>
+<body>
+  <!-- Navbar structure similar to favourites.html -->
+  <div class="navbar">
+    <div class="left-section">
+      <button class="filter-button" onclick="toggleDropdown()">Filter Jobs</button>
+      <div class="filter-dropdown">
+        <form id="filter-form">
+          <label for="location">Location:</label>
+          <input type="text" id="location" name="location" placeholder="e.g., San Francisco"><br>
+
+          <label for="salary">Salary:</label>
+          <input type="number" id="salary" name="salary" placeholder="e.g., 100000"><br>
+
+          <label for="company">Company:</label>
+          <input type="text" id="company" name="company" placeholder="e.g., TechCorp"><br>
+
+          <label for="job-type">Job Type:</label>
+          <select id="job-type" name="job_type">
+            <option value="">Select Job Type</option>
+            <option value="full-time">Full-Time</option>
+            <option value="part-time">Part-Time</option>
+            <option value="contract">Contract</option>
+            <option value="internship">Internship</option>
+          </select><br>
+
+          <button type="submit" class="apply-filters">Apply Filters</button>
+        </form>
+      </div>
+    </div>
+    <div class="right-section">
+      <!-- Update these links to your actual named URLs -->
+      <a href="{% url 'applicants-account' %}" class="nav-link">Account</a>
+      <a href="{% url 'applicants-home-page' %}" class="nav-link">Home</a>
+      <a href="{% url 'applicants-applied-jobs' %}" class="nav-link">Applied Jobs</a>
+    </div>
+  </div>
+
+  <h1 style="text-align: center; margin-top: 1rem;">My Applied Jobs</h1>
+
+  <div class="job-listings" style="max-width: 800px; margin: 1rem auto; padding: 0 1rem;">
+    <!-- Applied jobs will be dynamically loaded here by loadAppliedJobs() -->
+  </div>
+</body>
+</html>

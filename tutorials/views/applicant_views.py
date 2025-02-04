@@ -60,3 +60,5 @@ def applicants_account(request, applicant_id=None):
     return render(request, "applicants_account.html", {"form": form, "applicant": applicant})
 
 
+def applicants_applied_jobs(request):
+    return render(request, 'applicants_applied_jobs.html')
