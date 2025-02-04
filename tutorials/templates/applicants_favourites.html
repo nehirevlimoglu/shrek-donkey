@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favourite Jobs</title>
+    <link rel="stylesheet" href="{% static 'css/applicants_favourites.css' %}">
+    <script>
+        function toggleFavorite(starElement) {
+            starElement.classList.toggle('active');
+        }
+
+        function loadFavoriteJobs() {
+            const favoriteJobs = [
+                { title: "Software Engineer", company: "TechCorp", location: "San Francisco, CA", salary: "$120,000/year", job_type: "Full-Time" },
+                { title: "Marketing Manager", company: "MarketPros", location: "New York, NY", salary: "$90,000/year", job_type: "Part-Time" }
+            ];
+
+            const jobListings = document.querySelector(".job-listings");
+            jobListings.innerHTML = ""; // Clear existing listings
+
+            favoriteJobs.forEach(job => {
+                const jobCard = document.createElement("div");
+                jobCard.classList.add("job-card");
+                jobCard.innerHTML = `
+                    <div class="job-info">
+                        <h2>${job.title}</h2>
+                        <p><strong>Company:</strong> ${job.company}</p>
+                        <p><strong>Location:</strong> ${job.location}</p>
+                        <p><strong>Salary:</strong> ${job.salary}</p>
+                        <p><strong>Job Type:</strong> ${job.job_type}</p>
+                    </div>
+                    <span class="favorite-star active" onclick="toggleFavorite(this)">★</span>
+                `;
+                jobListings.appendChild(jobCard);
+            });
+        }
+
+        window.onload = loadFavoriteJobs;
+    </script>
+</head>
+<body>
+    <!-- Navbar -->
+    <div class="navbar">
+        <div class="left-section">
+            <a href="#" class="filter-button">Filter Jobs</a>
+        </div>
+        <div class="right-section">
+            <a href="{% url 'applicants-account' %}" class="nav-link">Account</a>
+            <a href="{% url 'applicants-home-page' %}" class="nav-link">Home</a>
+            <a href="{% url 'applicants-applied-jobs' %}" class="nav-link">Applied Jobs</a>
+        </div>
+    </div>
+
+    <!-- Page Header -->
+    <h1 class="page-header">Favourite Jobs</h1>
+
+    <!-- Job Listings -->
+    <div class="job-listings">
+        <!-- Favorite jobs will be dynamically loaded here -->
+    </div>
+</body>
+</html>

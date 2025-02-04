@@ -62,3 +62,6 @@ def applicants_account(request, applicant_id=None):
 
 def applicants_applied_jobs(request):
     return render(request, 'applicants_applied_jobs.html')
+
+def applicants_favourites(request):
+    return render(request, 'applicants_favourites.html')
