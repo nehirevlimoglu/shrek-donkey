@@ -4,22 +4,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Login - Swamp Hirin</title>
     <link rel="stylesheet" href="{% static 'css/log_in.css' %}">
 </head>
 <body>
-    <div class="login-container">
-        <h2>Login</h2>
-        <form action="{% url 'log-in' %}" method="POST">
-            {% csrf_token %}
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
+    <div class="container">
+        <!-- Branding Section -->
+        <div class="left-section">
+            <h1>Welcome to Swamp Hiring! 👋</h1>
+            <p>Find the right job or hire the best talent effortlessly. <br> Streamline hiring with Swamp Hiring.</p>
+        </div>
+
+        <!-- Login Section -->
+        <div class="right-section">
+            <h2>Welcome Back!</h2>
+            <form method="POST" action="{% url 'log-in' %}">
+                {% csrf_token %}  <!-- ✅ This is REQUIRED for Django security -->
+                
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
             
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
             
-            <button type="submit">Log in</button>
-        </form>
+                <button type="submit">Log in</button>
+            </form>
+            
+        </div>
     </div>
 </body>
 </html>

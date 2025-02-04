@@ -1,12 +1,13 @@
+# Ignore Python cache
 __pycache__/
-*.py[cod]
+*.pyc
+*.pyo
 
 env/
 venv/
 myenv/
 
-*.sqlite3
+# Ignore SQLite database
 db.sqlite3
-*.log
 
 .DS_Store
