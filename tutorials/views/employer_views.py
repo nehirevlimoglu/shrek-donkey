@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from tutorials.models.employer_models import Employer
 from tutorials.forms.forms import SignUpForm
+from tutorials.forms.employer_forms import JobForm
 
 def is_employer(user):
     return user.role == 'Employer'
@@ -53,3 +54,15 @@ def employer_login(request):
     else:
         form = LogInForm()
     return render(request, 'log_in.html', {'form': form})
+def create_job_listing(request):
+    if request.method == 'POST':
+        form = JobForm(request.POST)
+        if form.is_valid():
+            job = form.save(commit=False)
+            job.employer = request.user 
+            job.save()
+            return redirect('employer_create_job_listings')  
+    else:
+        form = JobForm()
+
+    return render(request, 'employer_create_job_listing.html', {'form': form})
