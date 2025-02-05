@@ -24,9 +24,8 @@ urlpatterns =[
     path('log_in/', log_in, name='log-in'),  # ✅ Ensure this matches the form action
     path('homepage/', home_page, name='home-page'),
     path('logout/', log_out, name='log-out'),
-    path('', home_page, name='home'),
     path('applicants_home_page/', applicants_home_page, name='applicants-home-page'), #m
-    path('applicants_favourites/', applicants_favourites, name='favourites'),
+    path('applicants_favourites/', applicants_favourites, name='applicants-favourites'),
     path('applicants-applied-jobs/', applicants_applied_jobs, name='applicants-applied-jobs'),
     path("applicants_account/", applicants_account, name="applicants-account"),
 ]
