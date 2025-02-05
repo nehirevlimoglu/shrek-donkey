@@ -8,38 +8,51 @@
     <title>Sign Up - Swamp Hiring</title>
 </head>
 <body>
-    <div class="section" id="welcome">
-        <div class="title">Swamp Hiring</div>
-    </div>
-    
     <div class="auth-container" id="auth-section">
         <div class="card">
             <h2>Sign Up</h2>
             <form method="POST" action="{% url 'sign-up' %}">
                 {% csrf_token %}
-                
+
+                <!-- First Name & Last Name -->
+                <input type="text" name="first_name" placeholder="First Name" value="{{ form.first_name.value|default:'' }}" required>
+                <input type="text" name="last_name" placeholder="Last Name" value="{{ form.last_name.value|default:'' }}" required>
+
                 <!-- Username Field -->
-                <input type="text" name="username" placeholder="Username" required>
-                
-                <!-- Email Field -->
-                <input type="email" name="email" placeholder="Email Address" required>
+                <input type="text" name="username" placeholder="Username" value="{{ form.username.value|default:'' }}" required>
+
+
+                <!-- Email Fields -->
+                <input type="email" name="email" placeholder="Email Address" value="{{ form.email.value|default:'' }}" required>
+                <input type="email" name="confirm_email" placeholder="Confirm Email" value="{{ form.confirm_email.value|default:'' }}" required>
 
                 <!-- Role Selection -->
                 <select name="role" class="form-control" required>
                     <option value="" disabled selected>Select Your Role</option>
-                    <option value="Employer">Employer</option>
-                    <option value="Applicant">Applicant</option>
-                    <option value="Admin">Admin</option>
+                    {% for key, value in form.role.field.choices %}
+                        <option value="{{ key }}" {% if form.role.value == key %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
                 </select>
 
                 <!-- Password Fields -->
                 <input type="password" name="password1" placeholder="Password" required>
                 <input type="password" name="password2" placeholder="Confirm Password" required>
 
+                <!-- 🚨 Error Messages at the Bottom -->
+                {% if form.errors %}
+                    <div class="error-message">
+                        {% for field, errors in form.errors.items %}
+                            {% for error in errors %}
+                                <p class="error">{{ error }}</p>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
                 <!-- Submit Button -->
                 <button class="button" type="submit">Sign Up</button>
             </form>
-            
+
             <p class="toggle-link">
                 Already have an account? <a href="{% url 'log-in' %}">Log in</a>
             </p>
