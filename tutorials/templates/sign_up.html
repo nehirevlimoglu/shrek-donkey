@@ -1,0 +1,49 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/sign_up.css' %}">
+    <title>Sign Up - Swamp Hiring</title>
+</head>
+<body>
+    <div class="section" id="welcome">
+        <div class="title">Swamp Hiring</div>
+    </div>
+    
+    <div class="auth-container" id="auth-section">
+        <div class="card">
+            <h2>Sign Up</h2>
+            <form method="POST" action="{% url 'sign-up' %}">
+                {% csrf_token %}
+                
+                <!-- Username Field -->
+                <input type="text" name="username" placeholder="Username" required>
+                
+                <!-- Email Field -->
+                <input type="email" name="email" placeholder="Email Address" required>
+
+                <!-- Role Selection -->
+                <select name="role" class="form-control" required>
+                    <option value="" disabled selected>Select Your Role</option>
+                    <option value="Employer">Employer</option>
+                    <option value="Applicant">Applicant</option>
+                    <option value="Admin">Admin</option>
+                </select>
+
+                <!-- Password Fields -->
+                <input type="password" name="password1" placeholder="Password" required>
+                <input type="password" name="password2" placeholder="Confirm Password" required>
+
+                <!-- Submit Button -->
+                <button class="button" type="submit">Sign Up</button>
+            </form>
+            
+            <p class="toggle-link">
+                Already have an account? <a href="{% url 'log-in' %}">Log in</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

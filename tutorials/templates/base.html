@@ -15,22 +15,24 @@
             <h2>Swamp Hiring</h2>
             <nav>
                 <ul>
-                    
-                    <li><a href="{% url 'admin_home_page' %}" class="admin-dashboard-btn">Dashboard</a></li>
-                    <li><a href="{% url 'admin_job_listings' %}" class="admin-job-listings-btn">Job Listings</a></li>
-                    <li><a href="{% url 'admin_home_page' %}" class="admin-management-btn">User Management</a></li>
-                    <li><a href="{% url 'admin_home_page' %}" class="admin-reports-btn">Reports</a></li>
-                    <li><a href="{% url 'admin_settings' %}" class="admin-settings-btn">Settings</a></li>
-                    {% if user.is_admin %}
-                    #Admin buttons here
-                    {% elif user.is_employer %}
-                    #Employer sidebar buttons here
-                    {% elif user.is_applicant %}
-                    #Applicant sidebar buttons here
+                    {% if user.is_authenticated %}
+                        {% if user.role == "Employer" %}
+                            <li><a href="{% url 'employer_home_page' %}">Dashboard</a></li>
+                            <li><a href="{% url 'employer_job_listings' %}">My Job Listings</a></li>
+                            <li><a href="{% url 'employer_reports' %}">Reports</a></li>
+                            <li><a href="{% url 'employer_settings' %}">Settings</a></li>
+                        {% elif user.role == "Admin" %}
+                            <li><a href="{% url 'admin_home_page' %}">Admin Dashboard</a></li>
+                            <li><a href="{% url 'admin_job_listings' %}">Manage Job Listings</a></li>
+                            <li><a href="{% url 'admin_settings' %}">Settings</a></li>
+                        {% else %}
+                            <li><a href="{% url 'home_page' %}">Home</a></li>
+                        {% endif %}
                     {% endif %}
                 </ul>
             </nav>
         </aside>
+        
 
         <main class="content">
             <!-- Always present welcome message -->
