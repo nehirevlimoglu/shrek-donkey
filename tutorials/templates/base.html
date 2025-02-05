@@ -1,0 +1,52 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard | Swamp Hiring{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/admin_home_page.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <h2>Swamp Hiring</h2>
+            <nav>
+                <ul>
+                    
+                    <li><a href="{% url 'admin_home_page' %}" class="admin-dashboard-btn">Dashboard</a></li>
+                    <li><a href="{% url 'admin_job_listings' %}" class="admin-job-listings-btn">Job Listings</a></li>
+                    <li><a href="{% url 'admin_home_page' %}" class="admin-management-btn">User Management</a></li>
+                    <li><a href="{% url 'admin_home_page' %}" class="admin-reports-btn">Reports</a></li>
+                    <li><a href="{% url 'admin_settings' %}" class="admin-settings-btn">Settings</a></li>
+                    {% if user.is_admin %}
+                    #Admin buttons here
+                    {% elif user.is_employer %}
+                    #Employer sidebar buttons here
+                    {% elif user.is_applicant %}
+                    #Applicant sidebar buttons here
+                    {% endif %}
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <!-- Always present welcome message -->
+            <header>
+                <h1>Welcome Back, {{ user.first_name }} 👋</h1>
+                <form action="{% url 'log-out' %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">Log Out</button>
+                </form>
+            </header>
+
+            <!-- Block for unique content on each page -->
+            {% block content %}
+            <!-- Default content can go here (optional) -->
+            {% endblock %}
+        </main>
+    </div>
+</body>
+</html>
