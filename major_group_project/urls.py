@@ -17,16 +17,21 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from tutorials.views.views import log_in, home_page, log_out  
+<<<<<<< HEAD
 from tutorials.views.admin_views import admin_home_page, admin_job_listings
 from tutorials.views.employer_views import employer_home_page, view_listings, view_reports, view_settings
+=======
+from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings
+>>>>>>> c1bb941b4401da837515309ab51e1a0dac52ee28
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', log_in, name='home'),
     path('log_in/', log_in, name='log-in'),  
     path('homepage/', home_page, name='home-page'),
     path('logout/', log_out, name='log-out'),
-    path('', home_page, name='home'),
     path('admin_home_page/', admin_home_page, name='admin_home_page'),
+<<<<<<< HEAD
     path('admin_job_listings', admin_job_listings, name='admin_job_listings'),
     path('employer_home_page', employer_home_page, name='employer_home_page'),
     path('employer_job_listings', view_listings, name='employer_job_listings'),
@@ -35,3 +40,8 @@ urlpatterns = [
  
 ]
 
+=======
+    path('admin_job_listings/', admin_job_listings, name='admin_job_listings'),
+    path('admin_settings/', admin_settings, name='admin_settings')
+]
+>>>>>>> c1bb941b4401da837515309ab51e1a0dac52ee28

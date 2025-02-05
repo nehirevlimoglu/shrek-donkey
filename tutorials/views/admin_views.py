@@ -8,8 +8,14 @@ def is_admin(user):
 
 @user_passes_test(is_admin)
 def admin_home_page(request):
-    admins = Admin.objects.all()
-    return render(request, 'admin_home_page.html', {'admins': admins})
+    admins = Admin.objects.all()  # Your existing data
+    return render(request, 'admin_home_page.html', {
+        'admins': admins,
+    })
+
 
 def admin_job_listings(request):
     return render(request, 'admin_job_listings.html')
+
+def admin_settings(request):
+    return render(request, 'admin_settings.html')

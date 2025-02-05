@@ -1,14 +1,8 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Listings | Swamp Hiring</title>
-    <link rel="stylesheet" href="{% static 'css/admin_job_listings.css' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Job Listings | Swamp Hiring{% endblock %}
+
+{% block content %}
     <div class="job-listings-container">
         <h1>Available Job Listings</h1>
         <div class="listings">
@@ -23,5 +17,4 @@
             {% endfor %}
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

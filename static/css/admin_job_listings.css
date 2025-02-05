@@ -25,14 +25,17 @@ h1 {
     width: 100%;
 }
 
-/* Listings */
+/* Listings - Grid Layout */
 .listings {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));  /* Auto-adjust columns */
     gap: 20px;
     width: 100%;
-    max-width: 1600px; /* Increased width */
-    align-items: center;
+    max-width: 1600px;  /* Max width of the listings container */
+    margin-top: 20px;
+    padding: 10px;
+    overflow-y: auto;  /* Scrollable if there are many job cards */
+    max-height: 80vh;  /* Set maximum height for scrolling */
 }
 
 .job-card {
@@ -42,17 +45,19 @@ h1 {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     text-align: center;
     width: 100%;
-    max-width: 1400px; /* Make it wider */
+    min-height: 250px;  /* Minimum height to ensure consistency in card size */
 }
 
 .job-card h2 {
     font-size: 24px;
     margin-bottom: 10px;
+    color: #333;
 }
 
 .job-card p {
     font-size: 18px;
     margin-bottom: 8px;
+    color: #555;
 }
 
 .apply-btn {
@@ -68,4 +73,13 @@ h1 {
 
 .apply-btn:hover {
     background: #1558B5;
+}
+
+/* Optional: Enhance the appearance of the job-listings-container */
+.job-listings-container {
+    width: 100%;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
