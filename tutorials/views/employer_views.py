@@ -28,7 +28,7 @@ def create_job_listing(request):
             job = form.save(commit=False)
             job.employer = request.user 
             job.save()
-            return redirect('employer_job_listings')  
+            return redirect('employer_create_job_listings')  
     else:
         form = JobForm()
 
