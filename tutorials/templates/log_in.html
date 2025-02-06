@@ -4,32 +4,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Swamp Hirin</title>
     <link rel="stylesheet" href="{% static 'css/log_in.css' %}">
+    <title>Swamp Hiring</title>
 </head>
 <body>
-    <div class="container">
-        <!-- Branding Section -->
-        <div class="left-section">
-            <h1>Welcome to Swamp Hiring! 👋</h1>
-            <p>Find the right job or hire the best talent effortlessly. <br> Streamline hiring with Swamp Hiring.</p>
-        </div>
+    <div class="section" id="welcome">
+        <div class="title">Swamp Hiring</div>
+    </div>
+    
+    <div class="auth-container" id="auth-section">
+        <div class="card">
+            <!-- Login Form -->
+            <div id="login-form">
+                <h2>Log In</h2>
+                <form method="POST" action="{% url 'log-in' %}">
+                    {% csrf_token %}
+                    <input type="text" name="username" placeholder="Username" required><br>
+                    <input type="password" name="password" placeholder="Password" required><br>
+                    <button class="button" type="submit">Log In</button>
+                </form>
+                <p class="toggle-link" onclick="toggleForm()">Don't have an account? Sign up</p>
+            </div>
 
-        <!-- Login Section -->
-        <div class="right-section">
-            <h2>Welcome Back!</h2>
-            <form method="POST" action="{% url 'log-in' %}">
-                {% csrf_token %}  <!-- ✅ This is REQUIRED for Django security -->
-                
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-            
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-            
-                <button type="submit">Log in</button>
-            </form>
-            
+            <!-- Sign-Up Form -->
+            <div id="signup-form" style="display: none;">
+                <h2>Sign Up</h2>
+                <form method="POST" action="{% url 'sign-up' %}">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button class="button" type="submit">Sign Up</button>
+                </form>
+                <p class="toggle-link">
+                    Already have an account? <a href="{% url 'log-in' %}">Log in</a>
+                </p>
+            </div>
         </div>
     </div>
 </body>

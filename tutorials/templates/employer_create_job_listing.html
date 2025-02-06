@@ -1,0 +1,12 @@
+{% load static %}
+
+{% block content %}
+  <div class="form-container">
+      <h1>Create a New Job Listing</h1>
+      <form method="POST">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button type="submit">Create Job</button>
+      </form>
+  </div>
+{% endblock %}

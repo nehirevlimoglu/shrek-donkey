@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Job Listings | Swamp Hiring{% endblock %}
+
+{% block content %}
+    <section class="job-listings">
+        <h2>Job Listings</h2>
+
+        <!-- Job Listing 1 -->
+        <div class="job-listing">
+            <a href="job-details.html?id=1">
+                <h2 class="job-title">Software Engineer</h2>
+                <p class="job-description">Join our dynamic tech team working on innovative projects.</p>
+            </a>
+        </div>
+
+        <!-- Job Listing 2 -->
+        <div class="job-listing">
+            <a href="job-details.html?id=2">
+                <h2 class="job-title">Product Manager</h2>
+                <p class="job-description">Help us design and implement product strategies for success.</p>
+            </a>
+        </div>
+
+        <!-- Job Listing 3 -->
+        <div class="job-listing">
+            <a href="job-details.html?id=3">
+                <h2 class="job-title">Data Scientist</h2>
+                <p class="job-description">Analyze complex data sets to drive business insights and decisions.</p>
+            </a>
+        </div>
+    </section>
+{% endblock %}
