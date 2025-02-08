@@ -1,4 +1,8 @@
 {% load static %}
+{% csrf_token %} 
+{% load django_browser_reload %}
+{% django_browser_reload_script %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -26,10 +30,20 @@
         <main class="content">
             <header>
                 <h1>Welcome Back, {{ user.first_name }} 👋</h1>
-                <form action="{% url 'log-out' %}" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="logout-btn">Log Out</button>
-                </form>
+                <div class="header-actions">
+                    <a href="{% url 'admin_notifications' %}" class="notifications-btn">
+                        <span class="notifications-icon">🔔</span>
+                        {% with notif_count=user.notifications.all %}
+                            {% if notif_count %}
+                                <span class="notifications-count">{{ notif_count.count }}</span>
+                            {% endif %}
+                        {% endwith %}
+                    </a>
+                    <form action="{% url 'log-out' %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">Log Out</button>
+                    </form>
+                </div>
             </header>
 
             <section class="overview">

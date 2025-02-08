@@ -19,8 +19,7 @@
         <div class="right-section">
             <h2>Welcome Back!</h2>
             <form method="POST" action="{% url 'log-in' %}">
-                {% csrf_token %}  <!-- ✅ This is REQUIRED for Django security -->
-                
+                {% csrf_token %}
                 <label for="username">Username:</label>
                 <input type="text" id="username" name="username" required>
             

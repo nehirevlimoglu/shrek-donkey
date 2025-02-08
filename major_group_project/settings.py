@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'tutorials',
+    "django_browser_reload"
 ]
 
 MIDDLEWARE = [
@@ -121,7 +122,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 # User model for authentication and login purposes
 AUTH_USER_MODEL = 'tutorials.User'
 
@@ -136,3 +139,4 @@ REDIRECT_URL_WHEN_LOGGED_IN_ADMIN = 'admin_home_page'
 REDIRECT_URL_WHEN_LOGGED_IN_EMPLOYER = 'employer_home_page'
 REDIRECT_URL_WHEN_LOGGED_IN_APPLICANT = 'applicant_home_page'
 REDIRECT_URL_WHEN_LOGGED_IN = 'home_page'
+
