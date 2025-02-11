@@ -58,22 +58,9 @@ def home_page(request):
 def log_out(request):
     print("User before logout:", request.user)  # ✅ Debug: Check user before logout
     logout(request)
-<<<<<<< HEAD
     return redirect('log-in')  # Redirect to login page after logout
 
-def account(request):
-    return render(request, 'account.html')
-
-def favourites(request):
-    return render(request, 'favourites.html')
-
-def applied_jobs(request):
-    return render(request, 'applied_jobs.html')
 
 
 
-
-=======
-    print("User should be logged out now.")  # ✅ Debug: Confirm logout was called
-    return redirect('log-in')  # ✅ Redirect to login page
->>>>>>> origin/employers
+    
