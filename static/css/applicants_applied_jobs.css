@@ -1,0 +1,151 @@
+/* General Styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f4f4f4;
+}
+
+/* Navbar */
+.navbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background-color: #0073e6;
+    color: white;
+}
+
+/* Left & Right Sections */
+.left-section, .right-section {
+    display: flex;
+    align-items: center;
+}
+
+.right-section {
+    flex-direction: row;
+}
+
+/* Button Styles */
+.filter-button, .nav-link {
+    background-color: white;
+    color: #0073e6;
+    padding: 10px 15px;
+    margin: 5px;
+    border: 1px solid #0073e6;
+    cursor: pointer;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.filter-button:hover, 
+.nav-link:hover {
+    background-color: #005bb5;
+    color: white;
+}
+
+/* Page Header */
+.page-header {
+    font-size: 2rem;
+    color: #333;
+    margin: 20px 0;
+    text-align: center;
+}
+
+/* Job Listings Container */
+.job-listings {
+    width: 80%;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+/* Job Card Styling */
+.job-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+}
+
+.job-card h2 {
+    color: #0073e6;
+    margin: 0 0 10px 0;
+    font-size: 1.2em;
+}
+
+.job-card p {
+    margin: 5px 0;
+    color: #333;
+}
+
+/* Favorite Star Styling */
+.star {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #ccc;
+    transition: color 0.3s ease;
+}
+
+.star:hover {
+    color: #ffd700;
+}
+
+.star.active {
+    color: #ffd700;
+}
+
+/* Filter Dropdown */
+.filter-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: white;
+    padding: 12px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    min-width: 200px;
+    margin-top: 5px;
+}
+
+.filter-dropdown.show {
+    display: block;
+}
+
+#filter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#filter-form label {
+    font-size: 0.9em;
+    color: #555;
+}
+
+#filter-form input,
+#filter-form select {
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.apply-filters {
+    margin-top: 8px;
+    padding: 6px 12px;
+    font-size: 0.9em;
+}

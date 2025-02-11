@@ -58,5 +58,9 @@ def home_page(request):
 def log_out(request):
     print("User before logout:", request.user)  # ✅ Debug: Check user before logout
     logout(request)
-    print("User should be logged out now.")  # ✅ Debug: Confirm logout was called
-    return redirect('log-in')  # ✅ Redirect to login page
+    return redirect('log-in')  # Redirect to login page after logout
+
+
+
+
+    
