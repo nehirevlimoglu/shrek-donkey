@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Employer Dashboard | Swamp Hiring{% endblock %}
+
+{% block content %}
+    <section class="overview">
+        <div class="card">
+            <h3>Total Jobs Posted</h3>
+            <p>15</p>
+        </div>
+        <div class="card">
+            <h3>Active Listings</h3>
+            <p>6</p>
+        </div>
+        <div class="card">
+            <h3>Total Applicants</h3>
+            <p>243</p>
+        </div>
+    </section>
+
+    <section class="recent-applicants">
+        <h2>Recent Applicants</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Applicant Name</th>
+                    <th>Job Applied</th>
+                    <th>Status</th>
+                    <th>Resume</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>John Doe</td>
+                    <td>Software Engineer</td>
+                    <td><span class="badge under-review">Under Review</span></td>
+                    <td><a href="#" class="resume-link">View Resume</a></td>
+                    <td><button class="view-btn">Review</button></td>
+                </tr>
+                <tr>
+                    <td>Jane Smith</td>
+                    <td>Project Manager</td>
+                    <td><span class="badge interviewed">Interviewed</span></td>
+                    <td><a href="#" class="resume-link">View Resume</a></td>
+                    <td><button class="view-btn">Review</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+{% endblock %}

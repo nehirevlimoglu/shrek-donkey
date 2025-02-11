@@ -4,14 +4,14 @@ from faker import Faker
 
 user_fixtures = [
     {'username': '@damla', 'email': 'Damla@example.org', 'first_name': 'Damla', 'last_name': 'Sen', 'role': 'Employer'},
-    {'username': '@tan', 'email': 'Tan@example.org', 'first_name': 'Tan', 'last_name': 'Yukseloglu', 'role': 'employer'},
-    {'username': '@rares', 'email': 'Rares@example.org', 'first_name': 'Rares', 'last_name': 'Filimon', 'role': 'job_seeker'},
-    {'username': '@mert', 'email': 'Mert@example.org', 'first_name': 'Mert', 'last_name': 'Johnson', 'role': 'employer'},
+    {'username': '@tan', 'email': 'Tan@example.org', 'first_name': 'Tan', 'last_name': 'Yukseloglu', 'role': 'Employer'},
+    {'username': '@rares', 'email': 'Rares@example.org', 'first_name': 'Rares', 'last_name': 'Filimon', 'role': 'Applicant'},
+    {'username': '@mert', 'email': 'Mert@example.org', 'first_name': 'Mert', 'last_name': 'Johnson', 'role': 'Employer'},
     {'username': '@jj', 'email': 'Jj@example.org', 'first_name': 'JJ', 'last_name': 'Zhou', 'role': 'Admin'},
-    {'username': '@finn', 'email': 'Finn@example.org', 'first_name': 'Finn', 'last_name': 'Corney', 'role': 'employer'},
-    {'username': '@liam', 'email': 'Liam@example.org', 'first_name': 'Liam', 'last_name': 'Ferran', 'role': 'job_seeker'},
+    {'username': '@finn', 'email': 'Finn@example.org', 'first_name': 'Finn', 'last_name': 'Corney', 'role': 'Employer'},
+    {'username': '@liam', 'email': 'Liam@example.org', 'first_name': 'Liam', 'last_name': 'Ferran', 'role': 'Applicant'},
     {'username': '@trong', 'email': 'Trong@example.org', 'first_name': 'Trong', 'last_name': 'Vu', 'role': 'Admin'},
-    {'username': '@nehir', 'email': 'Nehir@example.org', 'first_name': 'Nehir', 'last_name': 'Evlimoglu', 'role': 'employer'},
+    {'username': '@nehir', 'email': 'Nehir@example.org', 'first_name': 'Nehir', 'last_name': 'Evlimoglu', 'role': 'Employer'},
 ]
 
 class Command(BaseCommand):
@@ -46,7 +46,7 @@ class Command(BaseCommand):
     def generate_random_users(self):
         user_count = User.objects.count()
         employer_count = User.objects.filter(role='Employer').count()
-        applicant_count = User.objects.filter(role='Job Seeker').count()
+        applicant_count = User.objects.filter(role='Applicant').count()
         admin_count = User.objects.filter(role='Admin').count()
 
         while user_count < self.USER_COUNT:
@@ -59,7 +59,7 @@ class Command(BaseCommand):
                 self.generate_user('Admin')
                 admin_count += 1
             else:
-                self.generate_user('Job Seeker')
+                self.generate_user('Applicant')
                 applicant_count += 1
 
             user_count = User.objects.count()

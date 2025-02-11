@@ -1,0 +1,4 @@
+Django==5.1.2
+Faker==30.8.2
+libgravatar==1.0.4
+Pillow==11.1.0

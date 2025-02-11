@@ -58,7 +58,7 @@ ROOT_URLCONF = 'major_group_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'tutorials/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -129,3 +129,10 @@ AUTH_USER_MODEL = 'tutorials.User'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = 'log_in'
+
+REDIRECT_URL_WHEN_LOGGED_IN_ADMIN = 'admin_home_page'
+REDIRECT_URL_WHEN_LOGGED_IN_EMPLOYER = 'employer_home_page'
+REDIRECT_URL_WHEN_LOGGED_IN_APPLICANT = 'applicant_home_page'
+REDIRECT_URL_WHEN_LOGGED_IN = 'home_page'

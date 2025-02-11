@@ -1,48 +1,17 @@
+/* General Page Styling */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background: linear-gradient(to bottom, #E4E4DE, #C4C5BA);
-}
-.section {
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    background: rgba(52,73,94,0.8);
-}
-.title {
-    font-size: 36px;
-    font-weight: bold;
-    color: white;
-}
-.auth-container {
-    height: 100vh;
-    background: #FFFFFF;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-.card {
     background: white;
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
-    text-align: center;
-    width: 100%;
-    max-width: 400px; /* Prevents excessive width */
-    min-width: 320px; /* Ensures responsiveness */
-    margin: auto; /* Centers the card */
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-h2 {
-    color: #1A202C;
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 20px;
-}
-input {
+/* Ensure consistency in form fields */
+input, select {
     width: 100%;
     padding: 14px;
     border: 1px solid #E2E8F0;
@@ -51,14 +20,64 @@ input {
     margin-bottom: 14px;
     background: #F8F9FA;
     color: #1A202C;
-    box-sizing: border-box; /* Fix width calculation */
+    box-sizing: border-box;  /* Ensures padding doesn't affect width */
 }
 
+/* Fix select dropdown height to match input fields */
+select {
+    appearance: none; /* Removes default browser styles */
+    height: 48px;  /* Ensure same height as input fields */
+    padding: 14px;
+}
+
+/* Center the sign-up form properly */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100vh;
+}
+
+/* Fix overall card styling */
+.card {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;  /* Prevents width expansion */
+}
+
+
+/* Title Styling */
+h2 {
+    color: #1B1B1B;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Fixing Form Inputs */
+input, select {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 14px;
+    background: #F8F9FA;
+    color: #1A202C;
+}
+
+/* Sign-Up Button */
 .button {
     display: block;
     width: 100%;
     padding: 14px;
-    background: #1A73E8; /* Indeed Blue */
+    background: #1A73E8; /* Match Login Page Button */
     color: white;
     border: none;
     border-radius: 8px;
@@ -68,18 +87,24 @@ input {
     transition: background 0.3s ease;
     box-shadow: 0 3px 6px rgba(26, 115, 232, 0.3);
 }
+
 .button:hover {
     background: rgba(26, 115, 232, 0.8);
 }
 
+/* Fixing Link Styling */
 .toggle-link {
     margin-top: 15px;
-    cursor: pointer;
     color: #1A202C;
     font-size: 16px;
-    text-decoration: none; /* Removed underline */
 }
 
-.toggle-link:hover {
+.toggle-link a {
+    color: #1A73E8;
     text-decoration: none;
+    font-weight: bold;
+}
+
+.toggle-link a:hover {
+    text-decoration: underline;
 }

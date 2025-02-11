@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard | Swamp Hiring{% endblock %}
+
+{% block content %}
+    <section class="overview">
+        <div class="card">
+            <h3>Total Job Listings</h3>
+            <p>152</p>
+        </div>
+        <div class="card">
+            <h3>Pending Applications</h3>
+            <p>34</p>
+        </div>
+        <div class="card">
+            <h3>Active Users</h3>
+            <p>2,480</p>
+        </div>
+        <div class="card">
+            <h3>New Hires This Month</h3>
+            <p>26</p>
+        </div>
+    </section>
+
+    <section class="job-listings">
+        <h2>Recent Job Listings</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Company</th>
+                    <th>Status</th>
+                    <th>Applicants</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Software Engineer</td>
+                    <td>ABC Tech</td>
+                    <td><span class="badge open">Open</span></td>
+                    <td>120</td>
+                    <td><button class="view-btn">View</button></td>
+                </tr>
+                <tr>
+                    <td>Product Manager</td>
+                    <td>XYZ Corp</td>
+                    <td><span class="badge closed">Closed</span></td>
+                    <td>80</td>
+                    <td><button class="view-btn">View</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+{% endblock %}
