@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications | Swamp Hiring</title>
+    <link rel="stylesheet" href="{% static 'css/admin_notifications.css' %}">
+    <link rel="stylesheet" href="{% static 'css/admin_home_page.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <h2>Swamp Hiring</h2>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'admin_home_page' %}">Dashboard</a></li>
+                    <li><a href="{% url 'admin_job_listings' %}">Job Listings</a></li>
+                    <li><a href="#">User Management</a></li>
+                    <li><a href="#">Reports</a></li>
+                    <li><a href="#">Settings</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="content">
+            <header>
+                <h1>Notifications</h1>
+            </header>
+
+            <section class="notifications-list">
+                {% if notifications %}
+                    {% for notification in notifications %}
+                    <div class="notification-card {% if not notification.is_read %}unread{% endif %}">
+                        <h3>{{ notification.title }}</h3>
+                        <p>{{ notification.message }}</p>
+                        <span class="timestamp">{{ notification.created_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="no-notifications">No notifications available</p>
+                {% endif %}
+            </section>
+        </main>
+    </div>
+</body>
+</html>

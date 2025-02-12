@@ -17,7 +17,13 @@ def admin_job_listings(request):
 
 @user_passes_test(is_admin)
 def admin_notifications(request):
+    unread_count = Notification.objects.filter(recipient=request.user, is_read=False).count()
     notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
-    # Mark all as read when viewed
+
     notifications.update(is_read=True)
-    return render(request, 'admin_notifications.html', {'notifications': notifications})
+
+    return render(request, 'admin_notifications.html', {
+        'notifications': notifications,
+        'unread_count': unread_count, 
+    })
+
