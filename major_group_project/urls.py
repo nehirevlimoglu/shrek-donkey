@@ -19,6 +19,7 @@ from django.urls import path
 from tutorials.views.views import log_in, log_out, sign_up  
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings
 from tutorials.views.employer_views import employer_home_page, view_listings, view_reports, view_settings 
+from tutorials.views.employer_views import employer_home_page, view_listings, view_reports, view_settings, create_job_listing, job_detail_view
 
 
 
@@ -33,6 +34,9 @@ urlpatterns = [
     path('employer_job_listings', view_listings, name='employer_job_listings'),
     path('employer_reports', view_reports, name='employer_reports'),
     path('employer_settings', view_settings, name='employer_settings'),
+    path('employer_create_job_listings', create_job_listing, name='employer_create_job_listing'),
+    path('jobs/<int:pk>/', job_detail_view, name='employer_job_detail'),
+
     path('admin_job_listings/', admin_job_listings, name='admin_job_listings'),
     path('admin_settings/', admin_settings, name='admin_settings'),
     path('sign_up', sign_up, name='sign-up'),
