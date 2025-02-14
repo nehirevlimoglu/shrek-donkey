@@ -19,7 +19,7 @@
                     {% if user.is_authenticated %}
                         {% if user.role == "Employer" %}
                             <li><a href="{% url 'employer_home_page' %}">Dashboard</a></li>
-                            <li><a href="{% url 'employer_job_listings' %}">Job Listings</a></li>
+                            <li><a href="{% url 'create_job_listings' %}">Job Listings</a></li>
                             <li><a href="{% url 'employer_reports' %}">Reports</a></li>
                             <li><a href="{% url 'employer_settings' %}">Settings</a></li>
                         {% elif user.role == "Admin" %}
