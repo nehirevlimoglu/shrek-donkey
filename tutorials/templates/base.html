@@ -8,6 +8,7 @@
     <title>{% block title %}Admin Dashboard | Swamp Hiring{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/admin_home_page.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <div class="dashboard-container">
@@ -18,7 +19,7 @@
                     {% if user.is_authenticated %}
                         {% if user.role == "Employer" %}
                             <li><a href="{% url 'employer_home_page' %}">Dashboard</a></li>
-                            <li><a href="{% url 'employer_job_listings' %}">My Job Listings</a></li>
+                            <li><a href="{% url 'create_job_listings' %}">Job Listings</a></li>
                             <li><a href="{% url 'employer_reports' %}">Reports</a></li>
                             <li><a href="{% url 'employer_settings' %}">Settings</a></li>
                         {% elif user.role == "Admin" %}

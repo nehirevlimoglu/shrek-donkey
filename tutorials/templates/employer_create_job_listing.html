@@ -1,4 +1,12 @@
+{% extends 'base.html' %}
 {% load static %}
+
+{% block title %}Create Job Listing | Swamp Hiring{% endblock %}
+
+{# Insert our custom CSS file into the extra_css block #}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employer_create_job_listing.css' %}">
+{% endblock %}
 
 {% block content %}
   <div class="form-container">
@@ -6,7 +14,9 @@
       <form method="POST">
           {% csrf_token %}
           {{ form.as_p }}
-          <button type="submit">Create Job</button>
+
+          <!-- Use the .big-button class here so it picks up the styling -->
+          <button type="submit" class="big-button">Create Job</button>
       </form>
   </div>
 {% endblock %}
