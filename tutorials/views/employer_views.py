@@ -68,12 +68,16 @@ def employer_login(request):
 def change_password(request):
     if request.method == 'POST':
         form = CustomPasswordChangeForm(user=request.user, data=request.POST)
+        
         if form.is_valid():
             form.save()
-            update_session_auth_hash(request, form.user)  # Prevent logout after password change
-            return redirect('password_change_done')  # Redirect to a success page
+            update_session_auth_hash(request, form.user)  # Prevents logout after password change
+            messages.success(request, "Your password has been successfully changed.")  # Success message
+            return redirect('employer_settings')  # Redirect to settings
+        else:
+            messages.error(request, "There was an issue with your password change. Please check and try again.")
+
     else:
         form = CustomPasswordChangeForm(user=request.user)
     
     return render(request, 'change_password.html', {'form': form})
-
