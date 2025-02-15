@@ -35,7 +35,11 @@ class Job(models.Model):
     employer = models.ForeignKey(
         'tutorials.Employer',  # Correct reference to Employer model
         on_delete=models.CASCADE,
-        related_name='jobs'
+        related_name='jobs',
+
+        #For now
+        null = True,
+        blank = True
     )
     title = models.CharField(max_length=200)
     description = models.TextField()
