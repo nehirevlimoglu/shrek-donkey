@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile | Swamp Hiring{% endblock %}
+
+{% block content %}
+<div class="container vh-100 d-flex justify-content-center align-items-center">
+    <div class="row w-100">
+        <div class="col-md-6 offset-md-3">
+            <div class="card shadow-sm">
+                <div class="card-header text-center bg-light">
+                    <h1 class="mb-0">Edit Profile</h1>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'admin_settings' %}" method="post" class="p-3">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   value="{{ form.username.value|default:'' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ form.email.value|default:'' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" 
+                                   value="{{ form.first_name.value|default:'' }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" 
+                                   value="{{ form.last_name.value|default:'' }}" required>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-save me-2"></i>Update Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

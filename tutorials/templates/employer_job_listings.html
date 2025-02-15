@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Job Listings | Swamp Hiring{% endblock %}
+
+{% block content %}
+
+    <!-- Add a link or button at the top of the page -->
+     <link rel="stylesheet" href="{% static 'css/employer_create_job_button.css' %}" />
+
+    <a href="{% url 'employer_create_job_listing' %}" class="big-button">
+        + Create New Job
+    </a>
+    <section class="job-listings">
+
+        <h2>Job Listings</h2>
+
+        <!-- Job Example -->
+        <div class="job-listing">
+            <a href="job-details.html?id=1">
+                <h2 class="job-title">Software Engineer</h2>
+                <p class="job-description">Join our dynamic tech team working on innovative projects.</p>
+            </a>
+        </div>
+
+
+        {% for job in jobs %}
+        <div class="job-listing">
+            <!-- Link to the dynamic detail page, using job.pk as the URL argument -->
+            <a href="{% url 'employer_job_detail' job.pk %}">
+                <h2 class="job-title">{{ job.title }}</h2>
+                <!-- Optionally truncate the description or show the first X words/characters -->
+                <p class="job-description">{{ job.description|truncatewords:20 }}</p>
+            </a>
+        </div>
+    {% empty %}
+        <p>No job listings found.</p>
+    {% endfor %}
+    </section>
+{% endblock %}

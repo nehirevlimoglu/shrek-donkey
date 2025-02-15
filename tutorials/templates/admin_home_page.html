@@ -1,103 +1,55 @@
-{% load static %}
-{% csrf_token %} 
-{% load django_browser_reload %}
-{% django_browser_reload_script %}
+{% extends 'base.html' %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | Swamp Hiring</title>
-    <link rel="stylesheet" href="{% static 'css/admin_home_page.css' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="dashboard-container">
-        <aside class="sidebar">
-            <h2>Swamp Hiring</h2>
-            <nav>
-                <ul>
-                    <li><a href="#">Dashboard</a></li>
-                    <li><a href="{% url 'admin_job_listings' %}" class="job-listings-btn">Job Listings</a></li>
-                    <li><a href="#">User Management</a></li>
-                    <li><a href="#">Reports</a></li>
-                    <li><a href="#">Settings</a></li>
-                </ul>
-            </nav>
-        </aside>
-    
-        <div class="main-content-wrapper">
-            <header>
-                <h1>Welcome Back, {{ user.first_name }} 👋</h1>
-                <div class="header-actions">
-                    <a href="{% url 'admin_notifications' %}" class="notifications-btn">
-                        <span class="notifications-icon">🔔</span>
-                        {% if unread_count > 0 %}
-                        <span class="notifications-count">{{ unread_count }}</span>
-                        {% endif %}
-                    </a>                    
-                    
-                    <form action="{% url 'log-out' %}" method="POST">
-                        {% csrf_token %}
-                        <button type="submit" class="logout-btn">Log Out</button>
-                    </form>
-                </div>
-            </header>
-    
-            <main class="content">
-                <section class="overview">
-                    <div class="card">
-                        <h3>Total Job Listings</h3>
-                        <p>152</p>
-                    </div>
-                    <div class="card">
-                        <h3>Pending Applications</h3>
-                        <p>34</p>
-                    </div>
-                    <div class="card">
-                        <h3>Active Users</h3>
-                        <p>2,480</p>
-                    </div>
-                    <div class="card">
-                        <h3>New Hires This Month</h3>
-                        <p>26</p>
-                    </div>
-                </section>
-    
-                <section class="job-listings">
-                    <h2>Recent Job Listings</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Job Title</th>
-                                <th>Company</th>
-                                <th>Status</th>
-                                <th>Applicants</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Software Engineer</td>
-                                <td>ABC Tech</td>
-                                <td><span class="badge open">Open</span></td>
-                                <td>120</td>
-                                <td><button class="view-btn">View</button></td>
-                            </tr>
-                            <tr>
-                                <td>Product Manager</td>
-                                <td>XYZ Corp</td>
-                                <td><span class="badge closed">Closed</span></td>
-                                <td>80</td>
-                                <td><button class="view-btn">View</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
-            </main>
+{% block title %}Admin Dashboard | Swamp Hiring{% endblock %}
+
+{% block content %}
+    <section class="overview">
+        <div class="card">
+            <h3>Total Job Listings</h3>
+            <p>152</p>
         </div>
-    </div>
-    
-</body>
-</html>
+        <div class="card">
+            <h3>Pending Applications</h3>
+            <p>34</p>
+        </div>
+        <div class="card">
+            <h3>Active Users</h3>
+            <p>2,480</p>
+        </div>
+        <div class="card">
+            <h3>New Hires This Month</h3>
+            <p>26</p>
+        </div>
+    </section>
+
+    <section class="job-listings">
+        <h2>Recent Job Listings</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Company</th>
+                    <th>Status</th>
+                    <th>Applicants</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Software Engineer</td>
+                    <td>ABC Tech</td>
+                    <td><span class="badge open">Open</span></td>
+                    <td>120</td>
+                    <td><button class="view-btn">View</button></td>
+                </tr>
+                <tr>
+                    <td>Product Manager</td>
+                    <td>XYZ Corp</td>
+                    <td><span class="badge closed">Closed</span></td>
+                    <td>80</td>
+                    <td><button class="view-btn">View</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+{% endblock %}

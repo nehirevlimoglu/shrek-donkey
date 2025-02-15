@@ -4,14 +4,14 @@ from faker import Faker
 
 user_fixtures = [
     {'username': '@damla', 'email': 'Damla@example.org', 'first_name': 'Damla', 'last_name': 'Sen', 'role': 'Employer'},
-    {'username': '@tan', 'email': 'Tan@example.org', 'first_name': 'Tan', 'last_name': 'Yukseloglu', 'role': 'employer'},
+    {'username': '@tan', 'email': 'Tan@example.org', 'first_name': 'Tan', 'last_name': 'Yukseloglu', 'role': 'Employer'},
     {'username': '@rares', 'email': 'Rares@example.org', 'first_name': 'Rares', 'last_name': 'Filimon', 'role': 'Applicant'},
-    {'username': '@mert', 'email': 'Mert@example.org', 'first_name': 'Mert', 'last_name': 'Johnson', 'role': 'employer'},
+    {'username': '@mert', 'email': 'Mert@example.org', 'first_name': 'Mert', 'last_name': 'Johnson', 'role': 'Employer'},
     {'username': '@jj', 'email': 'Jj@example.org', 'first_name': 'JJ', 'last_name': 'Zhou', 'role': 'Admin'},
-    {'username': '@finn', 'email': 'Finn@example.org', 'first_name': 'Finn', 'last_name': 'Corney', 'role': 'employer'},
+    {'username': '@finn', 'email': 'Finn@example.org', 'first_name': 'Finn', 'last_name': 'Corney', 'role': 'Employer'},
     {'username': '@liam', 'email': 'Liam@example.org', 'first_name': 'Liam', 'last_name': 'Ferran', 'role': 'Applicant'},
     {'username': '@trong', 'email': 'Trong@example.org', 'first_name': 'Trong', 'last_name': 'Vu', 'role': 'Admin'},
-    {'username': '@nehir', 'email': 'Nehir@example.org', 'first_name': 'Nehir', 'last_name': 'Evlimoglu', 'role': 'employer'},
+    {'username': '@nehir', 'email': 'Nehir@example.org', 'first_name': 'Nehir', 'last_name': 'Evlimoglu', 'role': 'Employer'},
 ]
 
 class Command(BaseCommand):
