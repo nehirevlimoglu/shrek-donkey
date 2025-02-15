@@ -39,17 +39,20 @@
             <!-- Always present welcome message -->
             <header>
                 <h1>Welcome Back, {{ user.first_name }} 👋</h1>
-                <form action="{% url 'log-out' %}" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="logout-btn">Log Out</button>
-                </form>
-                <a href="{% url 'admin_notifications' %}" class="notifications-btn">
-                    <span class="notifications-icon">🔔</span>
-                    {% if unread_count > 0 %}
-                    <span class="notifications-count">{{ unread_count }}</span>
-                    {% endif %}
-                </a>  
+                <div class="header-actions">
+                    <a href="{% url 'admin_notifications' %}" class="notifications-btn">
+                        <span class="notifications-icon">🔔</span>
+                        {% if unread_count > 0 %}
+                        <span class="notifications-count">{{ unread_count }}</span>
+                        {% endif %}
+                    </a>  
+                    <form action="{% url 'log-out' %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">Log Out</button>
+                    </form>
+                </div>
             </header>
+            
 
             <!-- Block for unique content on each page -->
             {% block content %}

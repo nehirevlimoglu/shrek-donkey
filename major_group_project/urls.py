@@ -16,12 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from tutorials.views.views import log_in, home_page, log_out  # Import your views
+from tutorials.views.views import log_in,  log_out  # Import your views
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites 
-from tutorials.views.views import log_in, home_page, log_out, sign_up  
+from tutorials.views.views import log_in,  log_out, sign_up  
 from tutorials.views.views import log_in, log_out, sign_up  
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications
 from tutorials.views.employer_views import employer_home_page, view_reports, employer_settings, change_password, employer_settings, create_job_listings
+from django.urls import path, include
 
 
 
