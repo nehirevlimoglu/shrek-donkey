@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
-        fields = ['title', 'description', 'requirements', 'salary']
+        fields = ['title', 'description', 'requirements', 'salary', 'job_type']
 
 
 class CustomPasswordChangeForm(PasswordChangeForm):

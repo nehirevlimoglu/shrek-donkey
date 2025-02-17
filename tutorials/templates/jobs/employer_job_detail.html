@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employer_job_detail.css' %}">
+{% endblock %}
+
 {% block title %}{{ job.title }} | Swamp Hiring{% endblock %}
 
 {% block content %}
@@ -17,4 +21,12 @@
 
     <p><em>Posted on: {{ job.created_at|date:"F j, Y" }}</em></p>
 </div>
+
+<!-- Example buttons -->
+<a href="{% url 'job_edit' job.pk %}" class="edit-button">
+    Edit Job
+</a>
+<a href="#" class="applicants-button">
+    View Applicants
+</a>
 {% endblock %}

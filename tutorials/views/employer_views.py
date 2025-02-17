@@ -37,18 +37,45 @@ def employer_sign_up(request):
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
 
+def employer_job_listings(request):
+    jobs = Job.objects.all()  
+    return render(request, 'employer_job_listings.html', {'jobs': jobs})
+
 def create_job_listings(request):
     if request.method == 'POST':
         form = JobForm(request.POST)
         if form.is_valid():
             job = form.save(commit=False)
-            job.employer = request.user 
+            #job.employer = request.user.employer
+            job.employer = None
             job.save()
             return redirect('employer_job_listings')  
     else:
         form = JobForm()
 
     return render(request, 'employer_create_job_listing.html', {'form': form})
+
+def job_detail_view(request, pk):
+    job = get_object_or_404(Job, pk=pk)
+    return render(request, 'jobs/employer_job_detail.html', {'job': job})
+
+def edit_job_view(request, pk):
+    job = get_object_or_404(Job, pk=pk)
+
+    # if request.user != job.employer.user:
+    #     return HttpResponseForbidden("You do not have permission to edit this job.")
+
+    if request.method == 'POST':
+        form = JobForm(request.POST, instance=job)
+        if form.is_valid():
+            form.save()
+            return redirect('employer_job_detail', pk=job.pk)
+    else:
+        form = JobForm(instance=job)
+
+    return render(request, 'jobs/edit_job.html', {'form': form, 'job': job})
+
+    
 
 def employer_login(request):
     if request.method == 'POST':
