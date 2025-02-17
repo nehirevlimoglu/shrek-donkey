@@ -1,64 +1,82 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Applied Jobs</title>
-    <link rel="stylesheet" href="{% static 'css/applicants_applied_jobs.css' %}">
+
+{% block title %}My Applied Jobs | Swamp Hiring{% endblock %}
+
+{% block content %}
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <h2>Swamp Hiring</h2>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'applicants-account' %}">Account</a></li>
+                    <li><a href="{% url 'applicants-favourites' %}">Favourites</a></li>
+                    <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
+                </ul>
+            </nav>
+        </aside>
+        
+        <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
+            <h1 class="page-header">Applied Jobs</h1>
+            <div class="job-listings-container" style="width: 100%;">
+                <table class="job-table" style="width: 100%; text-align: center;">
+                    <thead>
+                        <tr>
+                            <th>Job Title</th>
+                            <th>Company</th>
+                            <th>Location</th>
+                            <th>Salary</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Favourite</th>
+                        </tr>
+                    </thead>
+                    <tbody class="job-listings">
+                        <!-- Applied jobs will be dynamically loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+    
     <script>
         function toggleFavorite(starElement) {
-            starElement.classList.toggle('active');
+            if (starElement.classList.contains("active")) {
+                starElement.classList.remove("active");
+                starElement.innerHTML = "&#9734;"; // Empty star (☆)
+            } else {
+                starElement.classList.add("active");
+                starElement.innerHTML = "&#9733;"; // Filled star (★)
+            }
         }
 
         function loadAppliedJobs() {
             const appliedJobs = [
-                { title: 'Software Engineer', company: 'TechCorp', location: 'San Francisco, CA', salary: '$120,000/year', jobType: 'Full-Time', status: 'In Review' },
-                { title: 'Marketing Manager', company: 'MarketPros', location: 'New York, NY', salary: '$90,000/year', jobType: 'Part-Time', status: 'Interview Scheduled' },
-                { title: 'Data Analyst', company: 'DataVision', location: 'Austin, TX', salary: '$85,000/year', jobType: 'Contract', status: 'Application Sent' },
+                { title: "Software Engineer", company: "TechCorp", location: "San Francisco, CA", salary: "$120,000/year", jobType: "Full-Time", status: "In Review" },
+                { title: "Marketing Manager", company: "MarketPros", location: "New York, NY", salary: "$90,000/year", jobType: "Part-Time", status: "Interview Scheduled" },
+                { title: "Data Analyst", company: "DataVision", location: "Austin, TX", salary: "$85,000/year", jobType: "Contract", status: "Application Sent" }
             ];
 
-            const jobListings = document.querySelector('.job-listings');
-            jobListings.innerHTML = ''; // Clear existing content
+            const jobListings = document.querySelector(".job-listings");
+            jobListings.innerHTML = "";
 
             appliedJobs.forEach(job => {
-                const jobCard = document.createElement('div');
-                jobCard.classList.add('job-card');
-                jobCard.innerHTML = `
-                    <div class="job-info">
-                        <h2>${job.title}</h2>
-                        <p><strong>Company:</strong> ${job.company}</p>
-                        <p><strong>Location:</strong> ${job.location}</p>
-                        <p><strong>Salary:</strong> ${job.salary}</p>
-                        <p><strong>Job Type:</strong> ${job.jobType}</p>
-                        <p><strong>Status:</strong> ${job.status}</p>
-                    </div>
-                    <span class="star" onclick="toggleFavorite(this)">&#9733;</span>
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${job.title}</td>
+                    <td>${job.company}</td>
+                    <td>${job.location}</td>
+                    <td>${job.salary}</td>
+                    <td>${job.jobType}</td>
+                    <td>${job.status}</td>
+                    <td>
+                        <span class="favorite-star" onclick="toggleFavorite(this)">&#9734;</span>
+                    </td>
                 `;
-                jobListings.appendChild(jobCard);
+                jobListings.appendChild(row);
             });
         }
 
         window.onload = loadAppliedJobs;
     </script>
-</head>
-<body>
-    <!-- Navbar -->
-    <div class="navbar">
-        <div class="left-section">
-            <button class="filter-button">Filter Jobs</button>
-        </div>
-        <div class="right-section">
-            <a href="{% url 'applicants-account' %}" class="nav-link">Account</a>
-            <a href="{% url 'applicants-favourites' %}" class="nav-link">Favourites</a>
-            <a href="{% url 'applicants-home-page' %}" class="nav-link">Home</a>
-        </div>
-    </div>
-
-    <!-- Header -->
-    <h1 class="page-header">Applied Jobs</h1>
-
-    <!-- Job Listings -->
-    <div class="job-listings"></div>
-</body>
-</html>
+{% endblock %}
