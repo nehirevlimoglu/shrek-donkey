@@ -65,3 +65,11 @@ def applicants_applied_jobs(request):
 
 def applicants_favourites(request):
     return render(request, 'applicants_favourites.html')
+
+def applicants_notifications(request):
+    notifications = [
+        {"title": "Interview Scheduled", "message": "Your interview with XYZ Corp is scheduled for tomorrow.", "timestamp": "2025-02-18 10:00 AM"},
+        {"title": "Job Application Update", "message": "Your application for the Software Engineer role at ABC Ltd. has been viewed.", "timestamp": "2025-02-17 05:00 PM"},
+    ]
+    
+    return render(request, 'applicants_notifications.html', {'notifications': notifications})
