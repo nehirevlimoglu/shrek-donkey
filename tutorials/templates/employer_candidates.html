@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Candidates | Swamp Hiring{% endblock %}
+
+{% block content %}
+    <h2>Job Candidates</h2>
+
+    {% if candidates %}
+        <ul>
+            {% for candidate in candidates %}
+                <li>
+                    <strong>{{ candidate.user.first_name }} {{ candidate.user.last_name }}</strong> 
+                    - {{ candidate.application_status }}
+                    <a href="{% url 'candidate_detail' candidate.pk %}">View Profile</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No candidates have applied yet.</p>
+    {% endif %}
+{% endblock %}

@@ -2,9 +2,10 @@ from django.core.validators import RegexValidator, MaxLengthValidator
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from libgravatar import Gravatar
-from tutorials.models.user_model import User
+from tutorials.models.user_model import User  # ✅ Import User model properly
 
-class Employer(User):
+
+class Employer(User):  # ✅ Employer should extend User
     company_name = models.CharField(max_length=255)
     company_website = models.URLField(blank=True, null=True)
     company_location = models.CharField(max_length=255)
@@ -33,13 +34,11 @@ class Employer(User):
 
 class Job(models.Model):
     employer = models.ForeignKey(
-        'tutorials.Employer',  # Correct reference to Employer model
+        'tutorials.models.employer_models.Employer',  # ✅ Correct reference to Employer
         on_delete=models.CASCADE,
         related_name='jobs',
-
-        #For now
-        null = True,
-        blank = True
+        null=True,  # ✅ Allow null for now (for testing)
+        blank=True
     )
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -56,8 +55,39 @@ class Job(models.Model):
             ('Apprenticeship', 'Apprenticeship')
         ],
         blank=True,
-        null=True  # Allow null values to avoid migration issues
+        null=True  
     )
 
     def __str__(self):
         return self.title
+
+
+class Candidate(models.Model):
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Interview', 'Interview Scheduled'),
+        ('Hired', 'Hired'),
+        ('Rejected', 'Rejected'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="applications")
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="candidates")
+    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
+    cover_letter = models.TextField(blank=True, null=True)
+    application_date = models.DateTimeField(auto_now_add=True)
+    application_status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='Pending')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.job.title}"
+
+
+class Interview(models.Model):
+    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name="interviews")
+    job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="job_interviews")
+    date = models.DateField()
+    time = models.TimeField()
+    interview_link = models.URLField(blank=True, null=True, help_text="Link for virtual interviews")
+    notes = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Interview for {self.candidate.user.username} - {self.job.title} on {self.date}"

@@ -3,23 +3,30 @@
 
 {% block title %}Job Listings | Swamp Hiring{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employer_create_job_listing.css' %}">
+{% endblock %}
+
 {% block content %}
-
     <section class="job-listings">
-
         <h2>Job Listings</h2>
 
-        {% for job in jobs %}
-        <div class="job-listing">
-            <a href="{% url 'employer_job_detail' job.pk %}">
-
-                <h2 class="job-title">{{ job.title }}</h2>
-
-                <p class="job-description">{{ job.description|truncatewords:20 }}</p>
-            </a>
+        <!-- Create Job Listing Button -->
+        <div class="create-job-container">
+            <a href="{% url 'employer_create_job_listing' %}" class="big-button">Create a New Job</a>
         </div>
-    {% empty %}
-        <p>No job listings found.</p>
-    {% endfor %}
+
+        {% if jobs %}
+            {% for job in jobs %}
+                <div class="job-listing">
+                    <a href="{% url 'employer_job_detail' job.pk %}">
+                        <h2 class="job-title">{{ job.title }}</h2>
+                        <p class="job-description">{{ job.description|truncatewords:20 }}</p>
+                    </a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>No job listings found.</p>
+        {% endif %}
     </section>
 {% endblock %}

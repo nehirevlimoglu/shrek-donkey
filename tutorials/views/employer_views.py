@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
-from tutorials.models.employer_models import Employer, Job
+from tutorials.models.employer_models import Employer, Job, Candidate, Interview
 from tutorials.forms.forms import SignUpForm, LogInForm
 from tutorials.forms.employer_forms import JobForm, CustomPasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
+from django.http import JsonResponse
+
 
 def is_employer(user):
     return hasattr(user, 'role') and user.role == 'Employer'
@@ -15,8 +17,8 @@ def employer_home_page(request):
     employers = Employer.objects.all()
     return render(request, 'employers_home_page.html', {'employers': employers})
 
-def view_reports(request):
-    return render(request, 'employer_reports.html')
+def view_employer_analytics(request):
+    return render(request, 'employer_analytics.html')
 
 @login_required
 def employer_settings(request):
@@ -62,9 +64,6 @@ def job_detail_view(request, pk):
 def edit_job_view(request, pk):
     job = get_object_or_404(Job, pk=pk)
 
-    # if request.user != job.employer.user:
-    #     return HttpResponseForbidden("You do not have permission to edit this job.")
-
     if request.method == 'POST':
         form = JobForm(request.POST, instance=job)
         if form.is_valid():
@@ -76,7 +75,6 @@ def edit_job_view(request, pk):
     return render(request, 'jobs/edit_job.html', {'form': form, 'job': job})
 
     
-
 def employer_login(request):
     if request.method == 'POST':
         form = LogInForm(request, data=request.POST)
@@ -90,6 +88,7 @@ def employer_login(request):
     else:
         form = LogInForm()
     return render(request, 'log_in.html', {'form': form})
+
 
 @login_required
 def change_password(request):
@@ -108,3 +107,35 @@ def change_password(request):
         form = CustomPasswordChangeForm(user=request.user)
     
     return render(request, 'change_password.html', {'form': form})
+
+@user_passes_test(is_employer)
+@login_required
+def employer_candidates(request):
+    candidates = Candidate.objects.filter(job__employer=request.user)
+    return render(request, 'employer_candidates.html', {'candidates': candidates})
+
+
+@user_passes_test(is_employer)
+@login_required
+def employer_interviews(request):
+    interviews = Interview.objects.filter(job__employer=request.user)
+    return render(request, 'employer_interviews.html', {'interviews': interviews})
+
+
+@user_passes_test(is_employer)
+@login_required
+def get_interviews(request):
+    """ Fetch interview data for FullCalendar.js """
+    interviews = Interview.objects.filter(job__employer=request.user)
+
+    if not interviews.exists():
+        return JsonResponse([], safe=False)  # Return empty list if no interviews
+
+    events = [
+        {
+            "title": f"{interview.candidate.user.first_name} - {interview.job.title}",
+            "start": f"{interview.date}T{interview.time}",
+        }
+        for interview in interviews
+    ]
+    return JsonResponse(events, safe=False)

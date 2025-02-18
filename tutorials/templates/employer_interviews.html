@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Interviews | Swamp Hiring{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.10.1/main.min.css">
+    <link rel="stylesheet" href="{% static 'css/interview_calendar.css' %}">
+{% endblock %}
+
+{% block content %}
+    <h2>Interview Calendar</h2>
+    <div id="calendar"></div>
+
+    <h2>Scheduled Interviews</h2>
+
+    {% if interviews %}
+        <table>
+            <tr>
+                <th>Candidate</th>
+                <th>Job Title</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Actions</th>
+            </tr>
+            {% for interview in interviews %}
+            <tr>
+                <td>{{ interview.candidate.user.first_name }} {{ interview.candidate.user.last_name }}</td>
+                <td>{{ interview.job.title }}</td>
+                <td>{{ interview.date }}</td>
+                <td>{{ interview.time }}</td>
+                <td>
+                    <a href="{% url 'interview_detail' interview.pk %}">View</a> | 
+                    <a href="{% url 'reschedule_interview' interview.pk %}">Reschedule</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No interviews scheduled.</p>
+    {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.10.1/main.min.js"></script>
+    <script src="{% static 'js/interview_calendar.js' %}"></script>
+{% endblock %}
