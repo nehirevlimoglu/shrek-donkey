@@ -3,8 +3,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from tutorials.models.applicants_models import Applicant 
 from tutorials.forms.applicants_forms import ApplicantForm 
+from django.contrib.auth.decorators import login_required
 
-
+@login_required
 def job_recommendations(request):
     jobs = [
         {"title": "Software Engineer", "company": "TechCorp", "location": "San Francisco, CA", "salary": "$120,000/year"},
@@ -13,7 +14,11 @@ def job_recommendations(request):
     ]
     return render(request, 'job_recommendations.html', {'jobs': jobs})
 
+@login_required
 def applicants_home_page(request):
+    if request.user.role not in ["Applicant", "job_seeker"]:  # ✅ Fix: Allow job seekers
+        messages.error(request, "You do not have permission to access this page.")
+        return redirect('log-in')  # Redirect unauthorized users
     return render(request, 'applicants_home_page.html')
 
 def log_in(request):
@@ -24,7 +29,7 @@ def log_in(request):
 
         if user is not None:
             login(request, user)
-            return redirect('applicants_home_page')
+            return redirect('applicants-home-page')
         else:
             messages.error(request, "Invalid username or password.")
     
@@ -34,8 +39,7 @@ def log_out(request):
     logout(request)
     return redirect('log-in')
 
-
-
+@login_required
 def applicants_account(request, applicant_id=None):
     """ Display and update the applicant's profile. """
     
@@ -59,13 +63,15 @@ def applicants_account(request, applicant_id=None):
 
     return render(request, "applicants_account.html", {"form": form, "applicant": applicant})
 
-
+@login_required
 def applicants_applied_jobs(request):
     return render(request, 'applicants_applied_jobs.html')
 
+@login_required
 def applicants_favourites(request):
     return render(request, 'applicants_favourites.html')
 
+@login_required
 def applicants_notifications(request):
     notifications = [
         {"title": "Interview Scheduled", "message": "Your interview with XYZ Corp is scheduled for tomorrow.", "timestamp": "2025-02-18 10:00 AM"},

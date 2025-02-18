@@ -140,5 +140,5 @@ LOGIN_URL = 'log_in'
 
 REDIRECT_URL_WHEN_LOGGED_IN_ADMIN = 'admin_home_page'
 REDIRECT_URL_WHEN_LOGGED_IN_EMPLOYER = 'employer_home_page'
-REDIRECT_URL_WHEN_LOGGED_IN_APPLICANT = 'applicant_home_page'
+REDIRECT_URL_WHEN_LOGGED_IN_APPLICANT = 'applicants-home-page'
 REDIRECT_URL_WHEN_LOGGED_IN = 'home_page'
