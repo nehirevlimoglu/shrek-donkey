@@ -12,7 +12,7 @@
     <div id="calendar"></div>
 
     <h2>Scheduled Interviews</h2>
-
+    
     {% if interviews %}
         <table>
             <tr>
@@ -38,6 +38,19 @@
     {% else %}
         <p>No interviews scheduled.</p>
     {% endif %}
+
+    <!-- Embed interviews as JSON inside the page -->
+    <script>
+        let interviewData = [
+            {% for interview in interviews %}
+                {
+                    title: "{{ interview.candidate.user.first_name|escapejs }} - {{ interview.job.title|escapejs }}",
+                    start: "{{ interview.date }}T{{ interview.time }}",
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ];
+
+    </script>
 {% endblock %}
 
 {% block extra_js %}

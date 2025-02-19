@@ -6,8 +6,6 @@ from tutorials.forms.forms import SignUpForm, LogInForm
 from tutorials.forms.employer_forms import JobForm, CustomPasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
-from django.http import JsonResponse
-
 
 def is_employer(user):
     return hasattr(user, 'role') and user.role == 'Employer'
@@ -114,23 +112,17 @@ def employer_candidates(request):
     candidates = Candidate.objects.filter(job__employer=request.user)
     return render(request, 'employer_candidates.html', {'candidates': candidates})
 
-
 @user_passes_test(is_employer)
 @login_required
 def employer_interviews(request):
     interviews = Interview.objects.filter(job__employer=request.user)
     return render(request, 'employer_interviews.html', {'interviews': interviews})
-
-
+    
 @user_passes_test(is_employer)
 @login_required
 def get_interviews(request):
     """ Fetch interview data for FullCalendar.js """
     interviews = Interview.objects.filter(job__employer=request.user)
-
-    if not interviews.exists():
-        return JsonResponse([], safe=False)  # Return empty list if no interviews
-
     events = [
         {
             "title": f"{interview.candidate.user.first_name} - {interview.job.title}",

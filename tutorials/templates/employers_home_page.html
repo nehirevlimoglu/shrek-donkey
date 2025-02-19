@@ -5,21 +5,21 @@
 
 {% block content %}
     <section class="overview">
-        <div class="card" id="total-jobs">  <!-- 👉 Added ID -->
+        <div class="card" id="total-jobs">
             <h3>Total Jobs Posted</h3>
             <p>15</p>
         </div>
-        <div class="card" id="active-listings">  <!-- 👉 Added ID -->
+        <div class="card" id="active-listings">
             <h3>Active Listings</h3>
             <p>6</p>
         </div>
-        <div class="card" id="total-applicants">  <!-- 👉 Added ID -->
+        <div class="card" id="total-applicants">
             <h3>Total Applicants</h3>
             <p>243</p>
         </div>
     </section>
 
-    <section class="recent-applicants" id="recent-applicants">  <!-- 👉 Added ID -->
+    <section class="recent-applicants" id="recent-applicants">
         <h2>Recent Applicants</h2>
         <table>
             <thead>
@@ -37,7 +37,7 @@
                     <td>Software Engineer</td>
                     <td><span class="badge under-review">Under Review</span></td>
                     <td><a href="#" class="resume-link">View Resume</a></td>
-                    <td><button class="view-btn" id="review-button">Review</button></td>  <!-- 👉 Added ID -->
+                    <td><button class="view-btn" id="review-button">Review</button></td>
                 </tr>
                 <tr>
                     <td>Jane Smith</td>
@@ -50,10 +50,26 @@
         </table>
     </section>
 
-    <!-- ✅ Intro.js Library -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js/minified/introjs.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
+    <section class="notifications" id="notifications">
+        <h2>Notifications</h2>
+        <div class="notifications-container">
+            <div class="notification-card">
+                <p>New applicant: Alice Johnson applied for Data Analyst</p>
+                <button class="seen-btn">Seen</button>
+            </div>
+            <div class="notification-card">
+                <p>Interview scheduled with John Doe on Feb 20</p>
+                <button class="seen-btn">Seen</button>
+            </div>
+            <div class="notification-card">
+                <p>System maintenance scheduled for Feb 25</p>
+                <button class="seen-btn">Seen</button>
+            </div>
+        </div>
+    </section>
 
-    <!-- ✅ Your Custom Tutorial Script -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js/minified/introjs.min.css">
+    <link rel="stylesheet" href="{% static 'css/employers_home_page.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
     <script src="{% static 'js/tutorial.js' %}"></script>
 {% endblock %}

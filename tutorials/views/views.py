@@ -58,4 +58,6 @@ def sign_up(request):
 
 def log_out(request):
     print("User before logout:", request.user) 
-    logout(request)
+    logout(request)  
+    print("User after logout:", request.user)  
+    return redirect('log-in')
