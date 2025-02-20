@@ -1,20 +1,48 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Candidates | Swamp Hiring{% endblock %}
 
 {% block content %}
-    <h2>Job Candidates</h2>
+<link rel="stylesheet" href="{% static 'css/employer_candidates.css' %}">
+    <section class="candidate-listings">
+        <h2>Job Candidates</h2>
 
-    {% if candidates %}
-        <ul>
+        {% if candidates %}
             {% for candidate in candidates %}
-                <li>
-                    <strong>{{ candidate.user.first_name }} {{ candidate.user.last_name }}</strong> 
-                    - {{ candidate.application_status }}
+                <div class="candidate-card">
+                    <h2 class="candidate-name">
+                        {{ candidate.user.first_name }} {{ candidate.user.last_name }}
+                    </h2>
+                    <p class="candidate-status">Status: {{ candidate.application_status }}</p>
                     <a href="{% url 'candidate_detail' candidate.pk %}">View Profile</a>
-                </li>
+                </div>
             {% endfor %}
-        </ul>
-    {% else %}
-        <p>No candidates have applied yet.</p>
-    {% endif %}
+        {% else %}
+            <!-- Placeholder Candidates -->
+            <div class="candidate-card">
+                <h2 class="candidate-name">Alex Johnson</h2>
+                <p class="candidate-status">Status: Under Review</p>
+                <a href="#">View Profile</a>
+            </div>
+
+            <div class="candidate-card">
+                <h2 class="candidate-name">Emily Davis</h2>
+                <p class="candidate-status">Status: Shortlisted</p>
+                <a href="#">View Profile</a>
+            </div>
+
+            <div class="candidate-card">
+                <h2 class="candidate-name">Michael Smith</h2>
+                <p class="candidate-status">Status: Interview Scheduled</p>
+                <a href="#">View Profile</a>
+            </div>
+
+            <div class="candidate-card">
+                <h2 class="candidate-name">Sophia Lee</h2>
+                <p class="candidate-status">Status: Hired</p>
+                <a href="#">View Profile</a>
+            </div>
+
+        {% endif %}
+    </section>
 {% endblock %}

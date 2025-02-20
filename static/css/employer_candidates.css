@@ -1,0 +1,81 @@
+/* Import the Poppins font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background: #E4E4DE; /* Ethereal Ivory */
+    color: #1B1B1B; /* Timeless Noir */
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow-x: hidden;
+}
+
+/* Candidate Listings Section */
+.candidate-listings {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px 40px; /* Left alignment */
+}
+
+/* Individual Candidate Card */
+.candidate-card {
+    background-color: #FFFFFF; /* White background */
+    border: 2px solid #1B1B1B; /* Neutral Gray */
+    border-radius: 12px;
+    padding: 20px;
+    width: 100%;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.candidate-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Candidate Name */
+.candidate-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1B1B1B; /* Neutral Gray */
+    margin-bottom: 8px;
+}
+
+/* Candidate Status */
+.candidate-status {
+    font-size: 1rem;
+    color: #1B1B1B; /* Timeless Noir */
+}
+
+/* Profile Link */
+.candidate-card a {
+    text-decoration: none;
+    font-weight: 600;
+    color: #1B1B1B; /* Neutral Gray */
+    margin-top: 10px;
+    display: inline-block;
+    transition: color 0.3s ease;
+}
+
+.candidate-card a:hover {
+    color: #1B1B1B; /* Darker hover effect */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .candidate-listings {
+        max-width: 90%;
+        margin: 20px auto;
+    }
+}

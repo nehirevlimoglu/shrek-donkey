@@ -1,7 +1,13 @@
+import os
+import json
 from django import forms
 from tutorials.models.employer_models import Job
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
+from django.conf import settings
+
+
+
 
 class JobForm(forms.ModelForm):
     class Meta:
@@ -27,11 +33,26 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         model = User
         fields = ['old_password', 'new_password1', 'new_password2']
 
+
+def get_job_titles():
+    json_path = os.path.join(settings.BASE_DIR, 'static/data/job_titles.json')
+    try:
+        with open(json_path, 'r') as file:
+            job_titles = json.load(file)
+        return [(title, title) for title in job_titles]
+    except FileNotFoundError:
+        return [("Other", "Other")]
+
 class JobForm(forms.ModelForm):
+    position = forms.ChoiceField(
+        choices=get_job_titles(),
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = Job
         fields = [
-            'title', 'company_name', 'location', 'job_type', 
+            'title', 'position', 'company_name', 'location', 'job_type',
             'salary', 'description', 'requirements', 'benefits', 'application_deadline', 'contact_email'
         ]
         widgets = {

@@ -1,89 +1,46 @@
-/* General styling for the create job listing page */
-html, body {
-    margin: 0;
-    padding: 0;
-    overflow-y: auto; 
-    height: 100vh;
-    font-family: 'Poppins', sans-serif; /* Ensure you load/declare the font (already in base.html) */
-    background-color: #F7FAFC; /* A light background for contrast */
+/* Import Poppins Font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* General Form Styling */
+.job-form-container {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 500px;
+    margin: 20px auto;
+    text-align: left;
 }
 
-/* If you're using the .dashboard-container layout in base.html */
-.dashboard-container {
-    display: flex;
-    flex-direction: column; 
-    height: 100vh;
-    overflow-y: auto;
-}
-
-/* Main content area – if you have a .content wrapper in base.html */
-.content {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-}
-
-/* Form Container styles */
-.form-container {
-    background: #FFFFFF;
-    padding: 20px;
-    margin: 40px auto;   /* Center it horizontally, 40px from top/bottom */
-    border-radius: 10px;
-    max-width: 600px;    /* Limit the width of the form */
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid #E2E8F0;
-}
-
-.form-container h1 {
-    font-size: 24px;
-    margin-bottom: 20px;
-    color: #1A202C;
-    text-align: center;
-}
-
-.form-container form {
-    display: flex;
-    flex-direction: column;
-}
-
-/* Labels and inputs */
-.form-container label {
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: #1A202C;
-}
-
-.form-container input[type="text"],
-.form-container input[type="number"],
-.form-container textarea,
-.form-container select {
-    padding: 12px;
+/* Form Fields */
+.form-group {
     margin-bottom: 15px;
-    border: 1px solid #CBD5E0;
-    border-radius: 5px;
+}
+
+.form-group label {
+    display: block;
     font-size: 14px;
-    color: #1A202C;
-}
-
-.form-container textarea {
-    resize: vertical; /* Allow vertical resizing */
-}
-
-/* Submit Button */
-.form-container button[type="submit"] {
-    padding: 12px 20px;
-    font-size: 16px;
     font-weight: 600;
-    color: #FFFFFF;
-    background-color: #1558B5; /* Primary accent color from your theme */
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    align-self: flex-start; /* Or center, depending on your preference */
-    margin-top: 10px;
+    color: #1B1B1B;
+    margin-bottom: 5px;
 }
 
-.form-container button[type="submit"]:hover {
-    background-color: #0F4B99; /* Slightly darker on hover */
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 16px;
+    background: #F8F9FA;
+    color: #1A202C;
+    box-sizing: border-box;
 }
+
+.form-group textarea {
+    resize: vertical;
+}
+
+/*
