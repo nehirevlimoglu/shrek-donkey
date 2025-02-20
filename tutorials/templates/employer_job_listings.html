@@ -4,29 +4,35 @@
 {% block title %}Job Listings | Swamp Hiring{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/employer_create_job_listing.css' %}">
+<link rel="stylesheet" href="{% static 'css/employer_job_listings.css' %}">
 {% endblock %}
 
 {% block content %}
     <section class="job-listings">
         <h2>Job Listings</h2>
 
-        <!-- Create Job Listing Button -->
-        <div class="create-job-container">
-            <a href="{% url 'employer_create_job_listing' %}" class="big-button">Create a New Job</a>
+        <div class="job-listing">
+            <h2 class="job-title">Software Engineer</h2>
+            <p class="job-description">Develop and maintain scalable software solutions. Collaborate with cross-functional teams.</p>
+            <a href="#">View Details</a>
         </div>
-
-        {% if jobs %}
-            {% for job in jobs %}
-                <div class="job-listing">
-                    <a href="{% url 'employer_job_detail' job.pk %}">
-                        <h2 class="job-title">{{ job.title }}</h2>
-                        <p class="job-description">{{ job.description|truncatewords:20 }}</p>
-                    </a>
-                </div>
-            {% endfor %}
-        {% else %}
-            <p>No job listings found.</p>
-        {% endif %}
+        
+        <div class="job-listing">
+            <h2 class="job-title">Data Analyst</h2>
+            <p class="job-description">Analyze large data sets, generate reports, and provide insights to drive business decisions.</p>
+            <a href="#">View Details</a>
+        </div>
+        
+        <div class="job-listing">
+            <h2 class="job-title">Marketing Manager</h2>
+            <p class="job-description">Lead marketing campaigns, drive engagement, and analyze consumer trends.</p>
+            <a href="#">View Details</a>
+        </div>
+        
+        <div class="job-listing">
+            <h2 class="job-title">Product Designer</h2>
+            <p class="job-description">Create intuitive user experiences through strong UI/UX design principles.</p>
+            <a href="#">View Details</a>
+        </div>
     </section>
 {% endblock %}
