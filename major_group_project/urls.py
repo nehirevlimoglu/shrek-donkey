@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from tutorials.views.views import log_in, log_out  # Import your views
-from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications 
+from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile
 from tutorials.views.views import log_in, log_out, sign_up  
 from tutorials.views.views import log_in, log_out, sign_up  
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings
@@ -35,6 +35,8 @@ urlpatterns =[
     path('applicants_applied_jobs/', applicants_applied_jobs, name='applicants-applied-jobs'),
     path("applicants_account/", applicants_account, name="applicants-account"),
     path('applicants_notifications/', applicants_notifications, name='applicants-notifications'),
+    path('applicants_edit_profile/', applicants_edit_profile, name='applicants-edit-profile'),
+
 
     path('admin_home_page/', admin_home_page, name='admin_home_page'),
     path('admin_job_listings', admin_job_listings, name='admin_job_listings'),

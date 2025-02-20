@@ -11,21 +11,26 @@ def applicants_home_page(request):
     return render(request, 'applicants_home_page.html')
 
 @applicant_only
-def applicants_account(request, applicant_id=None):
-    applicant = get_object_or_404(Applicant, id=applicant_id) if applicant_id else Applicant.objects.first()
-
-    if request.method == "POST":
-        form = ApplicantForm(request.POST, request.FILES, instance=applicant)
+@login_required
+def applicants_edit_profile(request):
+    applicant = get_object_or_404(Applicant, user=request.user)
+    
+    if request.method == 'POST':
+        form = ApplicantForm(request.POST, request.FILES, instance=applicant, user=request.user)
         if form.is_valid():
             form.save()
-            messages.success(request, "Your account has been updated successfully!")
-            return redirect('applicants-account')
+            messages.success(request, "Your changes have been saved.")
+            return redirect('applicants-edit-profile')
         else:
-            messages.error(request, "There was an error saving your account information.")
+            messages.error(request, "Please fix the errors below.")
     else:
-        form = ApplicantForm(instance=applicant)
+        # Make sure to pass user=request.user on GET requests
+        form = ApplicantForm(instance=applicant, user=request.user)
 
-    return render(request, "applicants_account.html", {"form": form, "applicant": applicant})
+    return render(request, 'applicants_edit_profile.html', {
+        'form': form,
+        'applicant': applicant,
+    })
 
 @applicant_only
 def applicants_applied_jobs(request):
@@ -43,3 +48,12 @@ def applicants_notifications(request):
     ]
     
     return render(request, 'applicants_notifications.html', {'notifications': notifications})
+
+@applicant_only
+def applicants_account(request):
+    applicant = get_object_or_404(Applicant, user=request.user)
+    return render(request, 'applicants_account.html', {
+        'applicant': applicant,
+        # you can also pass user if you want {{ user.first_name }} in the template
+        'user': request.user,
+    })
