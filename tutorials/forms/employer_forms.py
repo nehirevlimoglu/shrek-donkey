@@ -4,6 +4,7 @@ from django import forms
 from tutorials.models.employer_models import Job
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
+from tutorials.models.employer_models import Employer
 from django.conf import settings
 
 
@@ -85,3 +86,9 @@ class CustomPasswordChangeForm(PasswordChangeForm):
     class Meta:
         model = User
         fields = ['old_password', 'new_password1', 'new_password2']
+
+
+class EmployerProfileForm(forms.ModelForm):
+    class Meta:
+        model = Employer
+        fields = ['company_name', 'company_logo', 'company_website', 'industry', 'company_location']

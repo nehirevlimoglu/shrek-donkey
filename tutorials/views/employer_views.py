@@ -3,9 +3,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from tutorials.models.employer_models import Employer, Job, Candidate, Interview
 from tutorials.forms.forms import SignUpForm, LogInForm
-from tutorials.forms.employer_forms import JobForm, CustomPasswordChangeForm
+from tutorials.forms.employer_forms import JobForm, CustomPasswordChangeForm, EmployerProfileForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
+from django.http import JsonResponse
+from django.core.exceptions import PermissionDenied
 
 def is_employer(user):
     return hasattr(user, 'role') and user.role == 'Employer'
@@ -141,17 +143,52 @@ def employer_interviews(request):
 
     return render(request, 'employer_interviews.html', {'interviews': interviews})
 
-    
-@user_passes_test(is_employer)
 @login_required
 def get_interviews(request):
-    """ Fetch interview data for FullCalendar.js """
-    interviews = Interview.objects.filter(job__employer=request.user)
+    try:
+        employer = Employer.objects.get(username=request.user.username)
+        interviews = Interview.objects.filter(job__employer=employer)
+    except Employer.DoesNotExist:
+        return JsonResponse({"error": "Employer not found"}, status=403)
+
     events = [
         {
-            "title": f"{interview.candidate.user.first_name} - {interview.job.title}",
-            "start": f"{interview.date}T{interview.time}",
+            'id': interview.pk,
+            'title': f"Interview: {interview.candidate.user.first_name} {interview.candidate.user.last_name}",
+            'start': f"{interview.date}T{interview.time}",
+            'url': f"/interview/{interview.pk}/"
         }
         for interview in interviews
     ]
+
     return JsonResponse(events, safe=False)
+
+@login_required
+def edit_company_profile(request):
+    try:
+        # FIX: Use 'username' instead of 'user'
+        employer = Employer.objects.get(username=request.user.username)
+    except Employer.DoesNotExist:
+        return render(request, "error.html", {"message": "Employer not found"})
+
+    if request.method == "POST":
+        form = EmployerProfileForm(request.POST, request.FILES, instance=employer)
+        if form.is_valid():
+            form.save()
+            return redirect("employer_settings")  # Redirect to settings after update
+    else:
+        form = EmployerProfileForm(instance=employer)
+
+    return render(request, "edit_company_profile.html", {"form": form})
+
+@login_required
+def delete_account(request):
+    if request.method == "POST":
+        employer = Employer.objects.get(user=request.user)
+        user = request.user
+        employer.delete()  # Delete Employer profile
+        user.delete()  # Delete User account
+        logout(request)
+        return redirect("home_page")  # Redirect to homepage after account deletion
+
+    return render(request, "delete_account.html")

@@ -37,9 +37,7 @@
             </nav>
         </aside>
         
-
         <main class="content">
-            <!-- Always present welcome message -->
             <header>
                 <h1>Welcome Back, {{ user.first_name }} 👋</h1>
                 <form action="{% url 'log-out' %}" method="POST">
@@ -47,12 +45,10 @@
                     <button type="submit" class="logout-btn">Log Out</button>
                 </form>
             </header>
-
-            <!-- Block for unique content on each page -->
-            {% block content %}
-            <!-- Default content can go here (optional) -->
-            {% endblock %}
+            
+            {% block content %}{% endblock %}
         </main>
     </div>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
