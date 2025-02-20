@@ -16,27 +16,27 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from tutorials.views.views import log_in,  log_out  # Import your views
-from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites 
-from tutorials.views.views import log_in,  log_out, sign_up  
+from tutorials.views.views import log_in, log_out  # Import your views
+from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications 
+from tutorials.views.views import log_in, log_out, sign_up  
 from tutorials.views.views import log_in, log_out, sign_up  
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications
 from tutorials.views.employer_views import employer_home_page, view_reports, employer_settings, change_password, employer_settings, create_job_listings
 from django.urls import path, include
 
 
-
-
-
-urlpatterns = [
+urlpatterns =[
     path('admin/', admin.site.urls),
     path('', log_in, name='home'),
     path('log_in/', log_in, name='log-in'),  
     path('logout/', log_out, name='log-out'),
+
     path('applicants_home_page/', applicants_home_page, name='applicants-home-page'), #m
     path('applicants_favourites/', applicants_favourites, name='applicants-favourites'),
-    path('applicants-applied-jobs/', applicants_applied_jobs, name='applicants-applied-jobs'),
+    path('applicants_applied_jobs/', applicants_applied_jobs, name='applicants-applied-jobs'),
     path("applicants_account/", applicants_account, name="applicants-account"),
+    path('applicants_notifications/', applicants_notifications, name='applicants-notifications'),
+
     path('admin_home_page/', admin_home_page, name='admin_home_page'),
     path('admin_job_listings', admin_job_listings, name='admin_job_listings'),
     path('employer_home_page', employer_home_page, name='employer_home_page'),

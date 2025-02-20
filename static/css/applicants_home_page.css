@@ -83,21 +83,18 @@ body {
 
 /* Favorite Star Styling */
 .favorite-star {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    font-size: 24px;
     cursor: pointer;
-    color: #ccc;
+    font-size: 24px;
+    color: #ccc; /* Light grey default */
     transition: color 0.3s ease;
 }
 
 .favorite-star:hover {
-    color: #ffd700;
+    color: #ffd700; /* Yellow on hover */
 }
 
 .favorite-star.active {
-    color: #ffd700;
+    color: #ffd700; /* Yellow when active */
 }
 
 /* Left Section Positioning */
@@ -156,5 +153,3 @@ body {
     padding: 6px 12px;
     font-size: 0.9em;
 }
-
-

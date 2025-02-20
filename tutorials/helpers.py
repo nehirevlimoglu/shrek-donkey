@@ -9,7 +9,7 @@ def login_prohibited(view_function):
             if request.user.role == 'Admin':
                 return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN_ADMIN)
             elif request.user.role == 'Applicant':
-                return redirect(REDIRECT_URL_WHEN_LOGGED_IN_APPLICANTS)
+                return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN_APPLICANT)  # Fixed reference
             elif request.user.role == 'Employer':
                 return redirect(settings.REDIRECT_URL_WHEN_LOGGED_IN_EMPLOYER)
             else:
@@ -18,4 +18,3 @@ def login_prohibited(view_function):
         return view_function(request, *args, **kwargs)
 
     return modified_view_function
-
