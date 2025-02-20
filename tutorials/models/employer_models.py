@@ -5,7 +5,9 @@ from libgravatar import Gravatar
 from tutorials.models.user_model import User
 
 
-class Employer(User):
+class Employer(models.Model):
+    username = models.CharField(max_length=150, unique=True)  # ✅ Store username separately
+    email = models.EmailField(unique=True)  # ✅ Store email separately
     company_name = models.CharField(max_length=255)
     company_website = models.URLField(blank=True, null=True)
     company_location = models.CharField(max_length=255)
@@ -41,8 +43,8 @@ class Job(models.Model):
         blank=True
     )
     title = models.CharField(max_length=200)
-    company_name = models.CharField(max_length=255)
-    location = models.CharField(max_length=255)
+    company_name = models.CharField(max_length=255, default="Unknown Company")
+    location = models.CharField(max_length=255, default="Unknown Location")
     job_type = models.CharField(
         max_length=100,
         choices=[
@@ -59,7 +61,7 @@ class Job(models.Model):
     requirements = models.TextField(blank=True)
     benefits = models.TextField(blank=True, null=True)
     application_deadline = models.DateField(null=True, blank=True)
-    contact_email = models.EmailField()
+    contact_email = models.EmailField(default="default@email.com")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

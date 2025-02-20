@@ -106,11 +106,19 @@ def change_password(request):
     
     return render(request, 'change_password.html', {'form': form})
 
-@user_passes_test(is_employer)
+
 @login_required
 def employer_candidates(request):
-    candidates = Candidate.objects.filter(job__employer=request.user)
+    """ Ensure request.user is an Employer before querying """
+    try:
+        # Match Employer by username instead of user object
+        employer = Employer.objects.get(username=request.user.username)  
+        candidates = Candidate.objects.filter(job__employer=employer)
+    except Employer.DoesNotExist:
+        return HttpResponseForbidden("You are not an employer.")
+
     return render(request, 'employer_candidates.html', {'candidates': candidates})
+
 
 @user_passes_test(is_employer)
 @login_required
