@@ -37,8 +37,17 @@ def employer_sign_up(request):
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
 
+@login_required
 def employer_job_listings(request):
-    jobs = Job.objects.all()  
+    """ Display only the jobs posted by the logged-in employer """
+    
+    # Get the employer linked to the logged-in user
+    try:
+        employer = Employer.objects.get(username=request.user.username)
+        jobs = Job.objects.filter(employer=employer)  # ✅ Get jobs posted by this employer
+    except Employer.DoesNotExist:
+        jobs = []  # ✅ If employer does not exist, show no jobs
+
     return render(request, 'employer_job_listings.html', {'jobs': jobs})
 
 def create_job_listings(request):
@@ -123,8 +132,15 @@ def employer_candidates(request):
 @user_passes_test(is_employer)
 @login_required
 def employer_interviews(request):
-    interviews = Interview.objects.filter(job__employer=request.user)
+    try:
+        # Match Employer by username instead of user object
+        employer = Employer.objects.get(username=request.user.username)
+        interviews = Interview.objects.filter(job__employer=employer)
+    except Employer.DoesNotExist:
+        return HttpResponseForbidden("You are not an employer.")
+
     return render(request, 'employer_interviews.html', {'interviews': interviews})
+
     
 @user_passes_test(is_employer)
 @login_required
