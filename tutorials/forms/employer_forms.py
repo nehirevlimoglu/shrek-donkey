@@ -9,13 +9,6 @@ from django.conf import settings
 
 
 
-
-class JobForm(forms.ModelForm):
-    class Meta:
-        model = Job
-        fields = ['title', 'description', 'requirements', 'salary', 'job_type']
-
-
 class CustomPasswordChangeForm(PasswordChangeForm):
     old_password = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Old Password'}),

@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import PasswordChangeForm
 from django.core.files.uploadedfile import SimpleUploadedFile
 from tutorials.models.employer_models import Job, Employer
-from tutorials.forms import JobForm, CustomPasswordChangeForm, EmployerProfileForm
+from tutorials.forms.employer_forms import JobForm, CustomPasswordChangeForm, EmployerProfileForm
 
 
 class JobFormTest(TestCase):
