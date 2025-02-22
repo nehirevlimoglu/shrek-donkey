@@ -3,11 +3,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from tutorials.models.employer_models import Employer, Job, Candidate, Interview
 from tutorials.forms.forms import SignUpForm, LogInForm
-from tutorials.forms.employer_forms import JobForm, CustomPasswordChangeForm, EmployerProfileForm
+from tutorials.forms.employer_forms import JobForm, EmployerProfileForm
+from tutorials.forms.forms import CustomPasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from django.http import JsonResponse
 from django.core.exceptions import PermissionDenied
+
 
 def is_employer(user):
     return hasattr(user, 'role') and user.role == 'Employer'
