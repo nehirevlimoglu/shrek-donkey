@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from tutorials.models.employer_models import Job
 
 
 class JobPosition(models.Model):
@@ -16,6 +17,7 @@ class JobPosition(models.Model):
     def __str__(self):
         return self.title
 
+'''
 class JobPosition(models.Model):
     employer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="job_posts")
     title = models.CharField(max_length=200)
@@ -29,6 +31,7 @@ class JobPosition(models.Model):
 
     def __str__(self):
         return self.title
+'''
 
 class JobSeekerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

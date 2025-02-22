@@ -8,6 +8,7 @@
     <title>{% block title %}Admin Dashboard | Swamp Hiring{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/admin_home_page.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <div class="dashboard-container">
@@ -18,8 +19,11 @@
                     {% if user.is_authenticated %}
                         {% if user.role == "Employer" %}
                             <li><a href="{% url 'employer_home_page' %}">Dashboard</a></li>
-                            <li><a href="{% url 'employer_job_listings' %}">My Job Listings</a></li>
-                            <li><a href="{% url 'employer_reports' %}">Reports</a></li>
+                            <li><a href="{% url 'create_job_listings' %}">+ Job</a></li>
+                            <li><a href="{% url 'employer_job_listings' %}">Job Listings</a></li>
+                            <li><a href="{% url 'employer_candidates' %}">Candidates</a></li>
+                            <li><a href="{% url 'employer_interviews' %}">Interviews</a></li>
+                            <li><a href="{% url 'employer_analytics' %}">Analytics</a></li>
                             <li><a href="{% url 'employer_settings' %}">Settings</a></li>
                         {% elif user.role == "Admin" %}
                             <li><a href="{% url 'admin_home_page' %}">Admin Dashboard</a></li>
@@ -33,9 +37,7 @@
             </nav>
         </aside>
         
-
         <main class="content">
-            <!-- Always present welcome message -->
             <header>
                 <h1>Welcome Back, {{ user.first_name }} 👋</h1>
                 <form action="{% url 'log-out' %}" method="POST">
@@ -43,12 +45,10 @@
                     <button type="submit" class="logout-btn">Log Out</button>
                 </form>
             </header>
-
-            <!-- Block for unique content on each page -->
-            {% block content %}
-            <!-- Default content can go here (optional) -->
-            {% endblock %}
+            
+            {% block content %}{% endblock %}
         </main>
     </div>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
