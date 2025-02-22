@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.hashers import make_password
 from tutorials.models.user_model import User
 from tutorials.models.employer_models import Employer
+from tutorials.models.applicants_models import Applicant
 from faker import Faker
 
 # ✅ Predefined user fixtures (Employers, Admins, and Applicants)
@@ -101,36 +102,50 @@ class Command(BaseCommand):
             print(f"⚠️ Error creating user: {e}")
 
     def create_user(self, data):
-        """Creates a user and links Employers separately"""
+        """Creates a user and links Employers/Applicants separately"""
         user, created = User.objects.get_or_create(
             username=data['username'],
             defaults={
                 "email": data['email'],
-                "password": make_password(self.DEFAULT_PASSWORD),  # Hash password correctly
+                "password": make_password(self.DEFAULT_PASSWORD),
                 "first_name": data['first_name'],
                 "last_name": data['last_name'],
                 "role": data['role'],
-                "is_active": True  # Ensure active status
+                "is_active": True
             }
         )
 
         if created:
             print(f"✅ {data['role']} User created: {user}")
 
-        # ✅ If the user is an Employer, create an Employer instance
-        if data['role'] == 'Employer':
-            employer, emp_created = Employer.objects.get_or_create(
-                username=user.username,  # Store the username separately
-                defaults={
-                    "email": user.email,
-                    "company_name": f"{user.first_name} {user.last_name} Corp",
-                    "company_location": "Unknown",
-                    "industry": "General",
-                    "is_verified": True
-                }
-            )
-            if emp_created:
-                print(f"✅ Employer profile created for {user.username}")
+            # Create Employer profile
+            if data['role'] == 'Employer':
+                employer, emp_created = Employer.objects.get_or_create(
+                    username=user.username,
+                    defaults={
+                        "email": user.email,
+                        "company_name": f"{user.first_name} {user.last_name} Corp",
+                        "company_location": "Unknown",
+                        "industry": "General",
+                        "is_verified": True
+                    }
+                )
+                if emp_created:
+                    print(f"✅ Employer profile created for {user.username}")
+            
+            # Create Applicant profile
+            elif data['role'] == 'Applicant':
+                applicant, app_created = Applicant.objects.get_or_create(
+                    user=user,
+                    defaults={
+                        "degree": "Computer Science",
+                        "salary_preferences": "$50,000-$70,000",
+                        "job_preferences": "Software Development",
+                        "location_preferences": "Remote"
+                    }
+                )
+                if app_created:
+                    print(f"✅ Applicant profile created for {user.username}")
 
     def list_all_users(self):
         """Displays a summary of all created users"""
@@ -145,6 +160,12 @@ class Command(BaseCommand):
         print("\n🔹 **Applicants:**")
         for applicant in User.objects.filter(role="Applicant"):
             print(f"  ✅ {applicant.username} | {applicant.email}")
+            # Also print the associated Applicant profile
+            try:
+                profile = Applicant.objects.get(user=applicant)
+                print(f"     Degree: {profile.degree}")
+            except Applicant.DoesNotExist:
+                print("     ❌ No applicant profile found")
 
 def create_username(first_name, last_name):
     return '@' + first_name.lower() + last_name.lower()

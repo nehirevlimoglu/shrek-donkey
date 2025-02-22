@@ -31,26 +31,29 @@
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
 
+            <!-- Add this after the form opening tag -->
+            {% if form.errors %}
+                <div class="error-messages">
+                    {% for field in form %}
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <p class="error">{{ error }}</p>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
             <!-- First Name -->
             <div class="field">
                 <label for="id_first_name">First Name:</label>
-                <input
-                    type="text"
-                    id="id_first_name"
-                    name="first_name"
-                    value="{{ form.initial.first_name|default_if_none:'' }}"
-                />
+                {{ form.first_name }}
             </div>
 
             <!-- Last Name -->
             <div class="field">
                 <label for="id_last_name">Last Name:</label>
-                <input
-                    type="text"
-                    id="id_last_name"
-                    name="last_name"
-                    value="{{ form.initial.last_name|default_if_none:'' }}"
-                />
+                {{ form.last_name }}
             </div>
 
             <!-- Degree -->
@@ -97,9 +100,14 @@
             </div>
 
             <!-- CV -->
-            <div class="cv-upload">
+            <div class="field">
                 <label for="id_cv">Upload CV:</label>
                 <input type="file" name="cv" id="id_cv">
+                {% if form.cv.errors %}
+                    {% for error in form.cv.errors %}
+                        <div class="error-message">{{ error }}</div>
+                    {% endfor %}
+                {% endif %}
                 {% if applicant.cv %}
                     <p>Uploaded CV:
                         <a href="{{ applicant.cv.url }}" target="_blank">Download CV</a>
