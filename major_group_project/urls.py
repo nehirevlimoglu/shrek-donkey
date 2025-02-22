@@ -4,7 +4,7 @@ URL configuration for major_group_project project.
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.2/topics/http/urls/
 Examples:
-Function views
+Function viewss
     1. Add an import:  from my_app import views
     2. Add a URL to urlpatterns:  path('', views.home, name='home')
 Class-based views
@@ -16,20 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-<<<<<<< HEAD
-<<<<<<< HEAD
-from tutorials.views.views import log_in, home_page, log_out  # Import your views
-from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites 
-from tutorials.views.views import log_in, home_page, log_out, sign_up  
-=======
 from tutorials.views.views import log_in, log_out, sign_up  
->>>>>>> employers
-=======
-from tutorials.views.views import log_in, log_out  # Import your views
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile
-from tutorials.views.views import log_in, log_out, sign_up  
-from tutorials.views.views import log_in, log_out, sign_up  
->>>>>>> fa5d3f80038a70705a67039b46487aee9bea2d23
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings
 from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings,change_password, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_interviews, employer_candidates, get_interviews, edit_company_profile, delete_account
 
