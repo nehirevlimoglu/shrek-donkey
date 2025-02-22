@@ -154,4 +154,71 @@ body {
     font-size: 0.9em;
 }
 
+/* Overview Section */
+.overview {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    padding: 20px;
+}
+
+.card {
+    background: #FFFFFF;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    flex: 1;
+    margin: 10px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #E2E8F0;
+    min-width: 200px;
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.card h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #1A202C;
+}
+
+.card p {
+    font-size: 24px;
+    font-weight: bold;
+    color: #1A202C;
+    margin: 0;
+}
+
+/* Content area adjustments */
+.content {
+    flex: 1;
+    padding: 30px;
+    background: #FFFFFF;
+    margin-left: 270px;
+    min-height: 100vh;
+    width: calc(100vw - 270px);
+    overflow-x: hidden;
+}
+
+/* Container styling */
+.dashboard-container {
+    padding: 20px;
+    width: 100%;
+    max-width: 1400px;  /* Increased max-width */
+    margin: 0 auto;
+}
+
+/* Welcome text styling */
+h1 {
+    font-size: 2.5rem;
+    color: #2d3748;
+    margin: 24px 40px;  /* Matched padding with cards */
+    font-weight: 600;
+}
+
 
