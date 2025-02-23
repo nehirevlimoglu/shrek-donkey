@@ -57,3 +57,7 @@ def applicants_account(request):
         # you can also pass user if you want {{ user.first_name }} in the template
         'user': request.user,
     })
+
+@applicant_only
+def applicants_analytics(request):
+    return render(request, 'applicants_analytics.html')
