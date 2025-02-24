@@ -38,7 +38,20 @@
         <main class="content">
             <!-- Always present welcome message -->
             <header>
-                <h1>Welcome Back, {{ user.first_name }} 👋</h1>
+                <div class="user-profile" id="userProfile">
+                    <h1>Welcome Back, {{ user.first_name }} 👋</h1>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <ul>
+                            <li><a href="{% url 'employer_settings' %}">Settings</a></li>
+                            <li>
+                                <form action="{% url 'log-out' %}" method="POST">
+                                    {% csrf_token %}
+                                    <button type="submit" class="logout-btn">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
                 <div class="header-actions">
                     <a href="{% url 'admin_notifications' %}" class="notifications-btn">
                         <span class="notifications-icon">🔔</span>
@@ -46,12 +59,9 @@
                         <span class="notifications-count">{{ unread_count }}</span>
                         {% endif %}
                     </a>  
-                    <form action="{% url 'log-out' %}" method="POST">
-                        {% csrf_token %}
-                        <button type="submit" class="logout-btn">Log Out</button>
-                    </form>
                 </div>
             </header>
+            
             
 
             <!-- Block for unique content on each page -->
@@ -60,5 +70,6 @@
             {% endblock %}
         </main>
     </div>
+    <script src="{% static 'js/dropdown.js' %}"></script>
 </body>
 </html>
