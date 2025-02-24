@@ -47,7 +47,6 @@ urlpatterns = [
     path('admin_settings/', admin_settings, name='admin_settings'),
     path('sign_up', sign_up, name='sign-up'),
     path('employer_settings/', employer_settings, name='employer_settings'),
-    path('admin_job_listings', admin_job_listings, name='admin_job_listings'),
     path('admin_notifications/', admin_notifications, name='admin_notifications'),
     path("__reload__/", include("django_browser_reload.urls")),
 ]
