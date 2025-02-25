@@ -28,6 +28,7 @@ html, body {
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
     border: 1px solid #E2E8F0;
     min-width: 200px;
+    margin-bottom: 50px; /* Increased bottom margin to create more space */
 }
 
 .report-card h3 {
@@ -42,19 +43,23 @@ html, body {
     color: #1558B5;
 }
 
+.detailed-reports {
+    margin-top: 80px; /* Increased top margin to create more space */
+}
+
 .detailed-reports h2 {
-    margin-bottom: 20px;
+    margin-bottom: 30px; /* Increased bottom margin */
 }
 
 /* Table Styling */
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
+    margin-top: 30px; /* Increased top margin */
 }
 
 table th, table td {
-    padding: 15px;
+    padding: 20px; /* Increased padding for more spacing */
     text-align: left;
 }
 
@@ -81,6 +86,7 @@ table tbody tr:hover {
     justify-content: space-around;
     flex-wrap: wrap;
     margin-top: 40px;
+    margin-bottom: 80px; /* Increased bottom margin to create more space */
 }
 
 .chart-card {
