@@ -1,48 +1,46 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}Candidates | Swamp Hiring{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/employer_candidates.css' }">
+{% endblock %}
+
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/employer_candidates.css' %}">
-    <section class="candidate-listings">
+    <div class="candidates-section">
         <h2>Job Candidates</h2>
 
         {% if candidates %}
-            {% for candidate in candidates %}
-                <div class="candidate-card">
-                    <h2 class="candidate-name">
-                        {{ candidate.user.first_name }} {{ candidate.user.last_name }}
-                    </h2>
-                    <p class="candidate-status">Status: {{ candidate.application_status }}</p>
-                    <a href="{% url 'candidate_detail' candidate.pk %}">View Profile</a>
-                </div>
-            {% endfor %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Position Applied</th>
+                        <th>Status</th>
+                        <th>Profile</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for candidate in candidates %}
+                        <tr>
+                            <td>{{ candidate.user.first_name }} {{ candidate.user.last_name }}</td>
+                            <td>{{ candidate.user.email }}</td>
+                            <td>{{ candidate.job.title }}</td>
+                            <td>
+                                <span class="status status-{{ candidate.application_status|lower }}">
+                                    {{ candidate.application_status }}
+                                </span>
+                            </td>
+                            <td>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         {% else %}
-            <!-- Placeholder Candidates -->
-            <div class="candidate-card">
-                <h2 class="candidate-name">Alex Johnson</h2>
-                <p class="candidate-status">Status: Under Review</p>
-                <a href="#">View Profile</a>
-            </div>
-
-            <div class="candidate-card">
-                <h2 class="candidate-name">Emily Davis</h2>
-                <p class="candidate-status">Status: Shortlisted</p>
-                <a href="#">View Profile</a>
-            </div>
-
-            <div class="candidate-card">
-                <h2 class="candidate-name">Michael Smith</h2>
-                <p class="candidate-status">Status: Interview Scheduled</p>
-                <a href="#">View Profile</a>
-            </div>
-
-            <div class="candidate-card">
-                <h2 class="candidate-name">Sophia Lee</h2>
-                <p class="candidate-status">Status: Hired</p>
-                <a href="#">View Profile</a>
-            </div>
-
+            <p>No candidates have applied yet.</p>
         {% endif %}
-    </section>
+    </div>
 {% endblock %}

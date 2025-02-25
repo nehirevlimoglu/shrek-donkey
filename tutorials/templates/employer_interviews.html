@@ -4,9 +4,11 @@
 {% block title %}Interviews | Swamp Hiring{% endblock %}
 
 {% block extra_css %}
+
     <!-- FullCalendar CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/5.11.5/main.min.css">
     <!-- Your custom interview calendar CSS (optional) -->
+
     <link rel="stylesheet" href="{% static 'css/interview_calendar.css' %}">
 
 
@@ -15,6 +17,7 @@
 {% block content %}
 <!-- "Schedule Interview" button -->
 <a href="{% url 'schedule_interview' %}" class="schedule-button">+ Schedule Interview</a>
+
 
 <h2>Scheduled Interviews</h2>
 {% if interviews %}
@@ -63,3 +66,35 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
+
+
+    <h2>Scheduled Interviews</h2>
+    
+    {% if interviews %}
+        <table>
+            <tr>
+                <th>Candidate</th>
+                <th>Job Title</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Actions</th>
+            </tr>
+            {% for interview in interviews %}
+            <tr>
+                <td>{{ interview.candidate.user.first_name }} {{ interview.candidate.user.last_name }}</td>
+                <td>{{ interview.job.title }}</td>
+                <td>{{ interview.date }}</td>
+                <td>{{ interview.time }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No interviews scheduled.</p>
+    {% endif %}
+
+
+
+
+{% endblock %}
+
+

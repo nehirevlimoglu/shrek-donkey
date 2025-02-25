@@ -1,12 +1,18 @@
 import os
 import json
 from django import forms
+<<<<<<< HEAD
 from tutorials.models.employer_models import Job, Interview
 from django.contrib.auth.forms import PasswordChangeForm
+=======
+from tutorials.models.employer_models import Job
+>>>>>>> refs/remotes/origin/employers
 from django.contrib.auth.models import User
+from tutorials.models.employer_models import Employer
 from django.conf import settings
 
 
+<<<<<<< HEAD
 
 
 class JobForm(forms.ModelForm):
@@ -39,6 +45,8 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         fields = ['old_password', 'new_password1', 'new_password2']
 
 
+=======
+>>>>>>> refs/remotes/origin/employers
 def get_job_titles():
     json_path = os.path.join(settings.BASE_DIR, 'static/data/job_titles.json')
     try:
@@ -73,20 +81,8 @@ class JobForm(forms.ModelForm):
             'contact_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Contact Email'}),
         }
 
-class CustomPasswordChangeForm(PasswordChangeForm):
-    old_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Old Password'}),
-        label="Old Password"
-    )
-    new_password1 = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'New Password'}),
-        label="New Password"
-    )
-    new_password2 = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm New Password'}),
-        label="Confirm New Password"
-    )
 
+class EmployerProfileForm(forms.ModelForm):
     class Meta:
-        model = User
-        fields = ['old_password', 'new_password1', 'new_password2']
+        model = Employer
+        fields = ['company_name', 'company_logo', 'company_website', 'industry', 'company_location']
