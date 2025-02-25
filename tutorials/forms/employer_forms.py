@@ -1,18 +1,13 @@
 import os
 import json
 from django import forms
-<<<<<<< HEAD
 from tutorials.models.employer_models import Job, Interview
 from django.contrib.auth.forms import PasswordChangeForm
-=======
-from tutorials.models.employer_models import Job
->>>>>>> refs/remotes/origin/employers
 from django.contrib.auth.models import User
 from tutorials.models.employer_models import Employer
 from django.conf import settings
 
 
-<<<<<<< HEAD
 
 
 class JobForm(forms.ModelForm):
@@ -45,8 +40,6 @@ class CustomPasswordChangeForm(PasswordChangeForm):
         fields = ['old_password', 'new_password1', 'new_password2']
 
 
-=======
->>>>>>> refs/remotes/origin/employers
 def get_job_titles():
     json_path = os.path.join(settings.BASE_DIR, 'static/data/job_titles.json')
     try:

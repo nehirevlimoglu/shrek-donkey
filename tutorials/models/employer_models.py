@@ -7,14 +7,20 @@ from tutorials.models.user_model import User
 
 
 class Employer(models.Model):
-    username = models.CharField(max_length=150, unique=True)  # ✅ Store username separately
-    email = models.EmailField(unique=True)  # ✅ Store email separately
+    # Link to the User model
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    username = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(unique=True)  # New field added here
     company_name = models.CharField(max_length=255)
     company_website = models.URLField(blank=True, null=True)
     company_location = models.CharField(max_length=255)
     industry = models.CharField(max_length=100, choices=[
-        ('Tech', 'Tech'), ('Finance', 'Finance'), ('Healthcare', 'Healthcare'),
-        ('Education', 'Education'), ('Retail', 'Retail'), ('Other', 'Other')
+        ('Tech', 'Tech'),
+        ('Finance', 'Finance'),
+        ('Healthcare', 'Healthcare'),
+        ('Education', 'Education'),
+        ('Retail', 'Retail'),
+        ('Other', 'Other')
     ])
     company_size = models.PositiveIntegerField(default=1)
     company_logo = models.ImageField(upload_to='company_logos/', blank=True, null=True)
@@ -25,14 +31,18 @@ class Employer(models.Model):
     
     is_verified = models.BooleanField(default=False)
     account_status = models.CharField(max_length=20, choices=[
-        ('Active', 'Active'), ('Suspended', 'Suspended'), ('Pending', 'Pending')
+        ('Active', 'Active'),
+        ('Suspended', 'Suspended'),
+        ('Pending', 'Pending')
     ], default='Pending')
     subscription_plan = models.CharField(max_length=20, choices=[
-        ('Free', 'Free'), ('Premium', 'Premium'), ('Enterprise', 'Enterprise')
+        ('Free', 'Free'),
+        ('Premium', 'Premium'),
+        ('Enterprise', 'Enterprise')
     ], default='Free')
 
     def __str__(self):
-        return f"{self.company_name} ({self.username})"
+        return f"{self.company_name} ({self.user.username})"
 
 
 class Job(models.Model):

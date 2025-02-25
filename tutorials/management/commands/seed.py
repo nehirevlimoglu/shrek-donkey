@@ -1,12 +1,13 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.hashers import make_password
-from tutorials.models.user_model import User
+from django.contrib.auth import get_user_model
 from tutorials.models.employer_models import Employer, Job, Candidate, Interview
 from datetime import date, time, timedelta
 from faker import Faker
 import random
 
-# ✅ Predefined user fixtures (Employers, Admins, and Applicants)
+User = get_user_model()
+
 user_fixtures = [
     {'username': '@damla', 'email': 'damla@example.org', 'first_name': 'Damla', 'last_name': 'Sen', 'role': 'Employer'},
     {'username': '@tan', 'email': 'tan@example.org', 'first_name': 'Tan', 'last_name': 'Yukseloglu', 'role': 'Employer'},
@@ -20,52 +21,49 @@ user_fixtures = [
 ]
 
 class Command(BaseCommand):
-    """Automatically seeds Employers, Admins, and Applicants into the database."""
-    
+    help = 'Seeds the database with sample Employers, Admins, and Applicants'
+
     USER_COUNT = 25
     EMPLOYER_COUNT = 5
     APPLICANT_COUNT = 15
     ADMIN_COUNT = 5
     DEFAULT_PASSWORD = 'Password123'
-    help = 'Seeds the database with sample Employers, Admins, and Applicants'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.faker = Faker('en_GB')
 
     def handle(self, *args, **options):
-        """Main function to create all users"""
-        self.create_users()
+        self.create_users()  # from fixtures + random
         print("\n✅ Seeding complete. Summary:")
         self.list_all_users()
 
-        self.create_employers_from_users()   # Only needed if Employer extends User
         self.create_jobs()
         self.create_candidates()
         self.create_interviews()
 
         print("Seeding complete.")
 
+    # ---------------------------
+    # Create users
+    # ---------------------------
     def create_users(self):
-        """Creates users from fixtures and generates random ones"""
+        """Creates users from fixtures, then random ones."""
         self.generate_user_fixtures()
         self.generate_random_users()
 
     def generate_user_fixtures(self):
-        """Creates predefined users from user_fixtures list"""
         for data in user_fixtures:
             self.try_create_user(data)
 
     def generate_random_users(self):
-        """Creates additional random users to meet the count requirements"""
         user_count = User.objects.count()
-        employer_count = Employer.objects.count()
+        employer_count = User.objects.filter(role='Employer').count()
         applicant_count = User.objects.filter(role='Applicant').count()
         admin_count = User.objects.filter(role='Admin').count()
 
         while user_count < self.USER_COUNT:
             print(f"Seeding user {user_count + 1}/{self.USER_COUNT}", end='\r')
-
             if employer_count < self.EMPLOYER_COUNT:
                 self.generate_user('Employer')
                 employer_count += 1
@@ -75,77 +73,72 @@ class Command(BaseCommand):
             else:
                 self.generate_user('Applicant')
                 applicant_count += 1
-
             user_count = User.objects.count()
-
         print("✅ Additional user seeding complete.")
 
     def generate_user(self, role):
-        """Generates a new user with Faker"""
         first_name = self.faker.first_name()
         last_name = self.faker.last_name()
         email = create_email(first_name, last_name)
 
-        # Ensure the email is unique
         while User.objects.filter(email=email).exists():
             first_name = self.faker.first_name()
             last_name = self.faker.last_name()
             email = create_email(first_name, last_name)
 
         username = create_username(first_name, last_name)
-
-        self.try_create_user({
+        data = {
             'username': username,
             'email': email,
             'first_name': first_name,
             'last_name': last_name,
             'role': role,
-        })
+        }
+        self.try_create_user(data)
 
     def try_create_user(self, data):
-        """Attempts to create a user and handles exceptions"""
         try:
             self.create_user(data)
         except Exception as e:
             print(f"⚠️ Error creating user: {e}")
 
     def create_user(self, data):
-        """Creates a user and links Employers separately"""
         user, created = User.objects.get_or_create(
             username=data['username'],
             defaults={
                 "email": data['email'],
-                "password": make_password(self.DEFAULT_PASSWORD),  # Hash password correctly
+                "password": make_password(self.DEFAULT_PASSWORD),
                 "first_name": data['first_name'],
                 "last_name": data['last_name'],
                 "role": data['role'],
-                "is_active": True  # Ensure active status
+                "is_active": True
             }
         )
+        if created:
+            print(f"Created User: {user.username} (role={user.role})")
 
-    def create_employers_from_users(self):
-        fake = Faker()
-        employer_users = self.users.filter(role='Employer')
-        for user in employer_users:
-            if not Employer.objects.filter(pk=user.pk).exists():
-                Employer.objects.create(
-                    user_ptr_id=user.pk,
-                    username=user.username,
-                    email=user.email,
-                    password=user.password,
-                    first_name=user.first_name,
-                    last_name=user.last_name,
-                    role=user.role,
-                    company_name=fake.company(),
-                    company_location=fake.city(),
-                    industry="Tech",
-                    company_size=fake.random_int(min=1, max=500),
-                    account_status="Active",
-                    subscription_plan="Free",
-                    is_verified=True
-                )
-                print(f"Created Employer for user {user.username}")
+        if user.role == 'Employer':
+            self.create_employer_profile(user)
 
+    def create_employer_profile(self, user):
+    # Check if an Employer record already exists for this user
+        if not Employer.objects.filter(user=user).exists():
+            Employer.objects.create(
+                user=user,
+                username=user.username,  # Use the unique username from the User
+                email=user.email,        # Use the user's email
+                company_name=f"{user.first_name} {user.last_name} Corp",
+                company_location=self.faker.city(),
+                industry="Tech",
+                company_size=random.randint(1, 500),
+                account_status="Active",
+                subscription_plan="Free",
+                is_verified=True
+            )
+            print(f"Created Employer profile for {user.username}")
+    # ---------------------------
+    # Create Jobs, Candidates, Interviews
+    # ---------------------------
     def create_jobs(self):
         fake = Faker()
         for employer in Employer.objects.all():
@@ -161,14 +154,13 @@ class Command(BaseCommand):
                     description=f"Job description for {title}",
                     requirements="Sample requirements",
                     benefits="Some benefits",
-                    contact_email=employer.email,
+                    contact_email=employer.user.email,  # Use the linked User's email
                 )
-                print(f"Created Job '{job.title}' for employer {employer.username}")
+                print(f"Created Job '{job.title}' for employer {employer.user.username}")
 
     def create_candidates(self):
         jobs = list(Job.objects.all())
-        applicants = self.users.filter(role='Applicant')
-
+        applicants = User.objects.filter(role='Applicant')
         for user in applicants:
             if not jobs:
                 break
@@ -184,7 +176,6 @@ class Command(BaseCommand):
     def create_interviews(self):
         interview_date = date.today() + timedelta(days=1)
         interview_time = time(10, 0)
-
         for cand in Candidate.objects.all():
             Interview.objects.create(
                 candidate=cand,
@@ -196,29 +187,10 @@ class Command(BaseCommand):
             )
             print(f"Created Interview for {cand.user.username} - {cand.job.title}")
 
-        if created:
-            print(f"✅ {data['role']} User created: {user}")
-
-        # ✅ If the user is an Employer, create an Employer instance
-        if data['role'] == 'Employer':
-            employer, emp_created = Employer.objects.get_or_create(
-                username=user.username,  # Store the username separately
-                defaults={
-                    "email": user.email,
-                    "company_name": f"{user.first_name} {user.last_name} Corp",
-                    "company_location": "Unknown",
-                    "industry": "General",
-                    "is_verified": True
-                }
-            )
-            if emp_created:
-                print(f"✅ Employer profile created for {user.username}")
-
     def list_all_users(self):
-        """Displays a summary of all created users"""
-        print("\n🔹 **Employers:**")
+        print("\n🔹 **Employers (OneToOne)**:")
         for employer in Employer.objects.all():
-            print(f"  ✅ {employer.username} | {employer.company_name}")
+            print(f"  ✅ {employer.user.username} | {employer.company_name}")
 
         print("\n🔹 **Admins:**")
         for admin in User.objects.filter(role="Admin"):
@@ -232,7 +204,4 @@ def create_username(first_name, last_name):
     return '@' + first_name.lower() + last_name.lower()
 
 def create_email(first_name, last_name):
-    return first_name.lower() + '@example.org'
-
-
-
+    return f"{first_name.lower()}@example.org"

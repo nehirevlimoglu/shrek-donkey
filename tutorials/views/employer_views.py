@@ -8,7 +8,7 @@ from tutorials.forms.employer_forms import JobForm, EmployerProfileForm, CustomP
 from tutorials.forms.forms import CustomPasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.core.exceptions import PermissionDenied
 
 
