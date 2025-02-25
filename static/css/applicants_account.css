@@ -1,9 +1,11 @@
 /* General Styling */
-body {
+html, body {
     font-family: 'Arial', sans-serif;
     background-color: #f8f9fa;
     margin: 0;
     padding: 0;
+    width: 100%;
+    overflow-x: hidden; /* Prevents horizontal scrolling */
 }
 
 /* Account Container */
@@ -12,41 +14,34 @@ body {
     flex-direction: column;
     align-items: center;
     width: 100%;
-    max-width: 800px;
+    max-width: 100%; /* Ensures full width */
     margin: 0 auto;
     padding: 2rem;
 }
 
-.account-header {
-    width: 100%;
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.account-header h2 {
-    font-size: 28px;
-    color: #222;
-    margin: 0;
-}
-
-/* User Information Card */
+/* Ensure user info card takes full width */
 .user-info {
     background: white;
     padding: 30px;
     border-radius: 10px;
     box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.1);
-    width: 100%;
+    width: 90%; /* Adjusted for responsiveness */
+    max-width: 800px;
     border-left: 5px solid #007bff;
 }
 
-.user-info p {
-    font-size: 16px;
-    margin: 10px 0;
-    color: #333;
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .account-container {
+        width: 100%;
+    }
 }
 
-.user-info strong {
-    color: #000;
+@media (max-width: 768px) {
+    .account-container {
+        width: 100%;
+        padding: 1rem;
+    }
 }
 
 /* Edit Profile Button Container */
@@ -70,37 +65,4 @@ body {
 
 .edit-profile a:hover {
     background-color: #0056b3;
-}
-
-/* Content Container */
-.content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    padding: 20px;
-}
-
-/* Page Title */
-.account-page h2 {
-    font-size: 28px;
-    color: #222;
-    margin-bottom: 30px;
-    text-align: center;
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-    .account-page {
-        width: calc(100% - 200px);
-        margin-left: 200px;
-    }
-}
-
-@media (max-width: 768px) {
-    .account-page {
-        width: 100%;
-        margin-left: 0;
-        padding: 1rem;
-    }
 }

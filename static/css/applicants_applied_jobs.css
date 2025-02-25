@@ -149,3 +149,21 @@ body {
     padding: 6px 12px;
     font-size: 0.9em;
 }
+
+/* Favorite Star Styling */
+.favorite-star {
+    font-size: 2rem;
+    color: #ccc;
+    cursor: pointer;
+    transition: color 0.3s ease, transform 0.2s ease;
+    text-align: center;
+}
+
+.favorite-star:hover {
+    color: #ffd700;
+    transform: scale(1.2);
+}
+
+.favorite-star.active {
+    color: #ffd700;
+}
