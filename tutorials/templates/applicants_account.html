@@ -8,12 +8,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="account-page">
+<div class="account-container">
+    <div class="account-header">
+        <h2>My Account</h2>
+    </div>
 
-    <!-- Page heading -->
-    <h2>My Account</h2>
-
-    <!-- Display user/applicant details -->
     <div class="user-info">
         <p><strong>First Name:</strong> {{ user.first_name }}</p>
         <p><strong>Last Name:</strong> {{ user.last_name }}</p>
@@ -31,12 +30,8 @@
         {% endif %}
     </div>
 
-    <!-- Edit Profile button -->
     <div class="edit-profile">
         <a href="{% url 'applicants-edit-profile' %}" class="button">Edit Profile</a>
     </div>
-
 </div>
-
-
 {% endblock %}
