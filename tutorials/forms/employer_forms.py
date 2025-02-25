@@ -1,7 +1,7 @@
 import os
 import json
 from django import forms
-from tutorials.models.employer_models import Job
+from tutorials.models.employer_models import Job, Interview
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -13,6 +13,11 @@ class JobForm(forms.ModelForm):
     class Meta:
         model = Job
         fields = ['title', 'description', 'requirements', 'salary', 'job_type']
+
+class InterviewForm(forms.ModelForm):
+    class Meta:
+        model = Interview
+        fields = ['candidate', 'job', 'date', 'time', 'interview_link', 'notes']
 
 
 class CustomPasswordChangeForm(PasswordChangeForm):
