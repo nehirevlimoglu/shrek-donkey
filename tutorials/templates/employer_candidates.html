@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Candidates | Swamp Hiring{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/employer_candidates.css' }">
+{% endblock %}
+
+{% block content %}
+    <div class="candidates-section">
+        <h2>Job Candidates</h2>
+
+        {% if candidates %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Position Applied</th>
+                        <th>Status</th>
+                        <th>Profile</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for candidate in candidates %}
+                        <tr>
+                            <td>{{ candidate.user.first_name }} {{ candidate.user.last_name }}</td>
+                            <td>{{ candidate.user.email }}</td>
+                            <td>{{ candidate.job.title }}</td>
+                            <td>
+                                <span class="status status-{{ candidate.application_status|lower }}">
+                                    {{ candidate.application_status }}
+                                </span>
+                            </td>
+                            <td>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No candidates have applied yet.</p>
+        {% endif %}
+    </div>
+{% endblock %}

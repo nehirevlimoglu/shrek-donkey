@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Applicant Analytics | Swamp Hiring{% endblock %}
+{% block content %}
+<head>
+    <link rel="stylesheet" href="{% static 'css/applicants_analytics.css' %}">
+</head>
+
+<header>
+    <h1>Applicant Analytics Overview</h1>
+</header>
+
+<section class="reports-overview">
+    <div class="report-card">
+        <h3>Total Applications</h3>
+        <p class="report-value">45</p>
+    </div>
+    <div class="report-card">
+        <h3>Interviews Scheduled</h3>
+        <p class="report-value">12</p>
+    </div>
+    <div class="report-card">
+        <h3>Job Offers Received</h3>
+        <p class="report-value">5</p>
+    </div>
+    <div class="report-card">
+        <h3>Offer Acceptance Rate</h3>
+        <p class="report-value">80%</p>
+    </div>
+</section>
+
+<section class="chart-container">
+    <div class="chart-card">
+        <h3>Applications Over Time</h3>
+        <canvas id="applicationsChart"></canvas>
+    </div>
+    <div class="chart-card">
+        <h3>Offer Acceptance Breakdown</h3>
+        <canvas id="offerChart"></canvas>
+    </div>
+</section>
+
+<section class="detailed-reports">
+    <h2>Application Details</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Job Title</th>
+                <th>Status</th>
+                <th>Interview Scheduled</th>
+                <th>Offer Received</th>
+                <th>Accepted</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Software Engineer</td>
+                <td>Applied</td>
+                <td>Yes</td>
+                <td>Yes</td>
+                <td>Yes</td>
+            </tr>
+            <tr>
+                <td>Product Manager</td>
+                <td>Applied</td>
+                <td>No</td>
+                <td>No</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>Data Analyst</td>
+                <td>Interviewed</td>
+                <td>Yes</td>
+                <td>Yes</td>
+                <td>No</td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx1 = document.getElementById('applicationsChart').getContext('2d');
+    const applicationsChart = new Chart(ctx1, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Applications Submitted',
+                data: [5, 8, 12, 6, 10, 4],
+                borderColor: '#1A73E8',
+                fill: false
+            }]
+        },
+    });
+
+    const ctx2 = document.getElementById('offerChart').getContext('2d');
+    const offerChart = new Chart(ctx2, {
+        type: 'pie',
+        data: {
+            labels: ['Accepted', 'Declined'],
+            datasets: [{
+                label: 'Offer Acceptance Rate',
+                data: [80, 20],
+                backgroundColor: ['#34A853', '#EA4335']
+            }]
+        },
+    });
+</script>
+{% endblock %}

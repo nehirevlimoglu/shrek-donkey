@@ -1,159 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Applicant Account</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(to bottom, #dbe8f1, #ffffff);
-            color: #333;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        .field {
-            margin-bottom: 15px;
-        }
-        .field label {
-            font-weight: bold;
-        }
-        .field p {
-            margin: 5px 0;
-            font-size: 1em;
-        }
-        .cv-upload {
-            margin-top: 20px;
-        }
-        .cv-upload input[type="file"] {
-            display: block;
-            margin-top: 10px;
-        }
-        .button {
-            background-color: #0073e6;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .button:hover {
-            background-color: #005bb5;
-        }
-        .messages {
-            margin-bottom: 1em;
-            padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #eef;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Applicant Account</h1>
+{% extends "base.html" %}
+{% load static %}
 
-        <!-- Display success or error messages -->
-        {% if messages %}
-            <div class="messages">
-                {% for message in messages %}
-                    <p class="message">{{ message }}</p>
-                {% endfor %}
-            </div>
-        {% endif %}
+{% block title %}Applicant Account | Swamp Hiring{% endblock %}
 
-        <!-- Form to handle updating applicant info -->
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/applicants_account.css' %}">
+{% endblock %}
 
-            <!-- First Name -->
-            <div class="field">
-                <label for="id_first_name">First Name:</label>
-                <input
-                    type="text"
-                    id="id_first_name"
-                    name="first_name"
-                    value="{{ form.initial.first_name|default_if_none:'' }}"
-                />
-            </div>
-
-            <!-- Last Name -->
-            <div class="field">
-                <label for="id_last_name">Last Name:</label>
-                <input
-                    type="text"
-                    id="id_last_name"
-                    name="last_name"
-                    value="{{ form.initial.last_name|default_if_none:'' }}"
-                />
-            </div>
-
-            <!-- Degree -->
-            <div class="field">
-                <label for="id_degree">Degree:</label>
-                <input
-                    type="text"
-                    id="id_degree"
-                    name="degree"
-                    value="{{ applicant.degree|default_if_none:'' }}"
-                />
-            </div>
-
-            <!-- Salary Preferences -->
-            <div class="field">
-                <label for="id_salary_preferences">Salary Preferences:</label>
-                <input
-                    type="text"
-                    id="id_salary_preferences"
-                    name="salary_preferences"
-                    value="{{ applicant.salary_preferences|default_if_none:'' }}"
-                />
-            </div>
-
-            <!-- Job Preferences (NOTE: In your form, it's a Textarea widget) -->
-            <div class="field">
-                <label for="id_job_preferences">Job Preferences:</label>
-                <textarea
-                    id="id_job_preferences"
-                    name="job_preferences"
-                    rows="3"
-                >{{ applicant.job_preferences|default_if_none:'' }}</textarea>
-            </div>
-
-            <!-- Location Preferences -->
-            <div class="field">
-                <label for="id_location_preferences">Location Preferences:</label>
-                <input
-                    type="text"
-                    id="id_location_preferences"
-                    name="location_preferences"
-                    value="{{ applicant.location_preferences|default_if_none:'' }}"
-                />
-            </div>
-
-            <!-- CV -->
-            <div class="cv-upload">
-                <label for="id_cv">Upload CV:</label>
-                <input type="file" name="cv" id="id_cv">
-                {% if applicant.cv %}
-                    <p>Uploaded CV:
-                        <a href="{{ applicant.cv.url }}" target="_blank">Download CV</a>
-                    </p>
-                {% else %}
-                    <p>No CV uploaded yet.</p>
-                {% endif %}
-            </div>
-
-            <button type="submit" class="button">Save Changes</button>
-        </form>
+{% block content %}
+<div class="account-container">
+    <div class="account-header">
+        <h2>My Account</h2>
     </div>
-</body>
-</html>
+
+    <div class="user-info">
+        <p><strong>First Name:</strong> {{ user.first_name }}</p>
+        <p><strong>Last Name:</strong> {{ user.last_name }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Degree:</strong> {{ applicant.degree }}</p>
+        <p><strong>Salary Preferences:</strong> {{ applicant.salary_preferences }}</p>
+        <p><strong>Job Preferences:</strong> {{ applicant.job_preferences }}</p>
+        <p><strong>Location Preferences:</strong> {{ applicant.location_preferences }}</p>
+        {% if applicant.cv %}
+            <p><strong>CV:</strong> 
+                <a href="{{ applicant.cv.url }}" target="_blank">Download</a>
+            </p>
+        {% else %}
+            <p>No CV uploaded.</p>
+        {% endif %}
+    </div>
+
+    <div class="edit-profile">
+        <a href="{% url 'applicants-edit-profile' %}" class="button">Edit Profile</a>
+    </div>
+</div>
+{% endblock %}

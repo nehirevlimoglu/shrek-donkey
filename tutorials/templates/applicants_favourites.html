@@ -4,6 +4,9 @@
 {% block title %}Favourite Jobs | Swamp Hiring{% endblock %}
 
 {% block content %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/applicants_favourites.css' %}">
+
     <div class="dashboard-container">
         <aside class="sidebar">
             <h2>Swamp Hiring</h2>
@@ -14,7 +17,7 @@
                     <li><a href="{% url 'applicants-favourites' %}">Favourites</a></li>
                     <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
                     <li><a href="{% url 'applicants-notifications' %}">Notifications</a></li>
-
+                    <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
                 </ul>
             </nav>
         </aside>

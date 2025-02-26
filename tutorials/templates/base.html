@@ -19,11 +19,24 @@
                     {% if user.is_authenticated %}
                         {% if user.role == "Employer" %}
                             <li><a href="{% url 'employer_home_page' %}">Dashboard</a></li>
-                            <li><a href="{% url 'create_job_listings' %}">Job Listings</a></li>
-                            <li><a href="{% url 'employer_reports' %}">Reports</a></li>
+                            <li><a href="{% url 'create_job_listings' %}">Create New Listing</a></li>
+                            <li><a href="{% url 'employer_job_listings' %}">Job Listings</a></li>
+                            <li><a href="{% url 'employer_candidates' %}">Candidates</a></li>
+                            <li><a href="{% url 'employer_interviews' %}">Interviews</a></li>
+                            <li><a href="{% url 'employer_analytics' %}">Analytics</a></li>
+                            <li><a href="{% url 'employer_settings' %}">Settings</a></li>
                         {% elif user.role == "Admin" %}
                             <li><a href="{% url 'admin_home_page' %}">Admin Dashboard</a></li>
                             <li><a href="{% url 'admin_job_listings' %}">Manage Job Listings</a></li>
+                            <li><a href="{% url 'admin_settings' %}">Settings</a></li>
+                        {% elif user.role == "Applicant" %}
+                            <!-- Your 5 menu items for Applicants -->
+                            <li><a href="{% url 'applicants-home-page' %}">Home Page</a></li>
+                            <li><a href="{% url 'applicants-account' %}">Account</a></li>
+                            <li><a href="{% url 'applicants-favourites' %}">Favourites</a></li>
+                            <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
+                            <li><a href="{% url 'applicants-notifications' %}">Notifications</a></li>
+                            <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
                         {% else %}
                             <li><a href="/">Home</a></li>  <!-- Uses the root URL instead -->
                         {% endif %}
@@ -32,9 +45,7 @@
             </nav>
         </aside>
         
-
         <main class="content">
-            <!-- Always present welcome message -->
             <header>
                 <div class="user-profile" id="userProfile">
                     <h1>Welcome Back, {{ user.first_name }} 👋</h1>
@@ -60,14 +71,9 @@
                 </div>
             </header>
             
-            
-
-            <!-- Block for unique content on each page -->
-            {% block content %}
-            <!-- Default content can go here (optional) -->
-            {% endblock %}
+            {% block content %}{% endblock %}
         </main>
     </div>
-    <script src="{% static 'js/dropdown.js' %}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

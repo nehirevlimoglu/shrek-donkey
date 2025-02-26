@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
-from tutorials.models.employer_models import Employer, Job
+from tutorials.models.employer_models import Employer, Job, Candidate, Interview
 from tutorials.forms.forms import SignUpForm, LogInForm
-from tutorials.forms.employer_forms import JobForm, CustomPasswordChangeForm
+from tutorials.forms.employer_forms import JobForm, CustomPasswordChangeForm, EmployerProfileForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
+from django.http import JsonResponse
+from django.core.exceptions import PermissionDenied
 
 def is_employer(user):
     return hasattr(user, 'role') and user.role == 'Employer'
@@ -15,8 +17,8 @@ def employer_home_page(request):
     employers = Employer.objects.all()
     return render(request, 'employers_home_page.html', {'employers': employers})
 
-def view_reports(request):
-    return render(request, 'employer_reports.html')
+def view_employer_analytics(request):
+    return render(request, 'employer_analytics.html')
 
 @login_required
 def employer_settings(request):
@@ -37,12 +39,26 @@ def employer_sign_up(request):
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
 
+@login_required
+def employer_job_listings(request):
+    """ Display only the jobs posted by the logged-in employer """
+    
+    # Get the employer linked to the logged-in user
+    try:
+        employer = Employer.objects.get(username=request.user.username)
+        jobs = Job.objects.filter(employer=employer)  # ✅ Get jobs posted by this employer
+    except Employer.DoesNotExist:
+        jobs = []  # ✅ If employer does not exist, show no jobs
+
+    return render(request, 'employer_job_listings.html', {'jobs': jobs})
+
 def create_job_listings(request):
     if request.method == 'POST':
         form = JobForm(request.POST)
         if form.is_valid():
             job = form.save(commit=False)
-            job.employer = request.user 
+            #job.employer = request.user.employer
+            job.employer = None
             job.save()
             return redirect('employer_job_listings')  
     else:
@@ -50,6 +66,24 @@ def create_job_listings(request):
 
     return render(request, 'employer_create_job_listing.html', {'form': form})
 
+def job_detail_view(request, pk):
+    job = get_object_or_404(Job, pk=pk)
+    return render(request, 'jobs/employer_job_detail.html', {'job': job})
+
+def edit_job_view(request, pk):
+    job = get_object_or_404(Job, pk=pk)
+
+    if request.method == 'POST':
+        form = JobForm(request.POST, instance=job)
+        if form.is_valid():
+            form.save()
+            return redirect('employer_job_detail', pk=job.pk)
+    else:
+        form = JobForm(instance=job)
+
+    return render(request, 'jobs/edit_job.html', {'form': form, 'job': job})
+
+    
 def employer_login(request):
     if request.method == 'POST':
         form = LogInForm(request, data=request.POST)
@@ -63,6 +97,7 @@ def employer_login(request):
     else:
         form = LogInForm()
     return render(request, 'log_in.html', {'form': form})
+
 
 @login_required
 def change_password(request):
@@ -81,3 +116,79 @@ def change_password(request):
         form = CustomPasswordChangeForm(user=request.user)
     
     return render(request, 'change_password.html', {'form': form})
+
+
+@login_required
+def employer_candidates(request):
+    """ Ensure request.user is an Employer before querying """
+    try:
+        # Match Employer by username instead of user object
+        employer = Employer.objects.get(username=request.user.username)  
+        candidates = Candidate.objects.filter(job__employer=employer)
+    except Employer.DoesNotExist:
+        return HttpResponseForbidden("You are not an employer.")
+
+    return render(request, 'employer_candidates.html', {'candidates': candidates})
+
+
+@user_passes_test(is_employer)
+@login_required
+def employer_interviews(request):
+    try:
+        # Match Employer by username instead of user object
+        employer = Employer.objects.get(username=request.user.username)
+        interviews = Interview.objects.filter(job__employer=employer)
+    except Employer.DoesNotExist:
+        return HttpResponseForbidden("You are not an employer.")
+
+    return render(request, 'employer_interviews.html', {'interviews': interviews})
+
+@login_required
+def get_interviews(request):
+    try:
+        employer = Employer.objects.get(username=request.user.username)
+        interviews = Interview.objects.filter(job__employer=employer)
+    except Employer.DoesNotExist:
+        return JsonResponse({"error": "Employer not found"}, status=403)
+
+    events = [
+        {
+            'id': interview.pk,
+            'title': f"Interview: {interview.candidate.user.first_name} {interview.candidate.user.last_name}",
+            'start': f"{interview.date}T{interview.time}",
+            'url': f"/interview/{interview.pk}/"
+        }
+        for interview in interviews
+    ]
+
+    return JsonResponse(events, safe=False)
+
+@login_required
+def edit_company_profile(request):
+    try:
+        # FIX: Use 'username' instead of 'user'
+        employer = Employer.objects.get(username=request.user.username)
+    except Employer.DoesNotExist:
+        return render(request, "error.html", {"message": "Employer not found"})
+
+    if request.method == "POST":
+        form = EmployerProfileForm(request.POST, request.FILES, instance=employer)
+        if form.is_valid():
+            form.save()
+            return redirect("employer_settings")  # Redirect to settings after update
+    else:
+        form = EmployerProfileForm(instance=employer)
+
+    return render(request, "edit_company_profile.html", {"form": form})
+
+@login_required
+def delete_account(request):
+    if request.method == "POST":
+        employer = Employer.objects.get(user=request.user)
+        user = request.user
+        employer.delete()  # Delete Employer profile
+        user.delete()  # Delete User account
+        logout(request)
+        return redirect("home_page")  # Redirect to homepage after account deletion
+
+    return render(request, "delete_account.html")
