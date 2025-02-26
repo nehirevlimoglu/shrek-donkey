@@ -25,7 +25,7 @@
                             <li><a href="{% url 'admin_home_page' %}">Admin Dashboard</a></li>
                             <li><a href="{% url 'admin_job_listings' %}">Manage Job Listings</a></li>
                         {% else %}
-                            <li><a href="{% url 'home_page' %}">Home</a></li>
+                            <li><a href="/">Home</a></li>  <!-- Uses the root URL instead -->
                         {% endif %}
                     {% endif %}
                 </ul>
