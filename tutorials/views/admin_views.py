@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
-from tutorials.models.admin_models import Admin
-from tutorials.models.admin_models import Notification
+from tutorials.models.admin_models import Admin, Notification
+from tutorials.models.employer_models import Job
+
 
 def is_admin(user):
     return user.role == 'Admin'
@@ -29,7 +30,8 @@ def review_job(request, job_id, decision):
         job.status = 'rejected'
     
     job.save()
-    return redirect('admin_job_listings')  
+    return redirect('admin_job_listings') 
+
 def admin_settings(request):
     return render(request, 'admin_settings.html')
 

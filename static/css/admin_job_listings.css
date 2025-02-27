@@ -1,85 +1,72 @@
-/* General reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
-}
-
-body {
-    background: #F8F9FA;
-    color: #1A202C;
+/* Ensure the parent wrapper has a fixed height */
+.table-wrapper {
+    width: 100%;
+    max-width: 800px; /* Adjust as needed */
+    height: 60vh; /* Limits table height to 60% of the viewport */
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
-    overflow-y: auto;
-    height: 100vh;
-    width: 100vw;
-}
-
-h1 {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 24px;
-    width: 100%;
-}
-
-/* Listings - Grid Layout */
-.listings {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));  /* Auto-adjust columns */
-    gap: 20px;
-    width: 100%;
-    max-width: 1600px;  /* Max width of the listings container */
-    margin-top: 20px;
-    padding: 10px;
-    overflow-y: auto;  /* Scrollable if there are many job cards */
-    max-height: 80vh;  /* Set maximum height for scrolling */
-}
-
-.job-card {
-    background: #E2E8F0;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    width: 100%;
-    min-height: 250px;  /* Minimum height to ensure consistency in card size */
-}
-
-.job-card h2 {
-    font-size: 24px;
-    margin-bottom: 10px;
-    color: #333;
-}
-
-.job-card p {
-    font-size: 18px;
-    margin-bottom: 8px;
-    color: #555;
-}
-
-.apply-btn {
-    background: #1A73E8;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    font-size: 18px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.apply-btn:hover {
-    background: #1558B5;
-}
-
-/* Optional: Enhance the appearance of the job-listings-container */
-.job-listings-container {
-    width: 100%;
-    padding: 20px;
-    background-color: #fff;
+    justify-content: start;
+    background: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+}
+
+/* Scrollable Table Container */
+.table-container {
+    width: 100%;
+    height: 100%;  /* Ensures the container fills available space */
+    overflow-y: auto;   /* Enables vertical scrolling */
+    border: 1px solid #ddd;  /* Optional: Adds a border for clarity */
+}
+
+/* Ensure the table doesn't shrink */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Prevents overflow issues */
+}
+
+/* Sticky headers for better readability */
+thead tr {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 10;
+}
+
+/* Styling for table cells */
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Set a max height for tbody */
+tbody {
+    display: block;
+    max-height: 50vh; /* Adjust based on how much content you expect */
+    overflow-y: auto;
+    width: 100%;
+}
+
+thead, tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed; /* Ensures proper alignment */
+}
+
+/* Optional: Improve scrollbar visibility */
+.table-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }

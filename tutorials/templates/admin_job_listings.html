@@ -4,25 +4,28 @@
 <h2>Pending Job Listings</h2>
 
 {% if pending_jobs %}
-<table border="1">
-    <tr>
-        <th>Title</th>
-        <th>Company</th>
-        <th>Location</th>
-        <th>Action</th>
-    </tr>
-    {% for job in pending_jobs %}
-    <tr>
-        <td>{{ job.title }}</td>
-        <td>{{ job.company_name }}</td>
-        <td>{{ job.location }}</td>
-        <td>
-            <a href="{% url 'review_job' job.id 'approve' %}" style="color: green;">✅ Approve</a> |
-            <a href="{% url 'review_job' job.id 'reject' %}" style="color: red;">❌ Reject</a>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
+<div class="table-wrapper">  <!-- Ensure proper scrolling -->
+    <div class="table-container">  <!-- Scrollable container -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Company</th>
+                    <th>Location</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in pending_jobs %}
+                <tr>
+                    <td>{{ job.title }}</td>
+                    <td>{{ job.company_name }}</td>
+                    <td>{{ job.location }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% else %}
 <p>No job listings pending review.</p>
 {% endif %}
