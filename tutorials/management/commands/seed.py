@@ -20,7 +20,7 @@ user_fixtures = [
 
 class Command(BaseCommand):
     """Automatically seeds Employers, Admins, and Applicants into the database."""
-    
+
     USER_COUNT = 25
     EMPLOYER_COUNT = 5
     APPLICANT_COUNT = 15
@@ -76,15 +76,15 @@ class Command(BaseCommand):
         """Generates a new user with Faker"""
         first_name = self.faker.first_name()
         last_name = self.faker.last_name()
-        email = create_email(first_name, last_name)
+        email = self.create_email(first_name, last_name)
 
         # Ensure the email is unique
         while User.objects.filter(email=email).exists():
             first_name = self.faker.first_name()
             last_name = self.faker.last_name()
-            email = create_email(first_name, last_name)
+            email = self.create_email(first_name, last_name)
 
-        username = create_username(first_name, last_name)
+        username = self.create_username(first_name, last_name)
 
         self.try_create_user({
             'username': username,
@@ -111,7 +111,9 @@ class Command(BaseCommand):
                 "first_name": data['first_name'],
                 "last_name": data['last_name'],
                 "role": data['role'],
-                "is_active": True
+                "is_active": True,
+                "is_staff": data['role'] == "Admin",  # ✅ Set is_staff=True for admins
+                "is_superuser": data['role'] == "Admin"  # ✅ Set is_superuser=True for admins
             }
         )
 
@@ -132,7 +134,7 @@ class Command(BaseCommand):
                 )
                 if emp_created:
                     print(f"✅ Employer profile created for {user.username}")
-            
+
             # Create Applicant profile
             elif data['role'] == 'Applicant':
                 applicant, app_created = Applicant.objects.get_or_create(
@@ -167,8 +169,12 @@ class Command(BaseCommand):
             except Applicant.DoesNotExist:
                 print("     ❌ No applicant profile found")
 
-def create_username(first_name, last_name):
-    return '@' + first_name.lower() + last_name.lower()
+    @staticmethod
+    def create_username(first_name, last_name):
+        """Creates a username in the format '@firstname_lastname'"""
+        return f"@{first_name.lower()}{last_name.lower()}"
 
-def create_email(first_name, last_name):
-    return first_name.lower() + '@example.org'
+    @staticmethod
+    def create_email(first_name, last_name):
+        """Generates a unique email"""
+        return f"{first_name.lower()}@example.org"

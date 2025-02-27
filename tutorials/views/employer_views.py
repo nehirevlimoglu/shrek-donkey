@@ -42,7 +42,7 @@ def employer_sign_up(request):
     return render(request, 'sign_up.html', {'form': form})
 
 
-@login_required
+
 def employer_job_listings(request):
     """ Display only the jobs posted by the logged-in employer """
     
