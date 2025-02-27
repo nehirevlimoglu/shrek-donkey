@@ -1,0 +1,15 @@
+
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Interview Detail{% endblock %}
+
+{% block content %}
+<h1>Interview Detail</h1>
+<p><strong>Candidate:</strong> {{ interview.candidate.user.username }}</p>
+<p><strong>Job:</strong> {{ interview.job.title }}</p>
+<p><strong>Date:</strong> {{ interview.date }}</p>
+<p><strong>Time:</strong> {{ interview.time }}</p>
+<p><strong>Notes:</strong> {{ interview.notes }}</p>
+<p><strong>Link:</strong> {{ interview.interview_link }}</p>
+{% endblock %}

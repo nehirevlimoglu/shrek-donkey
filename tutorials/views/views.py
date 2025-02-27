@@ -58,4 +58,10 @@ def sign_up(request):
 
 def log_out(request):
     print("User before logout:", request.user) 
+<<<<<<< HEAD
     return redirect('log-in')  
+=======
+    logout(request)  
+    print("User after logout:", request.user)  
+    return redirect('log-in')
+>>>>>>> origin/employers

@@ -1,0 +1,13 @@
+#calendar {
+  width: 90%;
+  margin: 0 auto;
+  min-height: 600px;  /* Force a minimum visible height */
+  border: 1px solid #ccc; /* Optional: see outline */
+}
+
+
+
+
+html, body {
+    overflow-y: auto;
+}
