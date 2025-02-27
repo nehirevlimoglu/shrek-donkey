@@ -34,6 +34,13 @@ class Employer(models.Model):
     def __str__(self):
         return f"{self.company_name} ({self.username})"
 
+class JobTitle(models.Model):
+    """Store selectable job titles instead of creating actual job records."""
+    title = models.CharField(max_length=255, unique=True)
+
+    def __str__(self):
+        return
+
 class Job(models.Model):
     employer = models.ForeignKey(
         Employer,
@@ -42,9 +49,16 @@ class Job(models.Model):
         null=True,
         blank=True
     )
-    title = models.CharField(max_length=200)
+    
+    # ✅ Users can type in job title
+    title = models.CharField(max_length=255)
+
+    # ✅ Users can also type in the job position
+    position = models.CharField(max_length=255, blank=True, null=True)
+
     company_name = models.CharField(max_length=255, default="Unknown Company")
     location = models.CharField(max_length=255, default="Unknown Location")
+    
     job_type = models.CharField(
         max_length=100,
         choices=[
@@ -76,7 +90,7 @@ class Job(models.Model):
     )
 
     def __str__(self):
-        return f"{self.title} ({self.get_status_display()})"
+        return f"{self.title} - {self.position if self.position else 'No Position'} ({self.get_status_display()})"
 
 
 class Candidate(models.Model):

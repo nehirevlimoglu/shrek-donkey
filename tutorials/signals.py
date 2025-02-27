@@ -3,12 +3,11 @@ import os
 from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from django.conf import settings
-from tutorials.models.employer_models import Job
-from django.utils.timezone import now
+from tutorials.models.employer_models import JobTitle
 
 @receiver(post_migrate)
-def populate_jobs(sender, **kwargs):
-    """ Automatically populate job titles from JSON after migrations. """
+def populate_job_titles(sender, **kwargs):
+    """Populate selectable job titles from JSON after migrations."""
     
     if sender.name != "tutorials":  # Ensure it runs only for the 'tutorials' app
         return
@@ -22,24 +21,11 @@ def populate_jobs(sender, **kwargs):
     with open(json_path, 'r') as file:
         job_titles = json.load(file)
 
-    added_jobs = 0  # Counter for added jobs
+    added_titles = 0  # Counter for added job titles
 
     for title in job_titles:
-        job, created = Job.objects.get_or_create(
-            title=title,
-            defaults={
-                "company_name": "Unknown Company",
-                "location": "Unknown Location",
-                "job_type": "Full Time",
-                "salary": 50000.00,
-                "description": f"{title} job description.",
-                "requirements": "Basic job requirements.",
-                "benefits": "Standard company benefits.",
-                "application_deadline": now().date(),
-                "contact_email": "default@email.com"
-            }
-        )
+        _, created = JobTitle.objects.get_or_create(title=title)
         if created:
-            added_jobs += 1
+            added_titles += 1
 
-    print(f"✅ {added_jobs} new job titles loaded from {json_path}")
+    print(f"✅ {added_titles} new job titles loaded from {json_path}")

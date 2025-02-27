@@ -84,12 +84,12 @@ def create_job_listings(request):
             job.save()
 
             logger.info(f"✅ Job created successfully: {job.title} - {job.location}")
-
             messages.success(request, "🎉 Job listing created successfully!")
             return redirect('employer_job_listings')
         else:
-            messages.error(request, "There was an error with your submission.")
-            logger.error("❌ Job form is invalid!")
+            messages.error(request, "❌ There was an error with your submission. Please check the form below.")
+            logger.error(f"❌ Job form is invalid! Errors: {form.errors}")  # ✅ Debugging: Log form errors
+
     else:
         form = JobForm()
 

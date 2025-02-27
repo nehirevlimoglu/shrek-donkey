@@ -1,25 +1,51 @@
 import os
 import json
 from django import forms
-from tutorials.models.employer_models import Job
+from tutorials.models.employer_models import Job, Interview
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from tutorials.models.employer_models import Employer
 from django.conf import settings
 
 
-def get_job_titles():
-    json_path = os.path.join(settings.BASE_DIR, 'static/data/job_titles.json')
-    try:
-        with open(json_path, 'r') as file:
-            job_titles = json.load(file)
-        return [(title, title) for title in job_titles]
-    except FileNotFoundError:
-        return [("Other", "Other")]
+
+
+
+class InterviewForm(forms.ModelForm):
+    class Meta:
+        model = Interview
+        fields = ['candidate', 'job', 'date', 'time', 'interview_link', 'notes']
+
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    old_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Old Password'}),
+        label="Old Password"
+    )
+    new_password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'New Password'}),
+        label="New Password"
+    )
+    new_password2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm New Password'}),
+        label="Confirm New Password"
+    )
+
+    class Meta:
+        model = User
+        fields = ['old_password', 'new_password1', 'new_password2']
 
 class JobForm(forms.ModelForm):
-    position = forms.ChoiceField(
-        choices=get_job_titles(),
-        widget=forms.Select(attrs={'class': 'form-control'})
+    """ Job form with text inputs for title and position. """
+
+    title = forms.CharField(
+        required=True,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Job Title'})
+    )
+
+    position = forms.CharField(  # ✅ Ensure position is a text field
+        required=False,  # Allow it to be optional
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Position'})
     )
 
     class Meta:
@@ -29,17 +55,34 @@ class JobForm(forms.ModelForm):
             'salary', 'description', 'requirements', 'benefits', 'application_deadline', 'contact_email'
         ]
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Job Title'}),
             'company_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Company Name'}),
             'location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Location'}),
             'job_type': forms.Select(attrs={'class': 'form-control'}),
-            'salary': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Salary (optional)'}),
+            'salary': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Salary (optional)'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 6, 'placeholder': 'Job Description'}),
             'requirements': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Requirements'}),
             'benefits': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Benefits (optional)'}),
             'application_deadline': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'contact_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Contact Email'}),
         }
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    old_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Old Password'}),
+        label="Old Password"
+    )
+    new_password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'New Password'}),
+        label="New Password"
+    )
+    new_password2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm New Password'}),
+        label="Confirm New Password"
+    )
+
+    class Meta:
+        model = User
+        fields = ['old_password', 'new_password1', 'new_password2']
 
 
 class EmployerProfileForm(forms.ModelForm):

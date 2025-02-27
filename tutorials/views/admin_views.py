@@ -16,8 +16,8 @@ def admin_home_page(request):
     })
 
 def admin_job_listings(request):
-    """Admin page to review all pending job listings."""
-    pending_jobs = Job.objects.filter(status='pending')  # Get only jobs that need review
+    """Admin page to review only pending job listings."""
+    pending_jobs = Job.objects.filter(status='pending')  # Only fetch jobs that are pending
     return render(request, 'admin_job_listings.html', {'pending_jobs': pending_jobs})
 
 def review_job(request, job_id, decision):

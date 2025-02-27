@@ -4,14 +4,15 @@
 <h2>Pending Job Listings</h2>
 
 {% if pending_jobs %}
-<div class="table-wrapper">  <!-- Ensure proper scrolling -->
-    <div class="table-container">  <!-- Scrollable container -->
+<div class="table-wrapper">  <!-- Wrapper to keep table contained -->
+    <div class="table-container">  <!-- Scrollable table -->
         <table>
             <thead>
                 <tr>
                     <th>Title</th>
                     <th>Company</th>
                     <th>Location</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
