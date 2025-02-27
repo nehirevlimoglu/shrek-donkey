@@ -41,18 +41,16 @@ def employer_sign_up(request):
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
 
+
 @login_required
 def employer_job_listings(request):
     """ Display only the jobs posted by the logged-in employer """
     
-    # Get the employer linked to the logged-in user
-    try:
-        employer = Employer.objects.get(username=request.user.username)
-        jobs = Job.objects.filter(employer=employer)  # ✅ Get jobs posted by this employer
-    except Employer.DoesNotExist:
-        jobs = []  # ✅ If employer does not exist, show no jobs
+    employer = getattr(request.user, 'employer', None)  # ✅ Fetch employer if exists
+    jobs = Job.objects.filter(employer=employer) if employer else []  # ✅ Get jobs posted by this employer
 
     return render(request, 'employer_job_listings.html', {'jobs': jobs})
+
 
 def create_job_listings(request):
     if request.method == 'POST':

@@ -14,10 +14,22 @@ def admin_home_page(request):
         'admins': admins,
     })
 
-
 def admin_job_listings(request):
-    return render(request, 'admin_job_listings.html')
+    """Admin page to review all pending job listings."""
+    pending_jobs = Job.objects.filter(status='pending')  # Get only jobs that need review
+    return render(request, 'admin_job_listings.html', {'pending_jobs': pending_jobs})
 
+def review_job(request, job_id, decision):
+    """Admin action to approve or reject job listings."""
+    job = get_object_or_404(Job, id=job_id)
+
+    if decision == 'approve':
+        job.status = 'approved'
+    elif decision == 'reject':
+        job.status = 'rejected'
+    
+    job.save()
+    return redirect('admin_job_listings')  
 def admin_settings(request):
     return render(request, 'admin_settings.html')
 

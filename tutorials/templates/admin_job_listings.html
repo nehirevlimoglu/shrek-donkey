@@ -1,36 +1,30 @@
-{% extends 'admin_base.html' %}
-
-{% block title %}Job Listings | Swamp Hiring{% endblock %}
+{% extends 'base.html' %}
 
 {% block content %}
-<section class="job-listings">
-    <h2>Recent Job Listings</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Job Title</th>
-                <th>Company</th>
-                <th>Status</th>
-                <th>Applicants</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Software Engineer</td>
-                <td>ABC Tech</td>
-                <td><span class="badge open">Open</span></td>
-                <td>120</td>
-                <td><button class="view-btn">View</button></td>
-            </tr>
-            <tr>
-                <td>Product Manager</td>
-                <td>XYZ Corp</td>
-                <td><span class="badge closed">Closed</span></td>
-                <td>80</td>
-                <td><button class="view-btn">View</button></td>
-            </tr>
-        </tbody>
-    </table>
-</section>
+<h2>Pending Job Listings</h2>
+
+{% if pending_jobs %}
+<table border="1">
+    <tr>
+        <th>Title</th>
+        <th>Company</th>
+        <th>Location</th>
+        <th>Action</th>
+    </tr>
+    {% for job in pending_jobs %}
+    <tr>
+        <td>{{ job.title }}</td>
+        <td>{{ job.company_name }}</td>
+        <td>{{ job.location }}</td>
+        <td>
+            <a href="{% url 'review_job' job.id 'approve' %}" style="color: green;">✅ Approve</a> |
+            <a href="{% url 'review_job' job.id 'reject' %}" style="color: red;">❌ Reject</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No job listings pending review.</p>
+{% endif %}
+
 {% endblock %}

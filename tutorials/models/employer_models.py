@@ -34,7 +34,6 @@ class Employer(models.Model):
     def __str__(self):
         return f"{self.company_name} ({self.username})"
 
-
 class Job(models.Model):
     employer = models.ForeignKey(
         Employer,
@@ -65,8 +64,20 @@ class Job(models.Model):
     contact_email = models.EmailField(default="default@email.com")
     created_at = models.DateTimeField(auto_now_add=True)
 
+    STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='pending'  # New jobs start as pending
+    )
+
     def __str__(self):
-        return self.title
+        return f"{self.title} ({self.get_status_display()})"
+
 
 class Candidate(models.Model):
     STATUS_CHOICES = [
