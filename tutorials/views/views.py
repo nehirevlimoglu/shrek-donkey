@@ -11,28 +11,21 @@ def log_in(request):
         username = request.POST['username']
         password = request.POST['password']
         
-        print(f"Attempting login: {username} | {password}")  # ✅ Debugging step
-        
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
-            print(f"User authenticated: {user.username} | Role: {user.role}")  # ✅ Debugging step
             login(request, user)
-
-            # ✅ Redirect based on role
-            if request.user.role == 'Admin':
-                return redirect('admin_home_page')  
-            elif request.user.role == 'Employer':
-                return redirect('employer_home_page')  
-            elif request.user.role == 'Applicant' or request.user.role == 'job_seeker':               
-                return redirect('applicants-home-page')  
             
-
-            raise Http404("Page not found")
-
+            # Simplified role checking
+            if user.role == 'Admin':
+                return redirect('admin_home_page')  
+            elif user.role == 'Employer':
+                return redirect('employer_home_page')  
+            else:  # Default to applicant page if not admin/employer
+                return redirect('applicants-home-page')  
 
         else:
-            print("Authentication failed")  # ❌ This means the username/password is incorrect.
+            messages.error(request, 'Invalid username or password')
     
     return render(request, 'log_in.html')
 

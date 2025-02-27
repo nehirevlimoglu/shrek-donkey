@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}Favourite Jobs | Swamp Hiring{% endblock %}
 
@@ -37,7 +38,24 @@
                         </tr>
                     </thead>
                     <tbody class="job-listings">
-                        <!-- Favorite jobs will be dynamically loaded here -->
+                        {% for favorite in favorite_jobs %}
+                        <tr>
+                            <td>{{ favorite.job.title }}</td>
+                            <td>{{ favorite.job.company_name }}</td>
+                            <td>{{ favorite.job.location }}</td>
+                            <td>${{ favorite.job.salary|floatformat:0|intcomma }}/year</td>
+                            <td>{{ favorite.job.job_type }}</td>
+                            <td>
+                                <span class="favorite-star active" 
+                                      data-job-id="{{ favorite.job.id }}" 
+                                      onclick="toggleFavorite(this)">&#9733;</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">No favorite jobs yet</td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -45,41 +63,25 @@
     </div>
     
     <script>
-        function toggleFavorite(starElement) {
-            if (starElement.classList.contains("active")) {
-                starElement.classList.remove("active");
-                starElement.innerHTML = "&#9734;"; // Empty star (☆)
-            } else {
-                starElement.classList.add("active");
-                starElement.innerHTML = "&#9733;"; // Filled star (★)
+    function toggleFavorite(starElement) {
+        const jobId = starElement.dataset.jobId;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(`/applicants/toggle-favorite/${jobId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'removed') {
+                // Remove the entire row when unfavorited
+                starElement.closest('tr').remove();
             }
-        }
-
-        function loadFavoriteJobs() {
-            const favoriteJobs = [
-                { title: "Software Engineer", company: "TechCorp", location: "San Francisco, CA", salary: "$120,000/year", job_type: "Full-Time" },
-                { title: "Marketing Manager", company: "MarketPros", location: "New York, NY", salary: "$90,000/year", job_type: "Part-Time" }
-            ];
-
-            const jobListings = document.querySelector(".job-listings");
-            jobListings.innerHTML = "";
-
-            favoriteJobs.forEach(job => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${job.title}</td>
-                    <td>${job.company}</td>
-                    <td>${job.location}</td>
-                    <td>${job.salary}</td>
-                    <td>${job.job_type}</td>
-                    <td>
-                        <span class="favorite-star active" onclick="toggleFavorite(this)">&#9733;</span>
-                    </td>
-                `;
-                jobListings.appendChild(row);
-            });
-        }
-
-        window.onload = loadFavoriteJobs;
+        })
+        .catch(error => console.error('Error:', error));
+    }
     </script>
 {% endblock %}

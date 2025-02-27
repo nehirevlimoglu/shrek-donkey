@@ -2,8 +2,11 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.hashers import make_password
 from tutorials.models.user_model import User
 from tutorials.models.employer_models import Employer
-from tutorials.models.applicants_models import Applicant
+from tutorials.models.applicants_models import Applicant, FavoriteJob
 from faker import Faker
+from tutorials.models.employer_models import Job, Employer
+from django.utils import timezone
+import random
 
 # ✅ Predefined user fixtures (Employers, Admins, and Applicants)
 user_fixtures = [
@@ -18,6 +21,31 @@ user_fixtures = [
     {'username': '@nehir', 'email': 'nehir@example.org', 'first_name': 'Nehir', 'last_name': 'Evlimoglu', 'role': 'Employer'},
 ]
 
+# Simplified job fixtures
+job_fixtures = [
+    {
+        "title": "Software Engineer",
+        "description": "Entry level software engineer position",
+        "requirements": "Python, JavaScript",
+        "salary": 120000.00,
+        "job_type": "Full Time"
+    },
+    {
+        "title": "Data Analyst",
+        "description": "Junior data analyst role",
+        "requirements": "SQL, Excel",
+        "salary": 85000.00,
+        "job_type": "Full Time"
+    },
+    {
+        "title": "Marketing Intern",
+        "description": "Marketing internship opportunity",
+        "requirements": "Social media experience",
+        "salary": 45000.00,
+        "job_type": "Part Time"
+    }
+]
+
 class Command(BaseCommand):
     """Automatically seeds Employers, Admins, and Applicants into the database."""
     
@@ -26,6 +54,7 @@ class Command(BaseCommand):
     APPLICANT_COUNT = 15
     ADMIN_COUNT = 5
     DEFAULT_PASSWORD = 'Password123'
+    JOB_COUNT = 15  # Total number of jobs to create
     help = 'Seeds the database with sample Employers, Admins, and Applicants'
 
     def __init__(self, *args, **kwargs):
@@ -33,10 +62,13 @@ class Command(BaseCommand):
         self.faker = Faker('en_GB')
 
     def handle(self, *args, **options):
-        """Main function to create all users"""
+        """Main function to create all users and jobs"""
         self.create_users()
+        self.create_jobs()
+        self.create_favorite_jobs()
         print("\n✅ Seeding complete. Summary:")
         self.list_all_users()
+        self.list_all_jobs()
 
     def create_users(self):
         """Creates users from fixtures and generates random ones"""
@@ -166,6 +198,87 @@ class Command(BaseCommand):
                 print(f"     Degree: {profile.degree}")
             except Applicant.DoesNotExist:
                 print("     ❌ No applicant profile found")
+
+    def create_jobs(self):
+        """Creates jobs from fixtures and generates random ones"""
+        print("\nCreating job listings...")
+        
+        # Create jobs from fixtures first
+        for job_data in job_fixtures:
+            # Get a random employer
+            employer = Employer.objects.order_by('?').first()
+            if employer:
+                self.create_job(job_data, employer)
+
+        # Generate additional random jobs to meet JOB_COUNT
+        job_count = Job.objects.count()
+        while job_count < self.JOB_COUNT:
+            print(f"Seeding job {job_count + 1}/{self.JOB_COUNT}", end='\r')
+            employer = Employer.objects.order_by('?').first()
+            if employer:
+                self.generate_random_job(employer)
+            job_count = Job.objects.count()
+
+        print("✅ Job seeding complete.")
+
+    def create_job(self, data, employer):
+        """Creates a single job listing with minimal required fields"""
+        job, created = Job.objects.get_or_create(
+            title=data['title'],
+            employer=employer,
+            defaults={
+                'description': data['description'],
+                'requirements': data['requirements'],
+                'salary': data['salary'],
+                'job_type': data['job_type'],
+                'created_at': timezone.now()
+            }
+        )
+        if created:
+            print(f"✅ Job created: {job.title}")
+
+    def generate_random_job(self, employer):
+        """Generates a random job listing"""
+        job_titles = ["Software Developer", "Product Manager", "UX Designer", 
+                     "Data Scientist", "DevOps Engineer", "QA Engineer"]
+        locations = ["London, UK", "New York, NY", "San Francisco, CA", 
+                    "Toronto, CA", "Berlin, DE", "Sydney, AU"]
+        job_types = ["Full-Time", "Part-Time", "Contract", "Remote"]
+        salary_ranges = ["$70,000-$90,000", "$90,000-$120,000", 
+                        "$120,000-$150,000", "$150,000+"]
+
+        data = {
+            'title': self.faker.choice(job_titles),
+            'location': self.faker.choice(locations),
+            'salary': self.faker.choice(salary_ranges),
+            'job_type': self.faker.choice(job_types),
+            'description': self.faker.text(max_nb_chars=200),
+            'requirements': self.faker.text(max_nb_chars=100)
+        }
+        self.create_job(data, employer)
+
+    def list_all_jobs(self):
+        """Displays a simplified summary of all created jobs"""
+        print("\n🔹 **Job Listings:**")
+        for job in Job.objects.all():
+            employer_name = job.employer.username if job.employer else "No Employer"
+            print(f"  ✅ {job.title} | {employer_name} | {job.job_type}")
+
+    def create_favorite_jobs(self):
+        """Creates some favorite job relationships for applicants"""
+        print("\nCreating favorite jobs...")
+        # Get some applicants and jobs to create favorites
+        applicants = User.objects.filter(role="Applicant")[:3]  # First 3 applicants
+        jobs = Job.objects.all()[:5]  # First 5 jobs
+        
+        for applicant in applicants:
+            # Randomly select 2-3 jobs for each applicant
+            for job in jobs[:random.randint(2, 3)]:
+                FavoriteJob.objects.get_or_create(
+                    user=applicant,
+                    job=job
+                )
+            print(f"✅ Created favorites for {applicant.username}")
 
 def create_username(first_name, last_name):
     return '@' + first_name.lower() + last_name.lower()

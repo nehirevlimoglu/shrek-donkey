@@ -1,4 +1,5 @@
 from django.db import models
+from tutorials.models.employer_models import Job
 from tutorials.models.user_model import User
 
 class Applicant(models.Model):
@@ -11,3 +12,11 @@ class Applicant(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.degree}"
+
+class FavoriteJob(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorite_jobs')
+    job = models.ForeignKey(Job, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'job')  # Prevent duplicate favorites
