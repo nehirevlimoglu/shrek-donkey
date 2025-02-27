@@ -26,14 +26,20 @@ def review_job(request, job_id, decision):
 
     if decision == 'approve':
         job.status = 'approved'
+        job.save(update_fields=['status'])  # ✅ Force Django to save only the status field
+        messages.success(request, f"✅ {job.title} has been approved!")
     elif decision == 'reject':
         job.status = 'rejected'
-    
-    job.save()
-    return redirect('admin_job_listings') 
+        job.save(update_fields=['status'])  # ✅ Force saving rejection
+        messages.error(request, f"❌ {job.title} has been rejected!")
+
+    print(f"🔄 Job '{job.title}' updated to status: {job.status}")  # Debugging log
+
+    return redirect('admin_job_listings')  # Redirect to admin job listings
 
 def admin_settings(request):
     return render(request, 'admin_settings.html')
+
 
 @user_passes_test(is_admin)
 def admin_notifications(request):

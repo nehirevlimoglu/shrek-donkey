@@ -11,8 +11,11 @@ from tutorials.models.employer_models import Job
 @applicant_only
 def applicants_home_page(request):
     """Applicants homepage displaying only approved jobs."""
-    approved_jobs = Job.objects.filter(status="approved")  # Fetch only jobs with 'approved' status
+    approved_jobs = Job.objects.filter(status="approved")  # Fetch only jobs with status 'approved'
+
+    print(f"🔎 Found {approved_jobs.count()} approved jobs for applicants.")  # Debugging log
     return render(request, 'applicants_home_page.html', {"approved_jobs": approved_jobs})
+
 
 @applicant_only
 @login_required
