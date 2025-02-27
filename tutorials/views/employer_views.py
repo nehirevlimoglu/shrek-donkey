@@ -9,7 +9,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
 from django.http import JsonResponse
 from django.core.exceptions import PermissionDenied
-
+from django.contrib import messages
+from django.http import HttpResponseForbidden
+import logging
 
 def is_employer(user):
     return hasattr(user, 'role') and user.role == 'Employer'
@@ -52,19 +54,47 @@ def employer_job_listings(request):
     return render(request, 'employer_job_listings.html', {'jobs': jobs})
 
 
+
+
+logger = logging.getLogger(__name__)
+
+@login_required
 def create_job_listings(request):
+    """ Allow employers to create job listings while handling missing employer profiles. """
+
+    try:
+        employer = Employer.objects.get(username=request.user.username)
+    except Employer.DoesNotExist:
+        messages.error(request, "You must be an employer to post a job.")
+        return redirect('employer_home_page')
+
     if request.method == 'POST':
         form = JobForm(request.POST)
         if form.is_valid():
             job = form.save(commit=False)
-            #job.employer = request.user.employer
-            job.employer = None
+            job.employer = employer  # ✅ Associate job with employer
+            
+            # 🔹 Fix: Ensure job location is saved correctly
+            form_location = form.cleaned_data.get('location')
+            employer_location = employer.company_location
+            job.location = form_location if form_location else employer_location if employer_location else "Unknown Location"
+
+            job.company_name = employer.company_name if employer.company_name else "Unknown Company"
+            job.contact_email = employer.email if employer.email else "no-email@company.com"
             job.save()
-            return redirect('employer_job_listings')  
+
+            logger.info(f"✅ Job created successfully: {job.title} - {job.location}")
+
+            messages.success(request, "🎉 Job listing created successfully!")
+            return redirect('employer_job_listings')
+        else:
+            messages.error(request, "There was an error with your submission.")
+            logger.error("❌ Job form is invalid!")
     else:
         form = JobForm()
 
     return render(request, 'employer_create_job_listing.html', {'form': form})
+
 
 def job_detail_view(request, pk):
     job = get_object_or_404(Job, pk=pk)
@@ -192,3 +222,23 @@ def delete_account(request):
         return redirect("home_page")  # Redirect to homepage after account deletion
 
     return render(request, "delete_account.html")
+
+
+
+@login_required
+def employer_job_listings(request):
+    """ Display only the jobs posted by the logged-in employer """
+
+    try:
+        employer = Employer.objects.get(username=request.user.username)
+    except Employer.DoesNotExist:
+        return render(request, 'error.html', {"message": "Employer profile not found."})
+
+    jobs = Job.objects.filter(employer=employer)
+
+    if not jobs.exists():
+        logger.warning(f"⚠️ No jobs found for employer: {employer.company_name}")
+
+    return render(request, 'employer_job_listings.html', {'jobs': jobs})
+
+

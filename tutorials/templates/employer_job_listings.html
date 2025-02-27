@@ -14,8 +14,30 @@
     <div class="job-listings-container">
         {% if jobs %}
             {% for job in jobs %}
-                <div class="job-listing-card">
-                    <p><strong class="job-title">{{ job.title }}</strong> - <span class="job-description">{{ job.description }}</span></p>
+                <div class="job-listing-card" onclick="toggleDetails('{{ job.id }}')">
+                    <div class="job-header">
+                        <p>
+                            <strong class="job-title">{{ job.title }}</strong> - {{ job.company_name }}
+                        </p>
+                        <span id="toggle-icon-{{ job.id }}" class="toggle-icon">▼</span>
+                    </div>
+
+                    <div id="job-details-{{ job.id }}" class="job-details">
+                        <p><strong>Location:</strong> {{ job.location }}</p>
+                        <p><strong>Job Type:</strong> {{ job.job_type }}</p>
+                        <p><strong>Salary:</strong> {{ job.salary|default:"Not specified" }}</p>
+                        <p><strong>Description:</strong> {{ job.description }}</p>
+                        <p><strong>Requirements:</strong> {{ job.requirements }}</p>
+                        <p><strong>Benefits:</strong> {{ job.benefits|default:"None specified" }}</p>
+                        <p><strong>Application Deadline:</strong> {{ job.application_deadline|default:"No deadline" }}</p>
+                        <p><strong>Contact Email:</strong> {{ job.contact_email }}</p>
+                        <!-- New Job Status Section -->
+                        <p><strong>Status:</strong> 
+                            <span class="job-status {% if job.status == 'approved' %}status-approved{% elif job.status == 'rejected' %}status-rejected{% else %}status-pending{% endif %}">
+                                {{ job.get_status_display }}
+                            </span>
+                        </p>
+                    </div>
                 </div>
             {% endfor %}
         {% else %}
@@ -23,4 +45,6 @@
         {% endif %}
     </div>
 </section>
+
+<script src="{% static 'js/job_listings.js' %}"></script>
 {% endblock %}

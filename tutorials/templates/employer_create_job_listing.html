@@ -10,6 +10,19 @@
 {% block content %}
     <div class="job-form-container">
         <h2>Create a New Job Listing</h2>
+
+        <!-- Success Message -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
         <form method="POST">
             {% csrf_token %}
 
@@ -25,14 +38,20 @@
                 </select>
             </div>
 
+            <!-- 🔹 Company Name (Now Editable) -->
             <div class="form-group">
                 <label for="company_name">Company Name</label>
-                <input type="text" id="company_name" name="company_name" required>
+                <input type="text" id="company_name" name="company_name" 
+                       value="{{ request.user.employer.company_name|default:'' }}" 
+                       required>
             </div>
 
+            <!-- 🔹 Location (Now Editable) -->
             <div class="form-group">
                 <label for="location">Location</label>
-                <input type="text" id="location" name="location" required>
+                <input type="text" id="location" name="location" 
+                       value="{{ request.user.employer.company_location|default:'' }}" 
+                       required>
             </div>
 
             <div class="form-group">
@@ -70,9 +89,12 @@
                 <input type="date" id="application_deadline" name="application_deadline">
             </div>
 
+            <!-- 🔹 Contact Email (Now Editable) -->
             <div class="form-group">
                 <label for="contact_email">Contact Email</label>
-                <input type="email" id="contact_email" name="contact_email" required>
+                <input type="email" id="contact_email" name="contact_email" 
+                       value="{{ request.user.employer.email|default:'' }}" 
+                       required>
             </div>
 
             <button type="submit" class="big-button">Create Job</button>
@@ -81,4 +103,14 @@
 
     <!-- Include JavaScript file -->
     <script src="{% static 'js/load_job_titles.js' %}"></script>
+
+    <!-- Auto-hide success message -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(function() {
+                let alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => alert.style.display = 'none');
+            }, 4000);  // Hide after 4 seconds
+        });
+    </script>
 {% endblock %}
