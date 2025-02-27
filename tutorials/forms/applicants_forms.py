@@ -17,6 +17,22 @@ class ApplicantForm(forms.ModelForm):
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
 
+    MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+    ALLOWED_FILE_TYPES = ['application/pdf', 'application/msword', 
+                         'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+
+    def clean_cv(self):
+        cv = self.cleaned_data.get('cv')
+        if cv:
+            # Check file size
+            if cv.size > self.MAX_FILE_SIZE:
+                raise forms.ValidationError('File size must be under 5MB')
+            
+            # Check file type
+            if hasattr(cv, 'content_type') and cv.content_type not in self.ALLOWED_FILE_TYPES:
+                raise forms.ValidationError('Only PDF and Word documents are allowed')
+        return cv
+
     class Meta:
         model = Applicant
         fields = [

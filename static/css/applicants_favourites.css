@@ -97,18 +97,18 @@ body {
 
 /* Favorite Star Styling */
 .favorite-star {
-    font-size: 2rem; /* Adjust size of the star */
+    font-size: 2rem;
     color: #ccc;
     cursor: pointer;
-    margin-left: 20px; /* Provide space between job info and the star */
     transition: color 0.3s ease, transform 0.2s ease;
+    text-align: center;
 }
 
 .favorite-star:hover {
-    color: #ffd700; /* Gold color on hover */
-    transform: scale(1.2); /* Slightly increase size on hover */
+    color: #ffd700;
+    transform: scale(1.2);
 }
 
 .favorite-star.active {
-    color: #ffd700; /* Gold color for active (favorited) state */
+    color: #ffd700;
 }

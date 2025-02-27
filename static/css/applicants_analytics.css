@@ -1,13 +1,13 @@
-/* General Styling for Reports Page */
+/* General Styling for Applicants Analytics Page */
 html, body {
-    overflow-y: auto; /* Enable vertical scrolling */
-    height: 100vh;
+    height: 100%;
+    overflow-y: auto; /* Enable scrolling */
 }
 
 .dashboard-container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh;
     overflow-y: auto;
 }
 
@@ -28,7 +28,6 @@ html, body {
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
     border: 1px solid #E2E8F0;
     min-width: 200px;
-    margin-bottom: 50px; /* Increased bottom margin to create more space */
 }
 
 .report-card h3 {
@@ -43,23 +42,19 @@ html, body {
     color: #1558B5;
 }
 
-.detailed-reports {
-    margin-top: 80px; /* Increased top margin to create more space */
-}
-
 .detailed-reports h2 {
-    margin-bottom: 30px; /* Increased bottom margin */
+    margin-bottom: 20px;
 }
 
 /* Table Styling */
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 30px; /* Increased top margin */
+    margin-top: 20px;
 }
 
 table th, table td {
-    padding: 20px; /* Increased padding for more spacing */
+    padding: 15px;
     text-align: left;
 }
 
@@ -86,7 +81,6 @@ table tbody tr:hover {
     justify-content: space-around;
     flex-wrap: wrap;
     margin-top: 40px;
-    margin-bottom: 80px; /* Increased bottom margin to create more space */
 }
 
 .chart-card {
@@ -104,4 +98,11 @@ table tbody tr:hover {
     font-size: 18px;
     margin-bottom: 10px;
     color: #1A202C;
+}
+
+/* Ensure main content area is scrollable */
+main.content {
+    flex-grow: 1;
+    overflow-y: auto;
+    min-height: 100vh;
 }

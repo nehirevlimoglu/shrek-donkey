@@ -3,10 +3,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from tutorials.helpers import login_prohibited
 from tutorials.forms.forms import SignUpForm
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse
-
-
 
 def log_in(request):
     if request.method == 'POST':
@@ -26,10 +24,12 @@ def log_in(request):
                 return redirect('admin_home_page')  
             elif request.user.role == 'Employer':
                 return redirect('employer_home_page')  
-            elif request.user.role == 'Applicant':
-                return redirect('applicants_home_page')  
+            elif request.user.role == 'Applicant' or request.user.role == 'job_seeker':               
+                return redirect('applicants-home-page')  
             
-            return redirect('home-page')  # Fallback
+
+            raise Http404("Page not found")
+
 
         else:
             print("Authentication failed")  # ❌ This means the username/password is incorrect.
@@ -50,18 +50,18 @@ def sign_up(request):
             elif request.user.role == 'Employer':
                 return HttpResponseRedirect(f"{reverse('employer_home_page')}?newUser=true")
             elif request.user.role == 'Applicant':
-                return HttpResponseRedirect(f"{reverse('applicants_home_page')}?newUser=true")
+                return HttpResponseRedirect(f"{reverse('applicants-home-page')}?newUser=true")
     else:
         form = SignUpForm()
 
     return render(request, 'sign_up.html', {'form': form})
 
 def log_out(request):
+
     print("User before logout:", request.user) 
-<<<<<<< HEAD
+
     return redirect('log-in')  
-=======
+
     logout(request)  
     print("User after logout:", request.user)  
     return redirect('log-in')
->>>>>>> origin/employers

@@ -29,8 +29,16 @@
                             <li><a href="{% url 'admin_home_page' %}">Admin Dashboard</a></li>
                             <li><a href="{% url 'admin_job_listings' %}">Manage Job Listings</a></li>
                             <li><a href="{% url 'admin_settings' %}">Settings</a></li>
+                        {% elif user.role == "Applicant" %}
+                            <!-- Your 5 menu items for Applicants -->
+                            <li><a href="{% url 'applicants-home-page' %}">Home Page</a></li>
+                            <li><a href="{% url 'applicants-account' %}">Account</a></li>
+                            <li><a href="{% url 'applicants-favourites' %}">Favourites</a></li>
+                            <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
+                            <li><a href="{% url 'applicants-notifications' %}">Notifications</a></li>
+                            <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
                         {% else %}
-                            <li><a href="{% url 'home_page' %}">Home</a></li>
+                            <li><a href="/">Home</a></li>  <!-- Uses the root URL instead -->
                         {% endif %}
                     {% endif %}
                 </ul>

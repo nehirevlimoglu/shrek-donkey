@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from tutorials.models.employer_models import Job
-
+from tutorials.models.applicants_models import Applicant  
 
 class JobPosition(models.Model):
     employer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="job_posts")
