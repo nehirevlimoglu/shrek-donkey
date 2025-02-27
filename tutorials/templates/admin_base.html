@@ -1,0 +1,65 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard | Swamp Hiring{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/admin_home_page.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <h2>Swamp Hiring</h2>
+            <nav>
+                <ul>
+                        <li><a href="{% url 'admin_home_page' %}">Dashboard</a></li>
+                        <li><a href="{% url 'admin_job_listings' %}">Job View</a></li>
+                        <li><a href="{% url 'employer_home_page' %}">Applicant View</a></li>
+                </ul>
+            </nav>
+        </aside>
+        
+
+        <main class="content">
+            <!-- Always present welcome message -->
+            <header>
+                <div class="user-profile" id="userProfile">
+                    <h1>Welcome Back, {{ user.first_name }} 👋</h1>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <ul>
+                            <li><a href="{% url 'employer_settings' %}">Settings</a></li>
+                            <li>
+                                <form action="{% url 'log-out' %}" method="POST">
+                                    {% csrf_token %}
+                                    <button type="submit" class="logout-btn">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <a href="{% url 'admin_notifications' %}" class="notifications-btn">
+                        <span class="notifications-icon">🔔</span>
+                        <span class="notifications-count">{{ unread_count }}</span>
+                    </a>  
+                </div>
+            </header>
+            
+            
+
+            <!-- Block for unique content on each page -->
+            {% block content %}
+            <!-- Default content can go here (optional) -->
+            {% endblock %}
+        </main>
+    </div>
+    <script src="{% static 'js/dropdown.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'js/Active_User_Table.js' %}"></script>
+
+</body>
+</html>
