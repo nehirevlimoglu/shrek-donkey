@@ -5,6 +5,7 @@ from libgravatar import Gravatar
 from tutorials.models.user_model import User
 
 
+
 class Employer(models.Model):
     username = models.CharField(max_length=150, unique=True)  # ✅ Store username separately
     email = models.EmailField(unique=True)  # ✅ Store email separately
