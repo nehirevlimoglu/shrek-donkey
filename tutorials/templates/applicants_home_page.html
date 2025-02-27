@@ -53,6 +53,7 @@
                             <th>Salary</th>
                             <th>Type</th>
                             <th>Favourite</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody class="job-listings">
@@ -71,39 +72,21 @@
                                     {% if job.id in favorited_jobs %}&#9733;{% else %}&#9734;{% endif %}
                                 </span>
                             </td>
+                            <td>
+                                <button class="apply-button" 
+                                        data-job-id="{{ job.id }}"
+                                        onclick="applyForJob(this)"
+                                        {% if job.id in applied_jobs %}disabled{% endif %}
+                                        style="padding: 8px 16px; background-color: #0073e6; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                    {% if job.id in applied_jobs %}Applied{% else %}Apply{% endif %}
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7">No jobs available at the moment.</td>
                         </tr>
                         {% endfor %}
-                        <!-- Keep the fake jobs for now -->
-                        <tr>
-                            <td>Software Engineer</td>
-                            <td>TechCorp</td>
-                            <td>San Francisco, CA</td>
-                            <td>$120,000/year</td>
-                            <td>Full-Time</td>
-                            <td>
-                                <span class="favorite-star" onclick="toggleFavorite(this)">&#9734;</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Marketing Manager</td>
-                            <td>MarketPros</td>
-                            <td>New York, NY</td>
-                            <td>$90,000/year</td>
-                            <td>Part-Time</td>
-                            <td>
-                                <span class="favorite-star" onclick="toggleFavorite(this)">&#9734;</span>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Data Analyst</td>
-                            <td>DataVision</td>
-                            <td>Austin, TX</td>
-                            <td>$85,000/year</td>
-                            <td>Contract</td>
-                            <td>
-                                <span class="favorite-star" onclick="toggleFavorite(this)">&#9734;</span>
-                            </td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -111,26 +94,62 @@
     </div>
     
     <script>
-        function toggleFavorite(starElement) {
-            if (starElement.classList.contains("active")) {
-                starElement.classList.remove("active");
-                starElement.innerHTML = "&#9734;"; // Empty star (☆)
-            } else {
-                starElement.classList.add("active");
-                starElement.innerHTML = "&#9733;"; // Filled star (★)
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
             }
+            return cookieValue;
+        }
 
+        function toggleFavorite(starElement) {
             const jobId = starElement.dataset.jobId;
-            if (!jobId) return; // Skip if no job ID (for fake jobs)
-
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const csrftoken = getCookie('csrftoken');
 
             fetch(`/applicants/toggle-favorite/${jobId}/`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': csrfToken,
+                    'X-CSRFToken': csrftoken,
                     'Content-Type': 'application/json',
                 },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'removed') {
+                    starElement.classList.remove("active");
+                    starElement.innerHTML = "&#9734;";
+                } else {
+                    starElement.classList.add("active");
+                    starElement.innerHTML = "&#9733;";
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function applyForJob(buttonElement) {
+            const jobId = buttonElement.dataset.jobId;
+            const csrftoken = getCookie('csrftoken');
+
+            fetch(`/applicants/apply-job/${jobId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    buttonElement.textContent = 'Applied';
+                    buttonElement.disabled = true;
+                }
             })
             .catch(error => console.error('Error:', error));
         }

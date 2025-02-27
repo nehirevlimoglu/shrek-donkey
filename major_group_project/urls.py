@@ -58,5 +58,6 @@ urlpatterns =[
     path("settings/delete_account/", delete_account, name="delete_account"),
     path('applicants/home/', applicants_home_page, name='applicants-home-page'),
     path('applicants/toggle-favorite/<int:job_id>/', applicant_views.toggle_favorite, name='toggle-favorite'),
+    path('applicants/apply-job/<int:job_id>/', applicant_views.apply_for_job, name='apply-for-job'),
 ]
 

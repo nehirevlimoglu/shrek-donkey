@@ -13,6 +13,23 @@ class Applicant(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.degree}"
 
+class Application(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    job = models.ForeignKey(Job, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=[
+        ('applied', 'Applied'),
+        ('reviewed', 'Reviewed'),
+        ('rejected', 'Rejected'),
+        ('accepted', 'Accepted'),
+    ], default='applied')
+    applied_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'job')  # Prevent duplicate applications
+
+    def __str__(self):
+        return f"{self.user.username} applied to {self.job.title}"
+
 class FavoriteJob(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorite_jobs')
     job = models.ForeignKey(Job, on_delete=models.CASCADE)

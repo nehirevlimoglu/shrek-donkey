@@ -63,6 +63,7 @@ class Job(models.Model):
     application_deadline = models.DateField(null=True, blank=True)
     contact_email = models.EmailField(default="default@email.com")
     created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title
