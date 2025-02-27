@@ -33,3 +33,14 @@ tox/
 dist/
 build/
 pip-wheel-metadata/
+
+*.pyc
+__pycache__/
+
+*.db
+*.sqlite3
+*.db-journal.DS_Store
+.DS_Store
+db.sqlite3
+.DS_Store
+db.sqlite3

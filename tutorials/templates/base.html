@@ -47,11 +47,20 @@
         
         <main class="content">
             <header>
-                <h1>Welcome Back, {{ user.first_name }} 👋</h1>
-                <form action="{% url 'log-out' %}" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="logout-btn">Log Out</button>
-                </form>
+                <div class="user-profile" id="userProfile">
+                    <h1>Welcome Back, {{ user.first_name }} 👋</h1>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <ul>
+                            <li><a href="{% url 'employer_settings' %}">Settings</a></li>
+                            <li>
+                                <form action="{% url 'log-out' %}" method="POST">
+                                    {% csrf_token %}
+                                    <button type="submit" class="logout-btn">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </header>
 
 

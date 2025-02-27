@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'schedule',
     'tutorials',
+    "django_browser_reload"
 ]
 
 MIDDLEWARE = [
@@ -145,3 +146,4 @@ REDIRECT_URL_WHEN_LOGGED_IN_ADMIN = 'admin_home_page'
 REDIRECT_URL_WHEN_LOGGED_IN_EMPLOYER = 'employer_home_page'
 REDIRECT_URL_WHEN_LOGGED_IN_APPLICANT = 'applicants-home-page'
 REDIRECT_URL_WHEN_LOGGED_IN = 'home_page'
+

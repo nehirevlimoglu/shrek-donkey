@@ -1,16 +1,8 @@
-{% extends 'base.html' %}
+{% extends 'admin_base.html' %}
 
 {% block title %}Admin Dashboard | Swamp Hiring{% endblock %}
 
 {% block content %}
-    <!-- Notification Section -->
-    <section class="notifications">
-        <h2>Notifications</h2>
-        <ul>
-            <li>No new notifications</li>
-        </ul>
-    </section>
-
     <section class="overview">
         <div class="card">
             <h3>Total Job Listings</h3>
@@ -28,36 +20,17 @@
             <h3>New Hires This Month</h3>
             <p>26</p>
         </div>
-    </section>
-
-    <section class="job-listings">
-        <h2>Recent Job Listings</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Job Title</th>
-                    <th>Company</th>
-                    <th>Status</th>
-                    <th>Applicants</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Software Engineer</td>
-                    <td>ABC Tech</td>
-                    <td><span class="badge open">Open</span></td>
-                    <td>120</td>
-                    <td><button class="view-btn">View</button></td>
-                </tr>
-                <tr>
-                    <td>Product Manager</td>
-                    <td>XYZ Corp</td>
-                    <td><span class="badge closed">Closed</span></td>
-                    <td>80</td>
-                    <td><button class="view-btn">View</button></td>
-                </tr>
-            </tbody>
-        </table>
+        
+        <div class="active-users-chart">
+            <h2>Active Users Over Time</h2>
+            <div class="time-filters">
+                <button class="filter-btn" data-period="day">Daily</button>
+                <button class="filter-btn" data-period="week">Weekly</button>
+                <button class="filter-btn" data-period="month">Monthly</button>
+            </div>
+            <canvas id="activeUserChart"></canvas>
+        </div>
+        
+        
     </section>
 {% endblock %}

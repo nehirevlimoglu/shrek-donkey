@@ -1,20 +1,36 @@
-{% extends 'base.html' %}
+{% extends 'admin_base.html' %}
 
 {% block title %}Job Listings | Swamp Hiring{% endblock %}
 
 {% block content %}
-    <div class="job-listings-container">
-        <h1>Available Job Listings</h1>
-        <div class="listings">
-            {% for i in "x"|rjust:50 %}
-            <div class="job-card">
-                <h2>Job Title {{ forloop.counter }}</h2>
-                <p><strong>Company:</strong> Company {{ forloop.counter }}</p>
-                <p><strong>Location:</strong> City {{ forloop.counter }}, Country</p>
-                <p><strong>Salary:</strong> ${{ forloop.counter }}0,000 per year</p>
-                <button class="apply-btn">Apply Now</button>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
+<section class="job-listings">
+    <h2>Recent Job Listings</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Job Title</th>
+                <th>Company</th>
+                <th>Status</th>
+                <th>Applicants</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Software Engineer</td>
+                <td>ABC Tech</td>
+                <td><span class="badge open">Open</span></td>
+                <td>120</td>
+                <td><button class="view-btn">View</button></td>
+            </tr>
+            <tr>
+                <td>Product Manager</td>
+                <td>XYZ Corp</td>
+                <td><span class="badge closed">Closed</span></td>
+                <td>80</td>
+                <td><button class="view-btn">View</button></td>
+            </tr>
+        </tbody>
+    </table>
+</section>
 {% endblock %}
