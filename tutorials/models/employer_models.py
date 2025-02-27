@@ -6,6 +6,8 @@ from tutorials.models.user_model import User
 
 
 
+
+
 class Employer(models.Model):
     username = models.CharField(max_length=150, unique=True)  # ✅ Store username separately
     email = models.EmailField(unique=True)  # ✅ Store email separately
@@ -35,7 +37,6 @@ class Employer(models.Model):
         return f"{self.company_name} ({self.username})"
 
 class JobTitle(models.Model):
-    """Store selectable job titles instead of creating actual job records."""
     title = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
@@ -49,16 +50,9 @@ class Job(models.Model):
         null=True,
         blank=True
     )
-    
-    # ✅ Users can type in job title
-    title = models.CharField(max_length=255)
-
-    # ✅ Users can also type in the job position
-    position = models.CharField(max_length=255, blank=True, null=True)
-
+    title = models.CharField(max_length=200)
     company_name = models.CharField(max_length=255, default="Unknown Company")
     location = models.CharField(max_length=255, default="Unknown Location")
-    
     job_type = models.CharField(
         max_length=100,
         choices=[
@@ -90,7 +84,7 @@ class Job(models.Model):
     )
 
     def __str__(self):
-        return f"{self.title} - {self.position if self.position else 'No Position'} ({self.get_status_display()})"
+        return f"{self.title} ({self.get_status_display()})"
 
 
 class Candidate(models.Model):
@@ -121,3 +115,4 @@ class Interview(models.Model):
 
     def __str__(self):
         return f"Interview for {self.candidate.user.username} - {self.job.title} on {self.date}"
+

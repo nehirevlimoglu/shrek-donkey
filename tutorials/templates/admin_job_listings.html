@@ -1,26 +1,51 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<h2>Pending Job Listings</h2>
+{% load static %}  <!-- Ensure the static tag is loaded -->
 
+{% block content %}
+<h2 class="page-title">Pending Job Listings</h2>
+
+<link rel="stylesheet" href="{% static 'css/admin_job_listings.css' %}">
 {% if pending_jobs %}
-<div class="table-wrapper">  <!-- Wrapper to keep table contained -->
-    <div class="table-container">  <!-- Scrollable table -->
+
+<div class="table-wrapper" style="width: 100%; max-width: 1200px; min-height: 80vh; position: relative;">  <!-- Ensure full view -->
+    <div class="table-container" style="width: 100%; overflow-x: auto; overflow-y: visible; min-height: 80vh;">  <!-- Allow better scrolling -->
         <table>
             <thead>
                 <tr>
-                    <th>Title</th>
-                    <th>Company</th>
-                    <th>Location</th>
-                    <th>Action</th>
+                    <th style="width: 20%;">Title</th>
+                    <th style="width: 20%;">Company</th>
+                    <th style="width: 20%;">Location</th>
+                    <th style="width: 20%;">Status</th>
+                    <th style="width: 20%;">Action</th>
                 </tr>
             </thead>
             <tbody>
                 {% for job in pending_jobs %}
-                <tr>
+                <tr id="job-row-{{ job.id }}">
                     <td>{{ job.title }}</td>
                     <td>{{ job.company_name }}</td>
                     <td>{{ job.location }}</td>
+                    <td>
+                        <span id="status-{{ job.id }}" class="status-label {% if job.status == 'Approved' %}status-approved{% elif job.status == 'Rejected' %}status-rejected{% else %}status-pending{% endif %}">
+                            {{ job.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="dropdown" style="position: relative;">
+                            <button onclick="toggleDropdown('dropdown-{{ job.id }}')" class="review-btn">Review</button>
+                            <div id="dropdown-{{ job.id }}" class="dropdown-content" style="min-width: 300px; max-height: 400px; overflow-y: auto; position: fixed; left: 50%; top: 20%; transform: translateX(-50%); z-index: 1000; background: white; box-shadow: 0px 4px 8px rgba(0,0,0,0.2);"> <!-- Ensure full visibility -->
+                                <p><strong>Title:</strong> {{ job.title }}</p>
+                                <p><strong>Company:</strong> {{ job.company_name }}</p>
+                                <p><strong>Location:</strong> {{ job.location }}</p>
+                                <p><strong>Description:</strong> {{ job.description }}</p>
+                                <div class="action-buttons" id="action-buttons-{{ job.id }}">
+                                    <button onclick="updateStatus('{{ job.id }}', 'Approved')" class="approve-btn">Approve</button>
+                                    <button onclick="updateStatus('{{ job.id }}', 'Rejected')" class="reject-btn">Reject</button>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -28,7 +53,18 @@
     </div>
 </div>
 {% else %}
-<p>No job listings pending review.</p>
+<p class="no-listings">No job listings pending review.</p>
 {% endif %}
+
+<script src="{% static 'js/job_review.js' %}"></script>
+<script>
+function updateStatus(jobId, status) {
+    document.getElementById('status-' + jobId).innerText = status;
+    document.getElementById('status-' + jobId).className = 'status-label ' + (status === 'Approved' ? 'status-approved' : 'status-rejected');
+    document.getElementById('dropdown-' + jobId).classList.remove('show');
+    document.getElementById('action-buttons-' + jobId).style.display = 'none'; // Hide approve/reject buttons after selection
+}
+</script>
+<link rel="stylesheet" href="{% static 'css/job_review.css' %}">
 
 {% endblock %}

@@ -19,24 +19,15 @@
                     <li><a href="{% url 'applicants-notifications' %}">Notifications</a></li>
                     <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
                 </ul>
-                </ul>
             </nav>
         </aside>
         
         <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
             <div class="stats-container" style="display: flex; flex-direction: column; align-items: flex-start;">
                 <section class="overview">
-                    <div class="card" id="total-jobs">  <!-- 👉 Added ID -->
+                    <div class="card" id="total-jobs">
                         <h3>Total Job Listings</h3>
-                        <p>15</p>
-                    </div>
-                    <div class="card" id="active-listings">  <!-- 👉 Added ID -->
-                        <h3>Favourited Jobs</h3>
-                        <p>6</p>
-                    </div>
-                    <div class="card" id="total-applicants">  <!-- 👉 Added ID -->
-                        <h3>Applications Sent</h3>
-                        <p>243</p>
+                        <p id="job-count">{{ approved_jobs.count }}</p>
                     </div>
                 </section>
             </div>
@@ -55,51 +46,39 @@
                         </tr>
                     </thead>
                     <tbody class="job-listings">
-                        <!-- Jobs dynamically inserted here -->
+                        {% for job in approved_jobs %}
+                        <tr>
+                            <td>{{ job.title }}</td>
+                            <td>{{ job.company_name }}</td>
+                            <td>{{ job.location }}</td>
+                            <td>{{ job.salary }}</td>
+                            <td>{{ job.job_type }}</td>
+                            <td>
+                                <span class="favorite-star" onclick="toggleFavorite(this)">&#9734;</span> <!-- Empty star -->
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">No available jobs at the moment.</td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
+                    
                 </table>
             </div>
         </main>
     </div>
     
     <script>
-        function loadJobs() {
-            const jobs = [
-                { title: "Software Engineer", company: "TechCorp", location: "San Francisco, CA", salary: "$120,000/year", job_type: "Full-Time" },
-                { title: "Marketing Manager", company: "MarketPros", location: "New York, NY", salary: "$90,000/year", job_type: "Part-Time" },
-                { title: "Data Analyst", company: "DataVision", location: "Austin, TX", salary: "$85,000/year", job_type: "Contract" }
-            ];
-    
-            const jobListings = document.querySelector(".job-listings");
-            jobListings.innerHTML = "";
-    
-            jobs.forEach((job, index) => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${job.title}</td>
-                    <td>${job.company}</td>
-                    <td>${job.location}</td>
-                    <td>${job.salary}</td>
-                    <td>${job.job_type}</td>
-                    <td>
-                        <span class="favorite-star" onclick="toggleFavorite(this)">&#9734;</span> <!-- Empty star (☆) -->
-                    </td>
-                `;
-                jobListings.appendChild(row);
-            });
-        }
-    
         function toggleFavorite(starElement) {
             if (starElement.classList.contains("active")) {
                 starElement.classList.remove("active");
-                starElement.innerHTML = "&#9734;"; // Change to empty star (☆)
+                starElement.innerHTML = "&#9734;";
             } else {
                 starElement.classList.add("active");
-                starElement.innerHTML = "&#9733;"; // Change to filled star (★)
+                starElement.innerHTML = "&#9733;";
             }
         }
-    
-        window.onload = loadJobs;
     </script>    
     
 {% endblock %}

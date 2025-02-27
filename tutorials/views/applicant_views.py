@@ -5,10 +5,14 @@ from tutorials.models.applicants_models import Applicant
 from tutorials.forms.applicants_forms import ApplicantForm 
 from django.contrib.auth.decorators import login_required
 from decorators import applicant_only  # Import the decorator
+from tutorials.models.employer_models import Job
+
 
 @applicant_only
 def applicants_home_page(request):
-    return render(request, 'applicants_home_page.html')
+    """Applicants homepage displaying only approved jobs."""
+    approved_jobs = Job.objects.filter(status="approved")  # Fetch only jobs with 'approved' status
+    return render(request, 'applicants_home_page.html', {"approved_jobs": approved_jobs})
 
 @applicant_only
 @login_required
