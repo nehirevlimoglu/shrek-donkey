@@ -61,14 +61,6 @@
                         </ul>
                     </div>
                 </div>
-                <div class="header-actions">
-                    <a href="{% url 'admin_notifications' %}" class="notifications-btn">
-                        <span class="notifications-icon">🔔</span>
-                        {% if unread_count > 0 %}
-                        <span class="notifications-count">{{ unread_count }}</span>
-                        {% endif %}
-                    </a>  
-                </div>
             </header>
             
             {% block content %}{% endblock %}
