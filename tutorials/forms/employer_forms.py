@@ -1,7 +1,7 @@
 import os
 import json
 from django import forms
-from tutorials.models.employer_models import Job
+from tutorials.models.employer_models import Job, Interview
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from tutorials.models.employer_models import Employer
@@ -14,6 +14,11 @@ class JobForm(forms.ModelForm):
     class Meta:
         model = Job
         fields = ['title', 'description', 'requirements', 'salary', 'job_type']
+
+class InterviewForm(forms.ModelForm):
+    class Meta:
+        model = Interview
+        fields = ['candidate', 'job', 'date', 'time', 'interview_link', 'notes']
 
 
 class CustomPasswordChangeForm(PasswordChangeForm):
@@ -68,24 +73,6 @@ class JobForm(forms.ModelForm):
             'application_deadline': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'contact_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Contact Email'}),
         }
-
-class CustomPasswordChangeForm(PasswordChangeForm):
-    old_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Old Password'}),
-        label="Old Password"
-    )
-    new_password1 = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'New Password'}),
-        label="New Password"
-    )
-    new_password2 = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm New Password'}),
-        label="Confirm New Password"
-    )
-
-    class Meta:
-        model = User
-        fields = ['old_password', 'new_password1', 'new_password2']
 
 
 class EmployerProfileForm(forms.ModelForm):

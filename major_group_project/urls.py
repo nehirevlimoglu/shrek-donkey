@@ -15,6 +15,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.urls import path, include
+from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites 
+from tutorials.views.views import log_in, log_out, sign_up  
+from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings
+from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings,change_password, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_interviews, employer_candidates, get_interviews, edit_company_profile, delete_account, schedule_interview, interview_detail, reschedule_interview
+
+
 from django.urls import path
 from tutorials.views.views import log_in, log_out, sign_up  
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile, applicants_analytics
@@ -24,6 +31,7 @@ from tutorials.models.applicants_models import Applicant
 
 urlpatterns =[
     path('admin/', admin.site.urls),
+    path('schedule/', include('schedule.urls')),
     path('', log_in, name='home'),
     path('log_in/', log_in, name='log-in'),  
     path('logout/', log_out, name='log-out'),
@@ -54,8 +62,15 @@ urlpatterns =[
     path('create-job/', create_job_listings, name='employer_create_job_listing'),
     path('candidates/', employer_candidates, name='employer_candidates'),
     path('interviews/', employer_interviews, name='employer_interviews'),
+
+    path('interviews/schedule/', schedule_interview, name='schedule_interview'),
+    path('interview/<int:pk>/', interview_detail, name='interview_detail'),
+    path('interview/<int:pk>/reschedule/', reschedule_interview, name='reschedule_interview'),
+    path('api/get_interviews/', get_interviews, name='get_interviews'),
+
     path("settings/edit_profile/", edit_company_profile, name="edit_company_profile"),
     path("settings/delete_account/", delete_account, name="delete_account"),
+
 
 
 
