@@ -139,7 +139,7 @@ class Command(BaseCommand):
                     user=user,
                     defaults={
                         "degree": "Computer Science",
-                        "salary_preferences": "$50,000-$70,000",
+                        "salary_preferences": 50000,
                         "job_preferences": "Software Development",
                         "location_preferences": "Remote"
                     }

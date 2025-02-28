@@ -33,18 +33,58 @@ class ApplicantForm(forms.ModelForm):
                 raise forms.ValidationError('Only PDF and Word documents are allowed')
         return cv
 
+    min_salary_preference = forms.IntegerField(
+        required=False,
+        widget=forms.NumberInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., 50000',
+                'min': '0',
+                'step': '1000'
+            }
+        ),
+        help_text="Enter your minimum expected annual salary"
+    )
+    
+    max_salary_preference = forms.IntegerField(
+        required=False,
+        widget=forms.NumberInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., 70000',
+                'min': '0',
+                'step': '1000'
+            }
+        ),
+        help_text="Enter your maximum expected annual salary"
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        min_salary = cleaned_data.get('min_salary_preference')
+        max_salary = cleaned_data.get('max_salary_preference')
+
+        if min_salary and max_salary and min_salary > max_salary:
+            # Swap the values if min is greater than max
+            cleaned_data['min_salary_preference'] = max_salary
+            cleaned_data['max_salary_preference'] = min_salary
+
+        return cleaned_data
+
     class Meta:
         model = Applicant
         fields = [
             "degree",
             "cv",
-            "salary_preferences",
+            "min_salary_preference",
+            "max_salary_preference",
             "job_preferences",
             "location_preferences",
         ]
         widgets = {
             "degree": forms.TextInput(attrs={"class": "form-control"}),
-            "salary_preferences": forms.TextInput(attrs={"class": "form-control"}),
+            "min_salary_preference": forms.TextInput(attrs={"class": "form-control"}),
+            "max_salary_preference": forms.TextInput(attrs={"class": "form-control"}),
             "job_preferences": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "location_preferences": forms.TextInput(attrs={"class": "form-control"}),
             "cv": forms.FileInput(attrs={"class": "form-control"}),

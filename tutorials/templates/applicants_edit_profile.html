@@ -69,13 +69,36 @@
 
             <!-- Salary Preferences -->
             <div class="field">
-                <label for="id_salary_preferences">Salary Preferences:</label>
-                <input
-                    type="text"
-                    id="id_salary_preferences"
-                    name="salary_preferences"
-                    value="{{ applicant.salary_preferences|default_if_none:'' }}"
-                />
+                <label>Salary Range:</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <div>
+                        <label for="id_min_salary_preference">Minimum:</label>
+                        <input
+                            type="number"
+                            id="id_min_salary_preference"
+                            name="min_salary_preference"
+                            value="{{ applicant.min_salary_preference|default_if_none:'' }}"
+                            min="0"
+                            step="1000"
+                            class="form-control"
+                            oninput="validateSalaryRange()"
+                        />
+                    </div>
+                    <div style="margin: 0 10px;">to</div>
+                    <div>
+                        <label for="id_max_salary_preference">Maximum:</label>
+                        <input
+                            type="number"
+                            id="id_max_salary_preference"
+                            name="max_salary_preference"
+                            value="{{ applicant.max_salary_preference|default_if_none:'' }}"
+                            min="0"
+                            step="1000"
+                            class="form-control"
+                            oninput="validateSalaryRange()"
+                        />
+                    </div>
+                </div>
             </div>
 
             <!-- Job Preferences -->
@@ -120,5 +143,21 @@
             <button type="submit" class="button">Save Changes</button>
         </form>
     </div>
+
+    <script>
+    function validateSalaryRange() {
+        const minSalary = document.getElementById('id_min_salary_preference');
+        const maxSalary = document.getElementById('id_max_salary_preference');
+        
+        if (minSalary.value && maxSalary.value) {
+            if (parseInt(minSalary.value) > parseInt(maxSalary.value)) {
+                // Swap the values
+                const temp = minSalary.value;
+                minSalary.value = maxSalary.value;
+                maxSalary.value = temp;
+            }
+        }
+    }
+    </script>
 </body>
 </html>
