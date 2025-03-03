@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Job Details | Swamp Hiring{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/job_detail.css' %}">
+
+    <div class="job-detail-container">
+        <h1>{{ job.title }}</h1>
+        <p><strong>Company:</strong> {{ job.company_name }}</p>
+        <p><strong>Location:</strong> {{ job.location }}</p>
+        <p><strong>Salary:</strong> ${{ job.salary }}</p>
+        <p><strong>Job Type:</strong> {{ job.job_type }}</p>
+        <p><strong>Description:</strong> {{ job.description }}</p>
+
+        <a href="{% url 'applicants-home-page' %}" class="btn-primary">Back to Jobs</a>
+    </div>
+{% endblock %}

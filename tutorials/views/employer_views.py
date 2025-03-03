@@ -84,21 +84,22 @@ def create_job_listings(request):
             job.save()
 
             logger.info(f"✅ Job created successfully: {job.title} - {job.location}")
+
             messages.success(request, "🎉 Job listing created successfully!")
             return redirect('employer_job_listings')
         else:
-            messages.error(request, "❌ There was an error with your submission. Please check the form below.")
-            logger.error(f"❌ Job form is invalid! Errors: {form.errors}")  # ✅ Debugging: Log form errors
-
+            messages.error(request, "There was an error with your submission.")
+            logger.error("❌ Job form is invalid!")
     else:
         form = JobForm()
 
     return render(request, 'employer_create_job_listing.html', {'form': form})
 
 
-def job_detail_view(request, pk):
-    job = get_object_or_404(Job, pk=pk)
-    return render(request, 'jobs/employer_job_detail.html', {'job': job})
+
+def job_detail_view(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+    return render(request, 'job_detail.html', {'job': job})
 
 def edit_job_view(request, pk):
     job = get_object_or_404(Job, pk=pk)
@@ -216,10 +217,10 @@ def delete_account(request):
     if request.method == "POST":
         employer = Employer.objects.get(user=request.user)
         user = request.user
-        employer.delete()  # Delete Employer profile
-        user.delete()  # Delete User account
+        employer.delete() 
+        user.delete()  
         logout(request)
-        return redirect("home_page")  # Redirect to homepage after account deletion
+        return redirect("home_page")  
 
     return render(request, "delete_account.html")
 

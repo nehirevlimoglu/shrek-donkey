@@ -8,12 +8,21 @@ from decorators import applicant_only  # Import the decorator
 from tutorials.models.employer_models import Job
 
 
+
+
 @applicant_only
+
 def applicants_home_page(request):
     """Applicants homepage displaying only approved jobs."""
-    approved_jobs = Job.objects.filter(status="approved")  # Fetch only jobs with status 'approved'
+    
+    approved_jobs = Job.objects.filter(status__iexact="approved")
+    
+    print("🔍 DEBUG: Fetching approved jobs from the database...")
+    print(f"🔎 Found {approved_jobs.count()} approved jobs")  # ✅ Log job count
+    
+    for job in approved_jobs:
+        print(f"✅ Job: {job.title} | Company: {job.company_name} | Status: {job.status}")
 
-    print(f"🔎 Found {approved_jobs.count()} approved jobs for applicants.")  # Debugging log
     return render(request, 'applicants_home_page.html', {"approved_jobs": approved_jobs})
 
 

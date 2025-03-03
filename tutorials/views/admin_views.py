@@ -30,11 +30,12 @@ def review_job(request, job_id, decision):
 
     if decision == 'approve':
         job.status = 'approved'
-        job.save(update_fields=['status'])  # ✅ Force Django to save only the status field
+        job.save(update_fields=['status'])  # ✅ Ensure only status updates
         messages.success(request, f"✅ {job.title} has been approved!")
+
     elif decision == 'reject':
         job.status = 'rejected'
-        job.save(update_fields=['status'])  # ✅ Force saving rejection
+        job.save(update_fields=['status'])
         messages.error(request, f"❌ {job.title} has been rejected!")
 
     print(f"🔄 Job '{job.title}' updated to status: {job.status}")  # Debugging log

@@ -8,33 +8,32 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/applicants_home_page.css' %}">
 
     <div class="dashboard-container">
+        <!-- Sidebar -->
         <aside class="sidebar">
             <h2>Swamp Hiring</h2>
             <nav>
                 <ul>
                     <li><a href="{% url 'applicants-home-page' %}">Home Page</a></li>
                     <li><a href="{% url 'applicants-account' %}">Account</a></li>
-                    <li><a href="/applicants_favourites">Favourites</a></li>
+                    <li><a href="{% url 'applicants-favourites' %}">Favourites</a></li>
                     <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
                     <li><a href="{% url 'applicants-notifications' %}">Notifications</a></li>
                     <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
                 </ul>
             </nav>
         </aside>
-        
-        <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
-            <div class="stats-container" style="display: flex; flex-direction: column; align-items: flex-start;">
-                <section class="overview">
-                    <div class="card" id="total-jobs">
-                        <h3>Total Job Listings</h3>
-                        <p id="job-count">{{ approved_jobs.count }}</p>
-                    </div>
-                </section>
-            </div>
 
+        <!-- Main Content -->
+        <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
+            
+            
+
+        
+
+            <!-- Job Listings Table -->
             <div class="job-listings-container" style="width: 100%;">
                 <h2>Available Jobs</h2>
-                <table class="job-table" style="width: 100%; text-align: center;">
+                <table class="job-table" style="width: 100%; text-align: center; border-collapse: collapse;">
                     <thead>
                         <tr>
                             <th>Job Title</th>
@@ -43,6 +42,7 @@
                             <th>Salary</th>
                             <th>Type</th>
                             <th>Favourite</th>
+                            <th>Details</th>
                         </tr>
                     </thead>
                     <tbody class="job-listings">
@@ -54,31 +54,34 @@
                             <td>{{ job.salary }}</td>
                             <td>{{ job.job_type }}</td>
                             <td>
-                                <span class="favorite-star" onclick="toggleFavorite(this)">&#9734;</span> <!-- Empty star -->
+                                <span class="favorite-star" onclick="toggleFavorite(this)">&#9734;</span>
+                            </td>
+                            <td>
+                                <a href="{% url 'job_detail' job.id %}" class="btn btn-primary">View Details</a>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="6">No available jobs at the moment.</td>
+                            <td colspan="7">No approved jobs available at the moment.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
-                    
                 </table>
             </div>
         </main>
     </div>
-    
+
+    <!-- JavaScript -->
     <script>
         function toggleFavorite(starElement) {
             if (starElement.classList.contains("active")) {
                 starElement.classList.remove("active");
-                starElement.innerHTML = "&#9734;";
+                starElement.innerHTML = "&#9734;"; // Empty star
             } else {
                 starElement.classList.add("active");
-                starElement.innerHTML = "&#9733;";
+                starElement.innerHTML = "&#9733;"; // Filled star
             }
         }
-    </script>    
-    
+    </script>
+
 {% endblock %}

@@ -5,6 +5,7 @@ from tutorials.views.applicant_views import applicants_home_page, applicants_acc
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications, review_job, update_job_status
 from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, change_password, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_interviews, employer_candidates, get_interviews, edit_company_profile, delete_account
 
+from tutorials.views.employer_views import job_detail_view
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', log_in, name='home'),
@@ -39,6 +40,9 @@ urlpatterns = [
     path('interviews/', employer_interviews, name='employer_interviews'),
     path("settings/edit_profile/", edit_company_profile, name="edit_company_profile"),
     path("settings/delete_account/", delete_account, name="delete_account"),
+    path('job/<int:job_id>/', job_detail_view, name='job_detail'),
+
+    
 
 
 ]
