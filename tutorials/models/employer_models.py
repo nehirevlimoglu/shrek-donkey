@@ -116,3 +116,15 @@ class Interview(models.Model):
     def __str__(self):
         return f"Interview for {self.candidate.user.username} - {self.job.title} on {self.date}"
 
+class EmployerNotification(models.Model):
+    employer = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name="notifications")
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} - {self.employer.company_name}"
