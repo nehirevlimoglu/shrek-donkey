@@ -57,14 +57,6 @@
 {% endif %}
 
 <script src="{% static 'js/job_review.js' %}"></script>
-<script>
-function updateStatus(jobId, status) {
-    document.getElementById('status-' + jobId).innerText = status;
-    document.getElementById('status-' + jobId).className = 'status-label ' + (status === 'Approved' ? 'status-approved' : 'status-rejected');
-    document.getElementById('dropdown-' + jobId).classList.remove('show');
-    document.getElementById('action-buttons-' + jobId).style.display = 'none'; // Hide approve/reject buttons after selection
-}
-</script>
-<link rel="stylesheet" href="{% static 'css/job_review.css' %}">
+
 
 {% endblock %}

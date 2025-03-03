@@ -13,3 +13,35 @@ window.onclick = function(event) {
         }
     }
 };
+
+function updateStatus(jobId, status) {
+    console.log("Updating status for job:", jobId, "to", status); // Debugging
+    fetch('/update-job-status/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),  // Ensure CSRF protection
+        },
+        body: JSON.stringify({
+            job_id: jobId,
+            status: status
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('status-' + jobId).innerText = status;
+            document.getElementById('status-' + jobId).className = 'status-label ' + (status === 'Approved' ? 'status-approved' : 'status-rejected');
+            document.getElementById('dropdown-' + jobId).classList.remove('show');
+            document.getElementById('action-buttons-' + jobId).style.display = 'none';
+        } else {
+            alert("Error updating status. Please try again.");
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+// Function to get CSRF token (required for Django POST requests)
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}

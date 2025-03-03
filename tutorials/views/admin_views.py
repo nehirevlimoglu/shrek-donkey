@@ -1,8 +1,12 @@
+import json
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from tutorials.models.admin_models import Admin, Notification
 from tutorials.models.employer_models import Job
+
 
 
 def is_admin(user):
@@ -53,3 +57,23 @@ def admin_notifications(request):
         'unread_count': unread_count, 
     })
 
+
+@csrf_exempt 
+def update_job_status(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            job_id = data.get("job_id")
+            new_status = data.get("status")
+
+            job = Job.objects.get(id=job_id)
+            job.status = new_status
+            job.save()
+
+            return JsonResponse({"success": True})
+        except JobListing.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Job not found"})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)})
+
+    return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
