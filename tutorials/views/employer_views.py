@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
-from tutorials.models.employer_models import Employer, Job, Candidate, Interview
+from tutorials.models.employer_models import Employer, Job, Candidate, Interview, EmployerNotification
+from tutorials.models.admin_models import Notification 
 from tutorials.forms.forms import SignUpForm, LogInForm
 from tutorials.forms.employer_forms import JobForm, EmployerProfileForm
 from tutorials.forms.forms import CustomPasswordChangeForm
@@ -16,13 +17,29 @@ import logging
 def is_employer(user):
     return hasattr(user, 'role') and user.role == 'Employer'
 
-@user_passes_test(is_employer)
+@login_required
 def employer_home_page(request):
-    employers = Employer.objects.all()
-    return render(request, 'employers_home_page.html', {'employers': employers})
+    """Employer dashboard with notifications"""
+    
+    try:
+        # ✅ Fetch employer using username instead of user relation
+        employer = Employer.objects.get(username=request.user.username)
+        
+        notifications = EmployerNotification.objects.filter(employer=employer).order_by('-created_at')
+        print(f"✅ Fetching {notifications.count()} notifications for {employer.company_name}")
+
+    except Employer.DoesNotExist:
+        print("❌ Employer profile not found")
+        return JsonResponse({"success": False, "error": "Employer profile not found"}, status=403)
+
+    return render(request, 'employers_home_page.html', {
+        'notifications': notifications,
+    })
+
 
 def view_employer_analytics(request):
     return render(request, 'employer_analytics.html')
+
 
 @login_required
 def employer_settings(request):
@@ -243,3 +260,13 @@ def employer_job_listings(request):
     return render(request, 'employer_job_listings.html', {'jobs': jobs})
 
 
+@login_required
+def employer_notifications(request):
+    """Display notifications for the logged-in employer."""
+    employer = request.user  # The employer who is logged in
+    notifications = Notification.objects.filter(recipient=employer).order_by('-created_at')
+
+    # Mark notifications as read when viewed
+    notifications.update(is_read=True)
+
+    return render(request, 'employer_notifications.html', {'notifications': notifications})

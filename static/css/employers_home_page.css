@@ -222,9 +222,15 @@ table td {
     background: #1558B5;
 }
 
+.unread {
+    font-weight: bold;
+    background: #f8f9fa;
+}
+
 @media (max-width: 768px) {
     .notification-card {
         flex-direction: column;
         align-items: flex-start;
     }
 }
+

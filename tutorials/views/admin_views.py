@@ -5,12 +5,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from tutorials.models.admin_models import Admin, Notification
+from tutorials.models.employer_models import EmployerNotification 
 from tutorials.models.employer_models import Job
 
 
 
 def is_admin(user):
     return user.role == 'Admin'
+
 
 @user_passes_test(is_admin)
 def admin_home_page(request):
@@ -19,10 +21,12 @@ def admin_home_page(request):
         'admins': admins,
     })
 
+
 def admin_job_listings(request):
     """Admin page to review only pending job listings."""
     pending_jobs = Job.objects.filter(status='pending')  # Only fetch jobs that are pending
     return render(request, 'admin_job_listings.html', {'pending_jobs': pending_jobs})
+
 
 def review_job(request, job_id, decision):
     """Admin action to approve or reject job listings."""
@@ -71,8 +75,20 @@ def update_job_status(request):
             job.status = new_status
             job.save()
 
+            # ✅ Create a notification in EmployerNotification model
+            if new_status.lower() == "approved":
+                if job.employer:  # Ensure job has an employer
+                    EmployerNotification.objects.create(
+                        employer=job.employer,  # ✅ Uses the new employer-specific notification model
+                        title="Job Approved",
+                        message=f"🎉 Your job listing '{job.title}' has been approved!",
+                        is_read=False
+                    )
+                else:
+                    return JsonResponse({"success": False, "error": "Job has no employer"})
+
             return JsonResponse({"success": True})
-        except JobListing.DoesNotExist:
+        except Job.DoesNotExist:
             return JsonResponse({"success": False, "error": "Job not found"})
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})

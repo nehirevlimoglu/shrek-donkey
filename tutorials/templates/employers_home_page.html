@@ -53,20 +53,21 @@
     <section class="notifications" id="notifications">
         <h2>Notifications</h2>
         <div class="notifications-container">
-            <div class="notification-card">
-                <p>New applicant: Alice Johnson applied for Data Analyst</p>
-                <button class="seen-btn">Seen</button>
-            </div>
-            <div class="notification-card">
-                <p>Interview scheduled with John Doe on Feb 20</p>
-                <button class="seen-btn">Seen</button>
-            </div>
-            <div class="notification-card">
-                <p>System maintenance scheduled for Feb 25</p>
-                <button class="seen-btn">Seen</button>
-            </div>
+            {% if notifications|length > 0 %}
+                {% for notification in notifications %}
+                    <div class="notification-card {% if not notification.is_read %}unread{% endif %}">
+                        <p>{{ notification.message }}</p>
+                        <button class="seen-btn" onclick="markEmployerNotificationAsRead('{{ notification.id }}')">Seen</button>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No new notifications.</p>
+            {% endif %}
         </div>
     </section>
+    
+    
+    
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js/minified/introjs.min.css">
     <link rel="stylesheet" href="{% static 'css/employers_home_page.css' %}">
