@@ -14,7 +14,7 @@
         </div>
         <div class="card">
             <h3>Active Users</h3>
-            <p>2,480</p>
+            <p>{{ total_active_users }}</p>
         </div>
         <div class="card">
             <h3>New Hires This Month</h3>
@@ -33,4 +33,92 @@
         
         
     </section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('activeUserChart').getContext('2d');
+        let activeUserChart;
+        let currentPeriod = 'day';
+
+        // Initialize chart
+        function initChart(data) {
+            activeUserChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Active Users',
+                        data: data.values,
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#333'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time Period',
+                                color: '#333'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Active Users',
+                                color: '#333'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Fetch data from backend
+        function fetchData(period) {
+            fetch(`/api/get_active_users_data/?period=${period}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (activeUserChart) {
+                        activeUserChart.data.labels = data.labels;
+                        activeUserChart.data.datasets[0].data = data.values;
+                        activeUserChart.update();
+                    } else {
+                        initChart(data);
+                    }
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+        // Initial load
+        fetchData(currentPeriod);
+
+        // Add button event listeners
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                currentPeriod = this.dataset.period;
+                fetchData(currentPeriod);
+            });
+        });
+
+        // Default select day button
+        document.querySelector('.filter-btn[data-period="day"]').classList.add('active');
+    });
+</script>
 {% endblock %}

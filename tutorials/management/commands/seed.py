@@ -1,14 +1,11 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.hashers import make_password
-<<<<<<< HEAD
 from django.contrib.auth import get_user_model
 from tutorials.models.employer_models import Employer, Job, Candidate, Interview
 from datetime import date, time, timedelta
-=======
 from tutorials.models.user_model import User
 from tutorials.models.employer_models import Employer
 from tutorials.models.applicants_models import Applicant
->>>>>>> c71ecbcef57a68d1f9566f044a3157aeb692a49f
 from faker import Faker
 import random
 
@@ -109,10 +106,7 @@ class Command(BaseCommand):
             print(f"⚠️ Error creating user: {e}")
 
     def create_user(self, data):
-<<<<<<< HEAD
-=======
         """Creates a user and links Employers/Applicants separately"""
->>>>>>> c71ecbcef57a68d1f9566f044a3157aeb692a49f
         user, created = User.objects.get_or_create(
             username=data['username'],
             defaults={
@@ -127,7 +121,6 @@ class Command(BaseCommand):
         if created:
             print(f"Created User: {user.username} (role={user.role})")
 
-<<<<<<< HEAD
         if user.role == 'Employer':
             self.create_employer_profile(user)
 
@@ -197,7 +190,6 @@ class Command(BaseCommand):
                 notes="Initial screening"
             )
             print(f"Created Interview for {cand.user.username} - {cand.job.title}")
-=======
             # Create Employer profile
             if data['role'] == 'Employer':
                 employer, emp_created = Employer.objects.get_or_create(
@@ -226,7 +218,6 @@ class Command(BaseCommand):
                 )
                 if app_created:
                     print(f"✅ Applicant profile created for {user.username}")
->>>>>>> c71ecbcef57a68d1f9566f044a3157aeb692a49f
 
     def list_all_users(self):
         print("\n🔹 **Employers (OneToOne)**:")
