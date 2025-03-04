@@ -1,13 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from tutorials.models.applicants_models import Applicant 
-from tutorials.forms.applicants_forms import ApplicantForm 
+from tutorials.models.applicants_models import Applicant, Application
+from tutorials.forms.applicants_forms import ApplicantForm, ApplicationForm
 from django.contrib.auth.decorators import login_required
 from decorators import applicant_only  # Import the decorator
-from tutorials.models.employer_models import Job
+from tutorials.models.employer_models import Job, EmployerNotification
 
-from tutorials.forms.applicants_forms import ApplicationForm  # Import the form
 
 
 
@@ -50,9 +49,18 @@ def applicants_edit_profile(request):
         'applicant': applicant,
     })
 
-@applicant_only
+
+@login_required
 def applicants_applied_jobs(request):
-    return render(request, 'applicants_applied_jobs.html')
+    """ Display jobs that the logged-in applicant has applied to """
+
+    # ✅ Fetch applications for the logged-in user
+    applied_jobs = Application.objects.filter(applicant=request.user).select_related('job')
+
+    return render(request, 'applicants_applied_jobs.html', {
+        'applied_jobs': applied_jobs,
+    })
+
 
 @applicant_only
 def applicants_favourites(request):
@@ -83,22 +91,35 @@ def applicants_analytics(request):
 
 
 
+
+
 @login_required
 def apply_for_job(request, job_id):
-    job = get_object_or_404(Job, id=job_id)
+    """Handles job application submission"""
     
+    job = get_object_or_404(Job, id=job_id)
+    applicant = request.user  # ✅ Ensure the logged-in user is set as the applicant
+
     if request.method == "POST":
         form = ApplicationForm(request.POST, request.FILES)
+
         if form.is_valid():
             application = form.save(commit=False)
-            application.user = request.user
-            application.job = job
+            application.job = job  # ✅ Assign the job to the application
+            application.applicant = applicant  # ✅ Assign the logged-in user
+
             application.save()
-            messages.success(request, "Your application has been submitted!")
-            return redirect('applicants-home-page')
-        else:
-            messages.error(request, "There was an error with your application.")
+
+            # ✅ Create an employer notification for new application
+            EmployerNotification.objects.create(
+                employer=job.employer,
+                message=f"📩 New application received for {job.title} by {applicant.first_name} {applicant.last_name}!"
+            )
+
+            messages.success(request, "✅ Your application has been submitted successfully!")
+            return redirect("applicants-home-page")
+
     else:
         form = ApplicationForm()
 
-    return render(request, 'applicants_application.html', {'job': job, 'form': form})
+    return render(request, "applicants_application.html", {"form": form, "job": job})

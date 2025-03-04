@@ -13,28 +13,33 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponseForbidden
 import logging
+from tutorials.models.applicants_models import Application
 
 def is_employer(user):
     return hasattr(user, 'role') and user.role == 'Employer'
 
 @login_required
 def employer_home_page(request):
-    """Employer dashboard with notifications"""
-    
+    """Employer dashboard with notifications & recent applicants"""
+
     try:
-        # ✅ Fetch employer using username instead of user relation
         employer = Employer.objects.get(username=request.user.username)
-        
+
+        # ✅ Fetch notifications
         notifications = EmployerNotification.objects.filter(employer=employer).order_by('-created_at')
-        print(f"✅ Fetching {notifications.count()} notifications for {employer.company_name}")
+
+        # ✅ Fetch recent applicants (only those who applied to this employer's jobs)
+        recent_applicants = Application.objects.filter(job__employer=employer).select_related('job', 'applicant').order_by('-applied_at')[:10]
 
     except Employer.DoesNotExist:
-        print("❌ Employer profile not found")
         return JsonResponse({"success": False, "error": "Employer profile not found"}, status=403)
 
     return render(request, 'employers_home_page.html', {
         'notifications': notifications,
+        'recent_applicants': recent_applicants  # ✅ Pass the recent applicants to the template
     })
+
+
 
 
 def view_employer_analytics(request):

@@ -7,15 +7,15 @@
     <section class="overview">
         <div class="card" id="total-jobs">
             <h3>Total Jobs Posted</h3>
-            <p>15</p>
+            <p>{{ total_jobs }}</p>
         </div>
         <div class="card" id="active-listings">
             <h3>Active Listings</h3>
-            <p>6</p>
+            <p>{{ active_listings }}</p>
         </div>
         <div class="card" id="total-applicants">
             <h3>Total Applicants</h3>
-            <p>243</p>
+            <p>{{ total_applicants }}</p>
         </div>
     </section>
 
@@ -32,20 +32,35 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>John Doe</td>
-                    <td>Software Engineer</td>
-                    <td><span class="badge under-review">Under Review</span></td>
-                    <td><a href="#" class="resume-link">View Resume</a></td>
-                    <td><button class="view-btn" id="review-button">Review</button></td>
-                </tr>
-                <tr>
-                    <td>Jane Smith</td>
-                    <td>Project Manager</td>
-                    <td><span class="badge interviewed">Interviewed</span></td>
-                    <td><a href="#" class="resume-link">View Resume</a></td>
-                    <td><button class="view-btn">Review</button></td>
-                </tr>
+                {% for application in recent_applicants %}
+                    <tr>
+                        <td>{{ application.first_name }} {{ application.last_name }}</td>
+                        <td>{{ application.job.title }}</td>
+                        <td>
+                            {% if application.status == "under_review" %}
+                                <span class="badge under-review">Under Review</span>
+                            {% elif application.status == "interviewed" %}
+                                <span class="badge interviewed">Interviewed</span>
+                            {% elif application.status == "hired" %}
+                                <span class="badge hired">Hired</span>
+                            {% else %}
+                                <span class="badge">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if application.resume %}
+                                <a href="{{ application.resume.url }}" class="resume-link" target="_blank">View Resume</a>
+                            {% else %}
+                                No Resume
+                            {% endif %}
+                        </td>
+                        <td><button class="view-btn">Review</button></td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">No recent applicants yet.</td>
+                    </tr>
+                {% endfor %}
             </tbody>
         </table>
     </section>
@@ -65,9 +80,6 @@
             {% endif %}
         </div>
     </section>
-    
-    
-    
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js/minified/introjs.min.css">
     <link rel="stylesheet" href="{% static 'css/employers_home_page.css' %}">
