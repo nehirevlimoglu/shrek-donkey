@@ -14,6 +14,14 @@
         <p><strong>Job Type:</strong> {{ job.job_type }}</p>
         <p><strong>Description:</strong> {{ job.description }}</p>
 
-        <a href="{% url 'applicants-home-page' %}" class="btn-primary">Back to Jobs</a>
+        <!-- Button container for alignment -->
+        <div class="button-container">
+            <a href="{% url 'applicants-home-page' %}" class="btn-primary">Back to Jobs</a>
+
+            <form method="POST" action="{% url 'apply_for_job' job.id %}">
+                {% csrf_token %}
+                <a href="{% url 'apply_for_job' job.id %}" class="btn-primary">Apply Now</a>
+            </form>
+        </div>
     </div>
 {% endblock %}

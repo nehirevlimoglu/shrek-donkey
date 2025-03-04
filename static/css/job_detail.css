@@ -8,6 +8,23 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Button container with space between */
+/* Button container - ensures buttons are positioned properly */
+.button-container {
+    display: flex;
+    justify-content: space-between; /* Pushes buttons to opposite sides */
+    align-items: center;
+    margin-top: 20px;
+    width: 100%;
+}
+
+/* Ensure the apply button stays to the right */
+.apply-form {
+    margin-left: auto; /* Pushes the form to the right */
+}
+
+
+/* Ensure buttons are aligned properly */
 .btn-primary {
     display: inline-block;
     padding: 10px 20px;
@@ -15,10 +32,14 @@
     color: white;
     text-decoration: none;
     border-radius: 5px;
-    margin-top: 20px;
     transition: background 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
 }
 
+/* Hover effect */
 .btn-primary:hover {
     background: #005bb5;
 }
+

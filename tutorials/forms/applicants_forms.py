@@ -1,7 +1,8 @@
 # tutorials/forms/applicants_forms.py
 
 from django import forms
-from tutorials.models.applicants_models import Applicant
+from tutorials.models.applicants_models import Applicant, Application
+
 
 class ApplicantForm(forms.ModelForm):
     first_name = forms.CharField(
@@ -73,3 +74,52 @@ class ApplicantForm(forms.ModelForm):
             applicant.save()  # Save the Applicant model
 
         return applicant
+    
+
+
+class ApplicationForm(forms.ModelForm):
+    first_name = forms.CharField(max_length=50, required=True)
+    last_name = forms.CharField(max_length=50, required=True)
+    phone = forms.CharField(max_length=20, required=True)
+    email = forms.EmailField(required=True)
+    address = forms.CharField(max_length=255, required=True, widget=forms.TextInput(attrs={'placeholder': 'Street, City, Country'}))
+
+    school = forms.CharField(max_length=100, required=True)
+    degree = forms.CharField(max_length=100, required=True)
+    discipline = forms.CharField(max_length=100, required=True)
+    start_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)))
+    end_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
+
+    current_job_title = forms.CharField(max_length=100, required=False)
+    current_employer = forms.CharField(max_length=100, required=False)
+    linkedin_profile = forms.URLField(required=False)
+    portfolio_website = forms.URLField(required=False)
+
+    how_did_you_hear = forms.ChoiceField(
+        choices=[
+            ('linkedin', 'LinkedIn'),
+            ('website', 'Company Website'),
+            ('referral', 'Referral'),
+            ('other', 'Other'),
+        ],
+        required=True
+    )
+
+    sponsorship_needed = forms.ChoiceField(
+        choices=[('yes', 'Yes'), ('no', 'No')],
+        required=True
+    )
+
+    confirm_information = forms.BooleanField(required=True, label="I confirm all information is accurate.")
+
+    class Meta:
+        model = Application
+        fields = [
+            'first_name', 'last_name', 'email', 'phone', 'address',
+            'resume', 'cover_letter',
+            'school', 'degree', 'discipline', 'start_date', 'end_date',
+            'current_job_title', 'current_employer', 'linkedin_profile', 'portfolio_website',
+            'how_did_you_hear', 'sponsorship_needed', 'confirm_information'
+        ]
+
+

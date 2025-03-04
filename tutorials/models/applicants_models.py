@@ -1,5 +1,7 @@
 from django.db import models
 from tutorials.models.user_model import User
+from tutorials.models.employer_models import Job  
+
 
 class Applicant(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -11,3 +13,56 @@ class Applicant(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.degree}"
+
+
+
+
+from django.db import models
+from tutorials.models.user_model import User
+from tutorials.models.employer_models import Job
+
+class Application(models.Model):
+    applicant = models.ForeignKey(User, on_delete=models.CASCADE)
+    job = models.ForeignKey(Job, on_delete=models.CASCADE)
+    
+    first_name = models.CharField(max_length=50, default="Unknown")
+    last_name = models.CharField(max_length=50, default= "Unknown")
+    email = models.EmailField(max_length=100, default="Unknown")
+    phone = models.CharField(max_length=20, default = "Unknown")
+    address = models.CharField(max_length=255, default="Unknown")
+
+    resume = models.FileField(upload_to='uploads/resumes/', blank=True, null=True)
+    cover_letter = models.FileField(upload_to='uploads/cover_letters/', blank=True, null=True)
+
+    degree = models.CharField(max_length=100, default="Not Specified")
+    discipline = models.CharField(max_length=100, default="Not Specified")
+    school = models.CharField(max_length=100, default="Not Specified")
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
+
+    current_job_title = models.CharField(max_length=100, default="Not Specified")
+    current_employer = models.CharField(max_length=100, default="Not Specified")
+    linkedin_profile = models.URLField(blank=True, null=True)
+    portfolio_website = models.URLField(blank=True, null=True)
+
+    how_did_you_hear = models.CharField(
+        max_length=50, 
+        choices=[('linkedin', 'LinkedIn'), ('website', 'Company Website'), ('referral', 'Referral'), ('other', 'Other')],
+        default='other'
+    )
+
+    sponsorship_needed = models.CharField(
+        max_length=3, 
+        choices=[('yes', 'Yes'), ('no', 'No')],
+        default='no'
+    )
+
+    confirm_information = models.BooleanField(default=False)
+
+    
+   
+
+    applied_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.applicant.username} - {self.job.title}"

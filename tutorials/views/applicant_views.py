@@ -7,6 +7,8 @@ from django.contrib.auth.decorators import login_required
 from decorators import applicant_only  # Import the decorator
 from tutorials.models.employer_models import Job
 
+from tutorials.forms.applicants_forms import ApplicationForm  # Import the form
+
 
 
 
@@ -77,3 +79,26 @@ def applicants_account(request):
 @applicant_only
 def applicants_analytics(request):
     return render(request, 'applicants_analytics.html')
+
+
+
+
+@login_required
+def apply_for_job(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+    
+    if request.method == "POST":
+        form = ApplicationForm(request.POST, request.FILES)
+        if form.is_valid():
+            application = form.save(commit=False)
+            application.user = request.user
+            application.job = job
+            application.save()
+            messages.success(request, "Your application has been submitted!")
+            return redirect('applicants-home-page')
+        else:
+            messages.error(request, "There was an error with your application.")
+    else:
+        form = ApplicationForm()
+
+    return render(request, 'applicants_application.html', {'job': job, 'form': form})
