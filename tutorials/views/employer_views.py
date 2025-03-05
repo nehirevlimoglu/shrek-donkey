@@ -92,11 +92,12 @@ def create_job_listings(request):
 
     if request.method == 'POST':
         form = JobForm(request.POST)
+
         if form.is_valid():
             job = form.save(commit=False)
             job.employer = employer  # ✅ Associate job with employer
             
-            # 🔹 Fix: Ensure job location is saved correctly
+            # ✅ Ensure job location and company name are correctly set
             form_location = form.cleaned_data.get('location')
             employer_location = employer.company_location
             job.location = form_location if form_location else employer_location if employer_location else "Unknown Location"

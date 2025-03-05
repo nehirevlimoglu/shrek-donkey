@@ -48,7 +48,7 @@
                     <tbody class="job-listings">
                         {% for job in approved_jobs %}
                         <tr>
-                            <td>{{ job.title }}</td>
+                            <td>{{ job.title.title }}</td>  {# ✅ Fix: Display job title correctly #}
                             <td>{{ job.company_name }}</td>
                             <td>{{ job.location }}</td>
                             <td>{{ job.salary }}</td>
@@ -62,10 +62,11 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="7">No approved jobs available at the moment.</td>
+                            <td colspan="7">No job matches your preferences at the moment.</td>  {# ✅ Clarify empty state #}
                         </tr>
                         {% endfor %}
                     </tbody>
+                    
                 </table>
             </div>
         </main>

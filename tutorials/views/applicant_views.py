@@ -6,23 +6,24 @@ from tutorials.forms.applicants_forms import ApplicantForm, ApplicationForm
 from django.contrib.auth.decorators import login_required
 from decorators import applicant_only  # Import the decorator
 from tutorials.models.employer_models import Job, EmployerNotification
-
+from tutorials.models.employer_models import Job, JobTitle
+from django.contrib.messages import get_messages
 
 
 
 
 @applicant_only
-
+@login_required
 def applicants_home_page(request):
-    """Applicants homepage displaying only approved jobs."""
+    """Show jobs matching applicant preferences."""
     
-    approved_jobs = Job.objects.filter(status__iexact="approved")
-    
-    print("🔍 DEBUG: Fetching approved jobs from the database...")
-    print(f"🔎 Found {approved_jobs.count()} approved jobs")  # ✅ Log job count
-    
-    for job in approved_jobs:
-        print(f"✅ Job: {job.title} | Company: {job.company_name} | Status: {job.status}")
+    applicant = Applicant.objects.filter(user=request.user).first()
+
+    if applicant:
+        preferred_titles = applicant.job_preferences.all()  # ✅ Get preferred job titles
+        approved_jobs = Job.objects.filter(status="approved", title__in=preferred_titles)
+    else:
+        approved_jobs = Job.objects.filter(status="approved")
 
     return render(request, 'applicants_home_page.html', {"approved_jobs": approved_jobs})
 
@@ -30,24 +31,29 @@ def applicants_home_page(request):
 @applicant_only
 @login_required
 def applicants_edit_profile(request):
+    """ Ensure messages from previous actions (like job creation) are cleared """
+
+    storage = get_messages(request)  # ✅ Clears stored messages
+    storage.used = True  # ✅ Mark messages as used to prevent showing old ones
+
     applicant = get_object_or_404(Applicant, user=request.user)
-    
+
     if request.method == 'POST':
         form = ApplicantForm(request.POST, request.FILES, instance=applicant, user=request.user)
         if form.is_valid():
             form.save()
-            messages.success(request, "Your changes have been saved.")
+            messages.success(request, "Your changes have been saved.")  # ✅ Only relevant messages will show
             return redirect('applicants-edit-profile')
         else:
             messages.error(request, "Please fix the errors below.")
     else:
-        # Make sure to pass user=request.user on GET requests
         form = ApplicantForm(instance=applicant, user=request.user)
 
     return render(request, 'applicants_edit_profile.html', {
         'form': form,
         'applicant': applicant,
     })
+
 
 
 @login_required

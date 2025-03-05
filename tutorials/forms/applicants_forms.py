@@ -2,6 +2,7 @@
 
 from django import forms
 from tutorials.models.applicants_models import Applicant, Application
+from tutorials.models.employer_models import JobTitle
 
 
 class ApplicantForm(forms.ModelForm):
@@ -16,6 +17,11 @@ class ApplicantForm(forms.ModelForm):
         max_length=150,
         required=True,
         widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    job_preferences = forms.ModelMultipleChoiceField(
+        queryset=JobTitle.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False
     )
 
     MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB

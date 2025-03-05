@@ -81,11 +81,7 @@
             <!-- Job Preferences -->
             <div class="field">
                 <label for="id_job_preferences">Job Preferences:</label>
-                <textarea
-                    id="id_job_preferences"
-                    name="job_preferences"
-                    rows="3"
-                >{{ applicant.job_preferences|default_if_none:'' }}</textarea>
+                {{ form.job_preferences }}  {# ✅ Uses Django form rendering for ManyToManyField #}
             </div>
 
             <!-- Location Preferences -->

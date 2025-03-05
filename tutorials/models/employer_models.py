@@ -35,22 +35,17 @@ class Employer(models.Model):
 
     def __str__(self):
         return f"{self.company_name} ({self.username})"
-
+    
 class JobTitle(models.Model):
     title = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
-        return
+        return self.title 
+
 
 class Job(models.Model):
-    employer = models.ForeignKey(
-        Employer,
-        on_delete=models.CASCADE,
-        related_name='jobs',
-        null=True,
-        blank=True
-    )
-    title = models.CharField(max_length=200)
+    employer = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name='jobs', null=True, blank=True)
+    title = models.CharField(max_length=255)  # ✅ Changed to CharField for free-text job titles
     company_name = models.CharField(max_length=255, default="Unknown Company")
     location = models.CharField(max_length=255, default="Unknown Location")
     job_type = models.CharField(
@@ -128,3 +123,5 @@ class EmployerNotification(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.employer.company_name}"
+
+
