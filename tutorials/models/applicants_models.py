@@ -73,6 +73,9 @@ class Application(models.Model):
         max_length=20, choices=STATUS_CHOICES, default="under_review"
     )
 
+    class Meta:
+        unique_together = ('applicant', 'job')
+        
     applied_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

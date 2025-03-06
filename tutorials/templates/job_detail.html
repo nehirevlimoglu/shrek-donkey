@@ -14,14 +14,21 @@
         <p><strong>Job Type:</strong> {{ job.job_type }}</p>
         <p><strong>Description:</strong> {{ job.description }}</p>
 
+        
         <!-- Button container for alignment -->
         <div class="button-container">
             <a href="{% url 'applicants-home-page' %}" class="btn-primary">Back to Jobs</a>
 
-            <form method="POST" action="{% url 'apply_for_job' job.id %}">
-                {% csrf_token %}
-                <a href="{% url 'apply_for_job' job.id %}" class="btn-primary">Apply Now</a>
-            </form>
+            {% if existing_application %}
+                <!-- ✅ Show a message instead of the Apply Now button -->
+                <p class="already-applied-message">✅ You have already applied for this job.</p>
+            {% else %}
+                <!-- ✅ Show the Apply button if the user has not applied yet -->
+                <form method="POST" action="{% url 'apply_for_job' job.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary">Apply Now</button>
+                </form>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

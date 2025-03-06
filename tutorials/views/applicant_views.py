@@ -94,34 +94,44 @@ def applicants_analytics(request):
 
 
 
+@login_required
+def job_detail(request, job_id):
+    """Display job details and check if the user has applied"""
+    job = get_object_or_404(Job, id=job_id)
+    applicant = Applicant.objects.filter(user=request.user).first()
 
+    # Check if the user has already applied
+    existing_application = False
+    if applicant:
+        existing_application = Application.objects.filter(applicant=applicant, job=job).exists()
 
+    return render(request, "job_detail.html", {
+        "job": job,
+        "existing_application": existing_application
+    })
 
 @login_required
 def apply_for_job(request, job_id):
-    """Handles job application submission"""
-
+    """Handles job application submission, preventing duplicate applications"""
+    
     job = get_object_or_404(Job, id=job_id)
-    
-    # ✅ Ensure we correctly get the Applicant object
-    try:
-        applicant = Applicant.objects.get(user=request.user)
-        print(f"✅ Applicant found: {applicant}")
-    except Applicant.DoesNotExist:
-        print("❌ No Applicant record found for this user!")
-        messages.error(request, "You need to complete your profile before applying for jobs.")
-        return redirect("applicants-edit-profile")  # Redirect user to edit profile page
-    
+    applicant = get_object_or_404(Applicant, user=request.user)
+
+    # ✅ Check if the applicant has already applied for this job
+    existing_application = Application.objects.filter(applicant=applicant, job=job).exists()
+
+    if existing_application:
+        messages.warning(request, "You have already applied for this job.")
+        return redirect("job_detail", job_id=job.id)  # Redirect to job detail page
+
     if request.method == "POST":
         form = ApplicationForm(request.POST, request.FILES)
 
         if form.is_valid():
             application = form.save(commit=False)
-            application.job = job  # ✅ Assign job
-            application.applicant = applicant  # ✅ Assign applicant
-            print(f"✅ Application applicant assigned: {application.applicant}")
-
-            application.save()  # ✅ Save application
+            application.job = job
+            application.applicant = applicant  # ✅ Assign the applicant
+            application.save()
 
             # ✅ Create an employer notification for new application
             EmployerNotification.objects.create(
@@ -131,8 +141,10 @@ def apply_for_job(request, job_id):
             )
 
             messages.success(request, "✅ Your application has been submitted successfully!")
+            return redirect("job_detail", job_id=job.id)  # Redirect to job detail page
 
     else:
         form = ApplicationForm()
 
-    return render(request, "applicants_application.html", {"form": form, "job": job})
+    return render(request, "applicants_application.html", {"form": form, "job": job, "existing_application": existing_application})
+
