@@ -175,15 +175,17 @@ def change_password(request):
 
 @login_required
 def employer_candidates(request):
-    """ Ensure request.user is an Employer before querying """
+    """Retrieve all candidates who applied for jobs posted by the employer"""
     try:
-        # Match Employer by username instead of user object
-        employer = Employer.objects.get(username=request.user.username)  
-        candidates = Candidate.objects.filter(job__employer=employer)
+        # ✅ Ensure the logged-in user is an employer
+        employer = Employer.objects.get(username=request.user.username)
     except Employer.DoesNotExist:
-        return HttpResponseForbidden("You are not an employer.")
+        return HttpResponseForbidden("You are not authorized to view this page.")
 
-    return render(request, 'employer_candidates.html', {'candidates': candidates})
+    # ✅ Get all jobs posted by this employer
+    employer_jobs = Job.objects.filter(employer=employer)
+
+    return render(request, 'employer_candidates.html', {'jobs': employer_jobs})
 
 
 @user_passes_test(is_employer)
@@ -197,6 +199,7 @@ def employer_interviews(request):
         return HttpResponseForbidden("You are not an employer.")
 
     return render(request, 'employer_interviews.html', {'interviews': interviews})
+
 
 @login_required
 def get_interviews(request):
@@ -217,6 +220,7 @@ def get_interviews(request):
     ]
 
     return JsonResponse(events, safe=False)
+
 
 @login_required
 def edit_company_profile(request):

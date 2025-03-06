@@ -51,6 +51,7 @@ urlpatterns = [
 
 
 
+
     path('job/<int:job_id>/apply/', apply_for_job, name='apply_for_job'),
 
 

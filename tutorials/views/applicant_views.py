@@ -20,8 +20,9 @@ def applicants_home_page(request):
     applicant = Applicant.objects.filter(user=request.user).first()
 
     if applicant:
-        preferred_titles = applicant.job_preferences.all()  # ✅ Get preferred job titles
+        preferred_titles = list(applicant.job_preferences.values_list('title', flat=True))
         approved_jobs = Job.objects.filter(status="approved", title__in=preferred_titles)
+
     else:
         approved_jobs = Job.objects.filter(status="approved")
 
@@ -61,7 +62,9 @@ def applicants_applied_jobs(request):
     """ Display jobs that the logged-in applicant has applied to """
 
     # ✅ Fetch applications for the logged-in user
-    applied_jobs = Application.objects.filter(applicant=request.user).select_related('job')
+    applicant = get_object_or_404(Applicant, user=request.user)
+    applied_jobs = Application.objects.filter(applicant=applicant).select_related('job')
+
 
     return render(request, 'applicants_applied_jobs.html', {
         'applied_jobs': applied_jobs,
@@ -112,15 +115,18 @@ def apply_for_job(request, job_id):
         if form.is_valid():
             application = form.save(commit=False)
             application.job = job  # ✅ Assign the job to the application
-            application.applicant = applicant  # ✅ Assign the logged-in user
+            applicant = get_object_or_404(Applicant, user=request.user)  # Get the correct applicant
+
 
             application.save()
 
             # ✅ Create an employer notification for new application
             EmployerNotification.objects.create(
                 employer=job.employer,
-                message=f"📩 New application received for {job.title} by {applicant.first_name} {applicant.last_name}!"
+                title="New Job Application",  # Ensure a title is provided
+                message=f"📩 New application received for {job.title} by {applicant.user.first_name} {applicant.user.last_name}!"
             )
+
 
             messages.success(request, "✅ Your application has been submitted successfully!")
             return redirect("applicants-home-page")

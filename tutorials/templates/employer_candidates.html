@@ -1,25 +1,25 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Candidates | Swamp Hiring{% endblock %}
+{% block title %}Job Candidates | Swamp Hiring{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/employer_candidates.css' }">
 {% endblock %}
 
 {% block content %}
-    <div class="candidates-section">
+    <section class="candidates-section">
         <h2>Job Candidates</h2>
 
         {% if candidates %}
-            <table>
+            <table class="candidates-table">
                 <thead>
                     <tr>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Position Applied</th>
                         <th>Status</th>
-                        <th>Profile</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -29,18 +29,19 @@
                             <td>{{ candidate.user.email }}</td>
                             <td>{{ candidate.job.title }}</td>
                             <td>
-                                <span class="status status-{{ candidate.application_status|lower }}">
+                                <span class="status-tag status-{{ candidate.application_status|lower }}">
                                     {{ candidate.application_status }}
                                 </span>
                             </td>
                             <td>
+                                <a href="{% url 'candidate_profile' candidate.id %}" class="btn-profile">View Profile</a>
                             </td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
         {% else %}
-            <p>No candidates have applied yet.</p>
+            <p class="no-candidates">No candidates have applied yet.</p>
         {% endif %}
-    </div>
+    </section>
 {% endblock %}
