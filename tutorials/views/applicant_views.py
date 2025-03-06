@@ -19,12 +19,7 @@ def applicants_home_page(request):
     
     applicant = Applicant.objects.filter(user=request.user).first()
 
-    if applicant:
-        preferred_titles = list(applicant.job_preferences.values_list('title', flat=True))
-        approved_jobs = Job.objects.filter(status="approved", title__in=preferred_titles)
-
-    else:
-        approved_jobs = Job.objects.filter(status="approved")
+    approved_jobs = Job.objects.filter(status__iexact='approved')
 
     return render(request, 'applicants_home_page.html', {"approved_jobs": approved_jobs})
 
@@ -105,31 +100,37 @@ def applicants_analytics(request):
 @login_required
 def apply_for_job(request, job_id):
     """Handles job application submission"""
-    
-    job = get_object_or_404(Job, id=job_id)
-    applicant = request.user  # ✅ Ensure the logged-in user is set as the applicant
 
+    job = get_object_or_404(Job, id=job_id)
+    
+    # ✅ Ensure we correctly get the Applicant object
+    try:
+        applicant = Applicant.objects.get(user=request.user)
+        print(f"✅ Applicant found: {applicant}")
+    except Applicant.DoesNotExist:
+        print("❌ No Applicant record found for this user!")
+        messages.error(request, "You need to complete your profile before applying for jobs.")
+        return redirect("applicants-edit-profile")  # Redirect user to edit profile page
+    
     if request.method == "POST":
         form = ApplicationForm(request.POST, request.FILES)
 
         if form.is_valid():
             application = form.save(commit=False)
-            application.job = job  # ✅ Assign the job to the application
-            applicant = get_object_or_404(Applicant, user=request.user)  # Get the correct applicant
+            application.job = job  # ✅ Assign job
+            application.applicant = applicant  # ✅ Assign applicant
+            print(f"✅ Application applicant assigned: {application.applicant}")
 
-
-            application.save()
+            application.save()  # ✅ Save application
 
             # ✅ Create an employer notification for new application
             EmployerNotification.objects.create(
                 employer=job.employer,
-                title="New Job Application",  # Ensure a title is provided
+                title="New Job Application",  
                 message=f"📩 New application received for {job.title} by {applicant.user.first_name} {applicant.user.last_name}!"
             )
 
-
             messages.success(request, "✅ Your application has been submitted successfully!")
-            return redirect("applicants-home-page")
 
     else:
         form = ApplicationForm()

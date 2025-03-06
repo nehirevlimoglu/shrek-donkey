@@ -48,7 +48,7 @@
                     <tbody class="job-listings">
                         {% for job in approved_jobs %}
                         <tr>
-                            <td>{{ job.title.title }}</td>  {# ✅ Fix: Display job title correctly #}
+                            <td>{{ job.title }}</td>  {# ✅ Fix: Display job title correctly #}
                             <td>{{ job.company_name }}</td>
                             <td>{{ job.location }}</td>
                             <td>{{ job.salary }}</td>

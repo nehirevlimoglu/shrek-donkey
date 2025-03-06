@@ -10,7 +10,7 @@ class Applicant(models.Model):
     degree = models.CharField(max_length=255, blank=True, null=True)
     cv = models.FileField(upload_to="uploads/cv/", blank=True, null=True)
     salary_preferences = models.CharField(max_length=100, blank=True)
-    job_preferences = models.ManyToManyField(JobTitle, blank=True)  
+    job_preferences = models.TextField(max_length=100, blank=True)  
     location_preferences = models.CharField(max_length=150, blank=True)
 
     def __str__(self):
@@ -27,7 +27,7 @@ class Application(models.Model):
         ("rejected", "Rejected"),
     ]
 
-    applicant = models.ForeignKey(User, on_delete=models.CASCADE)
+    applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE)
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="applications")
 
     # Personal Details
