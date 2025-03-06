@@ -34,7 +34,7 @@
             <tbody>
                 {% for application in recent_applicants %}
                     <tr>
-                        <td>{{ application.first_name }} {{ application.last_name }}</td>
+                        <td>{{ application.candidate.user.first_name }} {{ application.candidate.user.last_name }}</td>
                         <td>{{ application.job.title }}</td>
                         <td>
                             {% if application.status == "under_review" %}
@@ -54,7 +54,9 @@
                                 No Resume
                             {% endif %}
                         </td>
-                        <td><button class="view-btn">Review</button></td>
+                        <td>
+                            <button class="view-btn review-button" data-applicant="{{ application.id }}">Review</button>
+                        </td>
                     </tr>
                 {% empty %}
                     <tr>
@@ -62,6 +64,7 @@
                     </tr>
                 {% endfor %}
             </tbody>
+            
         </table>
     </section>
 
@@ -70,10 +73,16 @@
         <div class="notifications-container">
             {% if notifications|length > 0 %}
                 {% for notification in notifications %}
-                    <div class="notification-card {% if not notification.is_read %}unread{% endif %}">
-                        <p>{{ notification.message }}</p>
-                        <button class="seen-btn" onclick="markEmployerNotificationAsRead('{{ notification.id }}')">Seen</button>
-                    </div>
+                <div class="notification-card {% if not notification.is_read %}unread{% endif %}" id="notification-{{ notification.id }}">
+                    <p>{{ notification.message }}</p>
+                
+                    {% if not notification.is_read %}
+                        <button class="seen-btn" data-notification-id="{{ notification.id }}">Seen</button>
+                    {% else %}
+                        <span style="color: #28A745; font-weight: bold;">✔ Seen</span>
+                    {% endif %}
+                </div>
+                
                 {% endfor %}
             {% else %}
                 <p>No new notifications.</p>
@@ -85,4 +94,6 @@
     <link rel="stylesheet" href="{% static 'css/employers_home_page.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
     <script src="{% static 'js/tutorial.js' %}"></script>
+    <script src="{% static 'js/employer_dashboard.js' %}"></script>
+
 {% endblock %}

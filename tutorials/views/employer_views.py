@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
-from tutorials.models.employer_models import Employer, Job, Candidate, Interview, EmployerNotification
+from django.views.decorators.csrf import csrf_exempt
+from tutorials.models.employer_models import Employer, Job, Candidate, Interview, EmployerNotification, EmployerEvent
 from tutorials.models.admin_models import Notification 
 from tutorials.forms.forms import SignUpForm, LogInForm
 from tutorials.forms.employer_forms import JobForm, EmployerProfileForm
@@ -276,3 +277,50 @@ def employer_notifications(request):
     notifications.update(is_read=True)
 
     return render(request, 'employer_notifications.html', {'notifications': notifications})
+
+@login_required
+def get_employer_events(request):
+    """Fetch events only for the logged-in employer"""
+    try:
+        employer = Employer.objects.get(username=request.user.username)  # Get employer using username
+        events = EmployerEvent.objects.filter(employer=employer)
+
+        event_list = [
+            {
+                "id": event.id,
+                "title": event.title,
+                "start": event.start.strftime('%Y-%m-%dT%H:%M:%S'),
+                "end": event.end.strftime('%Y-%m-%dT%H:%M:%S') if event.end else None,
+            }
+            for event in events
+        ]
+
+        return JsonResponse(event_list, safe=False)
+
+    except Employer.DoesNotExist:
+        return JsonResponse({"error": "Employer not found"}, status=403)
+
+@login_required
+def review_application(request, application_id):
+    """Display full application details"""
+    application = get_object_or_404(Application, id=application_id)
+    
+    return render(request, "application_review.html", {"application": application})
+
+
+@csrf_exempt
+@login_required
+def mark_notification_as_read(request, notification_id):
+    """Marks an employer's notification as read"""
+    try:
+        employer = Employer.objects.get(username=request.user.username)  # Ensure we fetch the employer
+        notification = EmployerNotification.objects.get(id=notification_id, employer=employer)  # Use 'employer'
+
+        notification.is_read = True
+        notification.save()
+
+        return JsonResponse({"success": True})
+    except EmployerNotification.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
+    except Employer.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Employer profile not found"}, status=403)

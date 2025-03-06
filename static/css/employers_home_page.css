@@ -179,15 +179,26 @@ table td {
 .view-btn:hover {
     background: #1558B5;
 }
-
-/* Notifications Styling */
-.notifications-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    padding: 10px;
+/* Notifications Section */
+.notifications {
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #FFFFFF;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    max-height: 300px;  /* Limit height */
+    overflow: hidden;
 }
 
+/* Scrollable container */
+.scrollable-notifications {
+    max-height: 250px; /* Adjust as needed */
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Notification Cards */
 .notification-card {
     background: #fff;
     border: 1px solid #ddd;
@@ -198,6 +209,7 @@ table td {
     align-items: center;
     justify-content: space-between;
     transition: transform 0.2s ease-in-out;
+    margin-bottom: 10px;
 }
 
 .notification-card:hover {
@@ -209,6 +221,7 @@ table td {
     border-left: 5px solid #595F39;
 }
 
+/* Seen Button */
 .seen-btn {
     padding: 8px 12px;
     background: #1A73E8;
@@ -222,10 +235,21 @@ table td {
     background: #1558B5;
 }
 
+
 .unread {
     font-weight: bold;
     background: #f8f9fa;
 }
+
+.notification-card.unread {
+    background-color: #f8f9fa;
+    border-left: 5px solid #595F39;
+}
+
+.notification-card {
+    transition: opacity 0.3s ease-in-out;
+}
+
 
 @media (max-width: 768px) {
     .notification-card {
