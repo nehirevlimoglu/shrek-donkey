@@ -177,7 +177,6 @@ def change_password(request):
 def employer_candidates(request):
     """Retrieve all candidates who applied for jobs posted by the employer"""
     try:
-        # ✅ Ensure the logged-in user is an employer
         employer = Employer.objects.get(username=request.user.username)
     except Employer.DoesNotExist:
         return HttpResponseForbidden("You are not authorized to view this page.")
@@ -185,7 +184,17 @@ def employer_candidates(request):
     # ✅ Get all jobs posted by this employer
     employer_jobs = Job.objects.filter(employer=employer)
 
-    return render(request, 'employer_candidates.html', {'jobs': employer_jobs})
+    # ✅ Retrieve all candidates who applied to these jobs
+    candidates = Candidate.objects.filter(job__in=employer_jobs).select_related('user', 'job')
+
+    print("Employer:", employer)
+    print("Jobs posted by employer:", employer_jobs)
+    print("Candidates who applied:", candidates.values())
+
+    return render(request, 'employer_candidates.html', {
+        'candidates': candidates,
+    })
+
 
 
 @user_passes_test(is_employer)

@@ -19,22 +19,27 @@
                         <th>Email</th>
                         <th>Position Applied</th>
                         <th>Status</th>
+                        <th>Resume</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for candidate in candidates %}
                         <tr>
-                            <td>{{ candidate.user.first_name }} {{ candidate.user.last_name }}</td>
-                            <td>{{ candidate.user.email }}</td>
-                            <td>{{ candidate.job.title }}</td>
+                            <td>{{ candidate.user.get_full_name|default:"N/A" }}</td>
+                            <td>{{ candidate.user.email|default:"N/A" }}</td>
+                            <td>{{ candidate.job.title|default:"N/A" }}</td>
                             <td>
                                 <span class="status-tag status-{{ candidate.application_status|lower }}">
-                                    {{ candidate.application_status }}
+                                    {{ candidate.application_status|default:"Pending" }}
                                 </span>
                             </td>
                             <td>
-                                <a href="{% url 'candidate_profile' candidate.id %}" class="btn-profile">View Profile</a>
+                                {% if candidate.resume %}
+                                    <a href="{{ candidate.resume.url }}" target="_blank">View Resume</a>
+                                {% else %}
+                                    No Resume
+                                {% endif %}
                             </td>
                         </tr>
                     {% endfor %}

@@ -5,8 +5,7 @@ from tutorials.models.applicants_models import Applicant, Application
 from tutorials.forms.applicants_forms import ApplicantForm, ApplicationForm
 from django.contrib.auth.decorators import login_required
 from decorators import applicant_only  # Import the decorator
-from tutorials.models.employer_models import Job, EmployerNotification
-from tutorials.models.employer_models import Job, JobTitle
+from tutorials.models.employer_models import Job, EmployerNotification, JobTitle, Candidate
 from django.contrib.messages import get_messages
 
 
@@ -110,6 +109,10 @@ def job_detail(request, job_id):
         "existing_application": existing_application
     })
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 @login_required
 def apply_for_job(request, job_id):
     """Handles job application submission, preventing duplicate applications"""
@@ -133,6 +136,25 @@ def apply_for_job(request, job_id):
             application.applicant = applicant  # ✅ Assign the applicant
             application.save()
 
+            # ✅ Debugging logs
+            logger.info(f"Creating candidate for {applicant.user.username} for job {job.title}")
+
+            # ✅ Create a Candidate entry to be listed under employer's candidates
+            candidate, created = Candidate.objects.get_or_create(
+                user=applicant.user,  # ✅ Link to the user
+                job=job,              # ✅ Link to the job they applied for
+                defaults={
+                    "resume": form.cleaned_data.get("resume"),
+                    "cover_letter": form.cleaned_data.get("cover_letter"),
+                    "application_status": "Pending"
+                }
+            )
+
+            if created:
+                logger.info(f"✅ Candidate created for {applicant.user.username} and job {job.title}")
+            else:
+                logger.warning(f"⚠️ Candidate already existed for {applicant.user.username} and job {job.title}")
+
             # ✅ Create an employer notification for new application
             EmployerNotification.objects.create(
                 employer=job.employer,
@@ -147,4 +169,3 @@ def apply_for_job(request, job_id):
         form = ApplicationForm()
 
     return render(request, "applicants_application.html", {"form": form, "job": job, "existing_application": existing_application})
-
