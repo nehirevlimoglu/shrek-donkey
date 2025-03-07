@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.urls import path
+from django.conf import settings
+from django.conf.urls.static import static
 from tutorials.views.views import log_in, log_out, sign_up  
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile, applicants_analytics, apply_for_job
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications, review_job, update_job_status
@@ -56,3 +58,8 @@ urlpatterns = [
 
 
 ]
+
+
+# ✅ Add this to serve media files during development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

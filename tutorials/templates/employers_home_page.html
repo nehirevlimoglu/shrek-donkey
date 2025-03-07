@@ -3,32 +3,24 @@
 
 {% block title %}Employer Dashboard | Swamp Hiring{% endblock %}
 
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/employers_home_page.css' %}">
-{% endblock %}
-
 {% block content %}
-    <!-- Main Content -->
-    <div class="content">
-        <header>
-            <h1>Employer Dashboard</h1>
-            <button class="logout-btn">Logout</button>
-        </header>
 
-        <section class="overview">
-            <div class="card" id="total-jobs">
-                <h3>Total Jobs Posted</h3>
-                <p>{{ total_jobs }}</p>
-            </div>
-            <div class="card" id="active-listings">
-                <h3>Active Listings</h3>
-                <p>{{ active_listings }}</p>
-            </div>
-            <div class="card" id="total-applicants">
-                <h3>Total Applicants</h3>
-                <p>{{ total_applicants }}</p>
-            </div>
-        </section>
+<link rel="stylesheet" type="text/css" href="{% static 'css/employers_home_page.css' %}">
+
+    <section class="overview">
+        <div class="card" id="total-jobs">
+            <h3>Total Jobs Posted</h3>
+            <p>{{ total_jobs }}</p>
+        </div>
+        <div class="card" id="active-listings">
+            <h3>Active Listings</h3>
+            <p>{{ active_listings }}</p>
+        </div>
+        <div class="card" id="total-applicants">
+            <h3>Total Applicants</h3>
+            <p>{{ total_applicants }}</p>
+        </div>
+    </section>
 
         <section class="recent-applicants" id="recent-applicants">
             <h2>Recent Applicants</h2>
@@ -67,10 +59,11 @@
                 </tbody>
             </table>
         </section>
-
+    
+        <!-- HTML -->
         <section class="notifications" id="notifications">
             <h2>Notifications</h2>
-
+        
             <!-- The container that will actually scroll -->
             <div class="notifications-container">
                 {% if notifications|length > 0 %}
@@ -90,11 +83,16 @@
                 {% endif %}
             </div>
         </section>
+        {% endblock %}
     </div>
-{% endblock %}
 
-{% block extra_js %}
+    <!-- Intro.js -->
     <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
+
+    <!-- Additional JS (tutorial.js, if used) -->
     <script src="{% static 'js/tutorial.js' %}"></script>
+
+    <!-- Main JS (Separated) -->
     <script src="{% static 'js/employer_dashboard.js' %}"></script>
-{% endblock %}
+</body>
+</html>
