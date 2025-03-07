@@ -1,3 +1,4 @@
+// After DOM load, attach click event to .review-button
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".review-button").forEach(button => {
         button.addEventListener("click", function () {
@@ -7,12 +8,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+// After DOM load, attach click event to .seen-btn
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".seen-btn").forEach(button => {
         button.addEventListener("click", function () {
             let notificationId = this.getAttribute("data-notification-id");
             if (notificationId) {
-                markEmployerNotificationAsRead(notificationId);
+                markEmployerNotificationAsRead(notificationId, this);
             } else {
                 console.error("Notification ID not found.");
             }
@@ -20,6 +22,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+// Function to mark notification as read
 function markEmployerNotificationAsRead(notificationId, buttonElement) {
     fetch(`/mark-notification-read/${notificationId}/`, {
         method: "POST",
@@ -36,7 +39,7 @@ function markEmployerNotificationAsRead(notificationId, buttonElement) {
                 notificationElement.classList.remove("unread");
                 notificationElement.style.opacity = "0.7";  // Make it visually faded
 
-                // ✅ Replace the "Seen" button with text
+                // Replace the "Seen" button with text
                 let seenText = document.createElement("span");
                 seenText.textContent = "✔ Seen";
                 seenText.style.color = "#28A745";  // Green color for seen status
@@ -51,7 +54,7 @@ function markEmployerNotificationAsRead(notificationId, buttonElement) {
     .catch(error => console.error("Request failed:", error));
 }
 
-// Function to get CSRF Token
+// Utility function to fetch CSRF token if needed
 function getCSRFToken() {
     let csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
     return csrfToken ? csrfToken.value : "";

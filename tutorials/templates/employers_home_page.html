@@ -1,99 +1,139 @@
-{% extends 'base.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Employer Dashboard | Swamp Hiring</title>
+    
+    <!-- Include Poppins Font -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
-{% block title %}Employer Dashboard | Swamp Hiring{% endblock %}
-
-{% block content %}
-    <section class="overview">
-        <div class="card" id="total-jobs">
-            <h3>Total Jobs Posted</h3>
-            <p>{{ total_jobs }}</p>
-        </div>
-        <div class="card" id="active-listings">
-            <h3>Active Listings</h3>
-            <p>{{ active_listings }}</p>
-        </div>
-        <div class="card" id="total-applicants">
-            <h3>Total Applicants</h3>
-            <p>{{ total_applicants }}</p>
-        </div>
-    </section>
-
-    <section class="recent-applicants" id="recent-applicants">
-        <h2>Recent Applicants</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Applicant Name</th>
-                    <th>Job Applied</th>
-                    <th>Status</th>
-                    <th>Resume</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for application in recent_applicants %}
-                    <tr>
-                        <td>{{ application.candidate.user.first_name }} {{ application.candidate.user.last_name }}</td>
-                        <td>{{ application.job.title }}</td>
-                        <td>
-                            {% if application.status == "under_review" %}
-                                <span class="badge under-review">Under Review</span>
-                            {% elif application.status == "interviewed" %}
-                                <span class="badge interviewed">Interviewed</span>
-                            {% elif application.status == "hired" %}
-                                <span class="badge hired">Hired</span>
-                            {% else %}
-                                <span class="badge">Pending</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if application.resume %}
-                                <a href="{{ application.resume.url }}" class="resume-link" target="_blank">View Resume</a>
-                            {% else %}
-                                No Resume
-                            {% endif %}
-                        </td>
-                        <td>
-                            <button class="view-btn review-button" data-applicant="{{ application.id }}">Review</button>
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <td colspan="5">No recent applicants yet.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-            
-        </table>
-    </section>
-
-    <section class="notifications" id="notifications">
-        <h2>Notifications</h2>
-        <div class="notifications-container">
-            {% if notifications|length > 0 %}
-                {% for notification in notifications %}
-                <div class="notification-card {% if not notification.is_read %}unread{% endif %}" id="notification-{{ notification.id }}">
-                    <p>{{ notification.message }}</p>
-                
-                    {% if not notification.is_read %}
-                        <button class="seen-btn" data-notification-id="{{ notification.id }}">Seen</button>
-                    {% else %}
-                        <span style="color: #28A745; font-weight: bold;">✔ Seen</span>
-                    {% endif %}
-                </div>
-                
-                {% endfor %}
-            {% else %}
-                <p>No new notifications.</p>
-            {% endif %}
-        </div>
-    </section>
-
+    <!-- Intro.js CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js/minified/introjs.min.css">
-    <link rel="stylesheet" href="{% static 'css/employers_home_page.css' %}">
-    <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
-    <script src="{% static 'js/tutorial.js' %}"></script>
-    <script src="{% static 'js/employer_dashboard.js' %}"></script>
 
-{% endblock %}
+    <!-- Main CSS (Separated) -->
+    <link rel="stylesheet" href="{% static 'css/employers_home_page.css' %}">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2>Dashboard</h2>
+        <nav>
+            <ul>
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Jobs</a></li>
+                <li><a href="#">Applicants</a></li>
+                <li><a href="#">Messages</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <header>
+            <h1>Employer Dashboard</h1>
+            <button class="logout-btn">Logout</button>
+        </header>
+
+        {% block content %}
+        <section class="overview">
+            <div class="card" id="total-jobs">
+                <h3>Total Jobs Posted</h3>
+                <p>{{ total_jobs }}</p>
+            </div>
+            <div class="card" id="active-listings">
+                <h3>Active Listings</h3>
+                <p>{{ active_listings }}</p>
+            </div>
+            <div class="card" id="total-applicants">
+                <h3>Total Applicants</h3>
+                <p>{{ total_applicants }}</p>
+            </div>
+        </section>
+
+        <section class="recent-applicants" id="recent-applicants">
+            <h2>Recent Applicants</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Applicant Name</th>
+                        <th>Job Applied</th>
+                        <th>Status</th>
+                        <th>Resume</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in recent_applicants %}
+                        <tr>
+                            <td>{{ application.candidate.user.first_name }} {{ application.candidate.user.last_name }}</td>
+                            <td>{{ application.job.title }}</td>
+                            <td>
+                                {% if application.status == "under_review" %}
+                                    <span class="badge under-review">Under Review</span>
+                                {% elif application.status == "interviewed" %}
+                                    <span class="badge interviewed">Interviewed</span>
+                                {% elif application.status == "hired" %}
+                                    <span class="badge hired">Hired</span>
+                                {% else %}
+                                    <span class="badge">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if application.resume %}
+                                    <a href="{{ application.resume.url }}" class="resume-link" target="_blank">View Resume</a>
+                                {% else %}
+                                    No Resume
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button class="view-btn review-button" data-applicant="{{ application.id }}">Review</button>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5">No recent applicants yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <!-- HTML -->
+        <section class="notifications" id="notifications">
+            <h2>Notifications</h2>
+        
+            <!-- The container that will actually scroll -->
+            <div class="notifications-container">
+                {% if notifications|length > 0 %}
+                    {% for notification in notifications %}
+                    <div class="notification-card {% if not notification.is_read %}unread{% endif %}" id="notification-{{ notification.id }}">
+                        <p>{{ notification.message }}</p>
+                    
+                        {% if not notification.is_read %}
+                            <button class="seen-btn" data-notification-id="{{ notification.id }}">Seen</button>
+                        {% else %}
+                            <span style="color: #28A745; font-weight: bold;">✔ Seen</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No new notifications.</p>
+                {% endif %}
+            </div>
+        </section>
+        {% endblock %}
+    </div>
+
+    <!-- Intro.js -->
+    <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
+
+    <!-- Additional JS (tutorial.js, if used) -->
+    <script src="{% static 'js/tutorial.js' %}"></script>
+
+    <!-- Main JS (Separated) -->
+    <script src="{% static 'js/employer_dashboard.js' %}"></script>
+</body>
+</html>
