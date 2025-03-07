@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from tutorials.views.views import log_in, log_out, sign_up  
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile, applicants_analytics, apply_for_job
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications, review_job, update_job_status
-from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, change_password, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_interviews, employer_candidates, get_interviews, edit_company_profile, delete_account, employer_notifications, get_employer_events, review_application, mark_notification_as_read
+from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, change_password, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_interviews, employer_candidates, get_interviews, edit_company_profile, delete_account, employer_notifications, get_employer_events, review_application, mark_notification_as_read, applicant_profile, schedule_interview
 
 from tutorials.views.employer_views import job_detail_view
 
@@ -50,6 +50,11 @@ urlpatterns = [
     path('get-employer-events/', get_employer_events, name='get_employer_events'),
     path('review-application/<int:application_id>/', review_application, name='review_application'),
     path('mark-notification-read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
+    path('applicants/<int:applicant_id>/', applicant_profile, name='applicant_profile'),
+    path('interviews/schedule/<int:applicant_id>/', schedule_interview, name='schedule_interview'),
+
+
+
 
 
 

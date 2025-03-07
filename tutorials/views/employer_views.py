@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
 from tutorials.models.employer_models import Employer, Job, Candidate, Interview, EmployerNotification, EmployerEvent
 from tutorials.models.admin_models import Notification 
 from tutorials.forms.forms import SignUpForm, LogInForm
@@ -340,3 +341,36 @@ def mark_notification_as_read(request, notification_id):
         return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
     except Employer.DoesNotExist:
         return JsonResponse({"success": False, "error": "Employer profile not found"}, status=403)
+
+
+@login_required
+def applicant_profile(request, applicant_id):
+    """View full applicant details"""
+    
+    print(f"Requested Applicant ID: {applicant_id}")  # Debugging line
+
+    try:
+        applicant = Candidate.objects.get(id=applicant_id)  # Get the candidate
+        print(f"Applicant Found: {applicant}")  # Debugging line
+    except Candidate.DoesNotExist:
+        return HttpResponse("Candidate does not exist.", status=404)  # Explicit error message
+
+    if request.method == "POST":
+        new_status = request.POST.get("status")
+        if new_status in ["Pending", "Interview", "Hired", "Rejected"]:
+            applicant.application_status = new_status
+            applicant.save()
+            messages.success(request, "Application status updated successfully!")
+        return redirect("applicant_profile", applicant_id=applicant.id)
+
+    return render(request, "applicant_profile.html", {"applicant": applicant})
+    
+@login_required
+def schedule_interview(request, applicant_id):
+    """Page for scheduling an interview with a candidate"""
+    try:
+        applicant = Candidate.objects.get(id=applicant_id)
+    except Candidate.DoesNotExist:
+        return HttpResponse("Candidate does not exist.", status=404)
+
+    return render(request, "schedule_interview.html", {"applicant": applicant})

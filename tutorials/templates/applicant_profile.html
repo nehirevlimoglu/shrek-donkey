@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Applicant Profile | Swamp Hiring{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/applicant_profile.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="applicant-profile-container">
+        <h1>Applicant Profile</h1>
+
+        <!-- ✅ Personal Details -->
+        <section class="section">
+            <h2>Personal Details</h2>
+            <p><strong>Name:</strong> {{ applicant.user.get_full_name|default:"Not Provided" }}</p>
+            <p><strong>Email:</strong> {{ applicant.user.email|default:"Not Provided" }}</p>
+            <p><strong>Phone:</strong> {{ applicant.phone|default:"Not Provided" }}</p>
+            <p><strong>Address:</strong> {{ applicant.address|default:"Not Provided" }}</p>
+        </section>
+
+        <!-- ✅ Resume & Cover Letter -->
+        <section class="section">
+            <h2>Resume & Cover Letter</h2>
+            <p><strong>Resume:</strong> 
+                {% if applicant.resume %}
+                    <a href="{{ applicant.resume.url }}" target="_blank" class="btn-view">View Resume</a>
+                {% else %}
+                    No Resume Uploaded
+                {% endif %}
+            </p>
+            <p><strong>Cover Letter:</strong></p>
+            <div class="cover-letter">{{ applicant.cover_letter|default:"Not Provided" }}</div>
+        </section>
+
+        <!-- ✅ Education Details -->
+        <section class="section">
+            <h2>Education</h2>
+            {% if applicant.education %}
+                <ul>
+                    {% for edu in applicant.education %}
+                        <li>
+                            <strong>School:</strong> {{ edu.school|default:"N/A" }} <br>
+                            <strong>Degree:</strong> {{ edu.degree|default:"N/A" }} in {{ edu.discipline|default:"N/A" }} <br>
+                            <strong>Duration:</strong> {{ edu.start_date|default:"N/A" }} - {{ edu.end_date|default:"Present" }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No education details provided.</p>
+            {% endif %}
+        </section>
+
+        <!-- ✅ Work Experience -->
+        <section class="section">
+            <h2>Current Job</h2>
+            <p><strong>Job Title:</strong> {{ applicant.current_job_title|default:"Not Provided" }}</p>
+            <p><strong>Employer:</strong> {{ applicant.current_employer|default:"Not Provided" }}</p>
+            <p><strong>LinkedIn:</strong> 
+                {% if applicant.linkedin_profile %}
+                    <a href="{{ applicant.linkedin_profile }}" target="_blank">View LinkedIn</a>
+                {% else %}
+                    Not Provided
+                {% endif %}
+            </p>
+            <p><strong>Portfolio:</strong> 
+                {% if applicant.portfolio_website %}
+                    <a href="{{ applicant.portfolio_website }}" target="_blank">View Portfolio</a>
+                {% else %}
+                    Not Provided
+                {% endif %}
+            </p>
+        </section>
+
+        <!-- ✅ Additional Questions -->
+        <section class="section">
+            <h2>Additional Questions</h2>
+            <p><strong>How did you hear about us?</strong> {{ applicant.how_did_you_hear|default:"Not Provided" }}</p>
+            <p><strong>Need Sponsorship?</strong> {{ applicant.sponsorship_needed|yesno:"Yes,No" }}</p>
+        </section>
+
+        <!-- ✅ Actions -->
+        <section class="section actions">
+            <h2>Application Status</h2>
+            <p><strong>Current Status:</strong> {{ applicant.application_status }}</p>
+
+            <!-- Removed Status Dropdown, Added Schedule Interview Button -->
+            <a href="{% url 'schedule_interview' applicant.id %}" class="btn-primary">Schedule Interview</a>
+        </section>
+
+        <a href="{% url 'employer_candidates' %}" class="btn-secondary">Back to Candidates</a>
+    </div>
+{% endblock %}
