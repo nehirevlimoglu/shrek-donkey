@@ -27,46 +27,36 @@
                     <th>Applicant Name</th>
                     <th>Job Applied</th>
                     <th>Status</th>
-                    <th>Resume</th>
-                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for application in recent_applicants %}
                     <tr>
-                        <td>{{ application.candidate.user.first_name }} {{ application.candidate.user.last_name }}</td>
+                        <td>{{ application.user.first_name }} {{ application.user.last_name }}</td>
                         <td>{{ application.job.title }}</td>
                         <td>
-                            {% if application.status == "under_review" %}
+                            {% if application.application_status == "Pending" %}
                                 <span class="badge under-review">Under Review</span>
-                            {% elif application.status == "interviewed" %}
-                                <span class="badge interviewed">Interviewed</span>
-                            {% elif application.status == "hired" %}
+                            {% elif application.application_status == "Interview" %}
+                                <span class="badge interviewed">Interview Scheduled</span>
+                            {% elif application.application_status == "Hired" %}
                                 <span class="badge hired">Hired</span>
+                            {% elif application.application_status == "Rejected" %}
+                                <span class="badge rejected">Rejected</span>
                             {% else %}
                                 <span class="badge">Pending</span>
                             {% endif %}
                         </td>
-                        <td>
-                            {% if application.resume %}
-                                <a href="{{ application.resume.url }}" class="resume-link" target="_blank">View Resume</a>
-                            {% else %}
-                                No Resume
-                            {% endif %}
-                        </td>
-                        <td>
-                            <button class="view-btn review-button" data-applicant="{{ application.id }}">Review</button>
-                        </td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="5">No recent applicants yet.</td>
+                        <td colspan="3">No recent applicants yet.</td>
                     </tr>
                 {% endfor %}
             </tbody>
-            
         </table>
     </section>
+    
 
     <section class="notifications" id="notifications">
         <h2>Notifications</h2>

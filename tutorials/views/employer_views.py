@@ -30,7 +30,10 @@ def employer_home_page(request):
         notifications = EmployerNotification.objects.filter(employer=employer).order_by('-created_at')
 
         # ✅ Fetch recent applicants (only those who applied to this employer's jobs)
-        recent_applicants = Application.objects.filter(job__employer=employer).select_related('job', 'applicant').order_by('-applied_at')[:10]
+        recent_applicants = Candidate.objects.filter(
+            job__employer=employer
+        ).select_related('job', 'user').order_by('-application_date')[:10]
+
 
     except Employer.DoesNotExist:
         return JsonResponse({"success": False, "error": "Employer profile not found"}, status=403)
