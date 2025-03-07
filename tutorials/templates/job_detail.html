@@ -14,7 +14,6 @@
         <p><strong>Job Type:</strong> {{ job.job_type }}</p>
         <p><strong>Description:</strong> {{ job.description }}</p>
 
-        
         <!-- Button container for alignment -->
         <div class="button-container">
             <a href="{% url 'applicants-home-page' %}" class="btn-primary">Back to Jobs</a>
@@ -31,4 +30,5 @@
             {% endif %}
         </div>
     </div>
+    <script src="{% static 'js/job_application.js' %}"></script>
 {% endblock %}
