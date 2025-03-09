@@ -3,9 +3,9 @@ html, body {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
-    /* Let the browser automatically add a scroll bar if content overflows */
+    /* Allow browser to add a scroll bar if content overflows */
     overflow-y: auto;
-    /* (Optional) Ensure 'body' at least fills the viewport height */
+    /* Ensure 'body' fills the viewport height */
     height: 100%;
 }
 
@@ -15,52 +15,18 @@ html, body {
     min-height: 100vh;        /* ensures at least full viewport height */
     width: 100%;              /* occupy full width */
     box-sizing: border-box;
-    /* The container will grow beyond 100vh and allow the browser to scroll
-       if the content is taller than the window. */
+    /* The container will grow beyond 100vh and allow scrolling if the content is taller than the window */
+    flex-wrap: wrap;          /* Allow wrapping if content overflows */
 }
 
-/* 3) Sidebar styling */
-.sidebar {
-    width: 220px; 
-    background-color: #0073e6;
-    color: #fff;
-    padding: 20px;
-    box-sizing: border-box;
-    flex-shrink: 0;           /* prevent sidebar from shrinking on narrow screens */
-}
 
-.sidebar h2 {
-    margin-top: 0;
-}
-
-.sidebar nav ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-
-.sidebar nav li {
-    margin: 15px 0;
-}
-
-.sidebar nav a {
-    color: #fff;
-    text-decoration: none;
-    font-weight: bold;
-}
-
+/* 4) Main content area */
 .content {
     flex: 1;
     padding: 20px;
     box-sizing: border-box;
-    height: 100vh;      /* fill the viewport's height */
-    overflow-y: auto;   /* only the main content scrolls if overflow */
-}
-
-.content h1 {
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
-    color: #333;
+    overflow-y: auto;        /* allow the main content to scroll */
+    height: auto;            /* Allow content to expand beyond viewport */
 }
 
 /* 5) Job listings container */
@@ -68,9 +34,10 @@ html, body {
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* 6) Headings */
+/* 6) Job listings headings */
 .job-listings-container h2 {
     margin-top: 0;
     margin-bottom: 20px;
@@ -120,7 +87,12 @@ html, body {
     color: #ffd700;
 }
 
-/* 9) Responsive adjustments */
+/* 9) Scrollable content (handles overflow for both the sidebar and content area) */
+.dashboard-container {
+    overflow: auto;
+}
+
+/* 10) Responsive adjustments */
 @media (max-width: 1024px) {
     .dashboard-container {
         flex-direction: column; /* sidebar on top, content below */
