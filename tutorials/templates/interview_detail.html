@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Interview Details | Swamp Hiring{% endblock %}
+
+{% block content %}
+    <h1>Interview Details</h1>
+
+    <p><strong>Candidate Name:</strong> {{ interview.candidate.user.get_full_name }}</p>
+    <p><strong>Job Title:</strong> {{ interview.job.title }}</p>
+    <p><strong>Date:</strong> {{ interview.date }}</p>
+    <p><strong>Time:</strong> {{ interview.time }}</p>
+    <p><strong>Interview Link:</strong> <a href="{{ interview.interview_link }}" target="_blank">Join Interview</a></p>
+    <p><strong>Notes:</strong> {{ interview.notes|default:"No notes provided" }}</p>
+
+    <a href="{% url 'employer_calendar' %}" class="btn-secondary">Back to Calendar</a>
+{% endblock %}

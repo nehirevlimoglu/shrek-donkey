@@ -100,6 +100,7 @@ class Candidate(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.job.title}"
 
+
 class Interview(models.Model):
     candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name="interviews")
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="job_interviews")

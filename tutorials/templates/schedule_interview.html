@@ -7,6 +7,7 @@
     <div class="interview-schedule-container">
         <h1>Schedule Interview for {{ applicant.user.get_full_name }}</h1>
 
+        <!-- Applicant Details Section -->
         <section class="section">
             <h2>Applicant Details</h2>
             <p><strong>Name:</strong> {{ applicant.user.get_full_name }}</p>
@@ -14,31 +15,42 @@
             <p><strong>Phone:</strong> {{ applicant.phone|default:"Not Provided" }}</p>
         </section>
 
-        <!-- ✅ Interview Scheduling Form -->
+        <!-- Interview Scheduling Form -->
         <section class="section">
             <h2>Schedule Interview</h2>
             <form method="POST">
                 {% csrf_token %}
-                
+
+                <!-- Interview Date -->
                 <div class="form-group">
                     <label for="interview_date">Interview Date:</label>
                     <input type="date" id="interview_date" name="interview_date" required>
                 </div>
 
+                <!-- Interview Time -->
                 <div class="form-group">
                     <label for="interview_time">Interview Time:</label>
                     <input type="time" id="interview_time" name="interview_time" required>
                 </div>
 
+                <!-- Interview Link (Optional) -->
                 <div class="form-group">
-                    <label for="interview_location">Interview Location:</label>
-                    <input type="text" id="interview_location" name="interview_location" required placeholder="Enter location">
+                    <label for="interview_link">Interview Link (Optional):</label>
+                    <input type="url" id="interview_link" name="interview_link" placeholder="Virtual interview link (Optional)">
                 </div>
 
+                <!-- Notes (Optional) -->
+                <div class="form-group">
+                    <label for="notes">Notes (Optional):</label>
+                    <textarea id="notes" name="notes" placeholder="Add any additional notes about the interview"></textarea>
+                </div>
+
+                <!-- Submit Button -->
                 <button type="submit" class="btn-primary">Schedule Interview</button>
             </form>
         </section>
 
+        <!-- Back Button -->
         <a href="{% url 'employer_candidates' %}" class="btn-secondary">Back to Candidates</a>
     </div>
 {% endblock %}

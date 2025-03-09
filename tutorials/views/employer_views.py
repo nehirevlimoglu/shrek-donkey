@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from tutorials.models.employer_models import Employer, Job, Candidate, Interview, EmployerNotification, EmployerEvent
 from tutorials.models.admin_models import Notification 
 from tutorials.forms.forms import SignUpForm, LogInForm
-from tutorials.forms.employer_forms import JobForm, EmployerProfileForm
+from tutorials.forms.employer_forms import JobForm, EmployerProfileForm, InterviewForm
 from tutorials.forms.forms import CustomPasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
@@ -16,6 +16,7 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden
 import logging
 from tutorials.models.applicants_models import Application
+from django.utils.dateparse import parse_date, parse_time
 
 def is_employer(user):
     return hasattr(user, 'role') and user.role == 'Employer'
@@ -201,9 +202,9 @@ def employer_candidates(request):
 
 
 
-@user_passes_test(is_employer)
 @login_required
-def employer_interviews(request):
+@user_passes_test(is_employer)  # Make sure this is a valid test for the employer
+def employer_calendar(request):
     try:
         # Match Employer by username instead of user object
         employer = Employer.objects.get(username=request.user.username)
@@ -211,8 +212,7 @@ def employer_interviews(request):
     except Employer.DoesNotExist:
         return HttpResponseForbidden("You are not an employer.")
 
-    return render(request, 'employer_interviews.html', {'interviews': interviews})
-
+    return render(request, 'employer_calendar.html', {'interviews': interviews})
 
 @login_required
 def get_interviews(request):
@@ -317,12 +317,14 @@ def get_employer_events(request):
     except Employer.DoesNotExist:
         return JsonResponse({"error": "Employer not found"}, status=403)
 
+
 @login_required
 def review_application(request, application_id):
     """Display full application details"""
     application = get_object_or_404(Application, id=application_id)
     
     return render(request, "application_review.html", {"application": application})
+
 
 
 @csrf_exempt
@@ -364,7 +366,9 @@ def applicant_profile(request, applicant_id):
         return redirect("applicant_profile", applicant_id=applicant.id)
 
     return render(request, "applicant_profile.html", {"applicant": applicant})
-    
+
+
+
 @login_required
 def schedule_interview(request, applicant_id):
     """Page for scheduling an interview with a candidate"""
@@ -373,4 +377,32 @@ def schedule_interview(request, applicant_id):
     except Candidate.DoesNotExist:
         return HttpResponse("Candidate does not exist.", status=404)
 
-    return render(request, "schedule_interview.html", {"applicant": applicant})
+    if request.method == "POST":
+        # Get form data from the request
+        interview_date = request.POST.get('interview_date')
+        interview_time = request.POST.get('interview_time')
+        interview_location = request.POST.get('interview_location')
+        interview_link = request.POST.get('interview_link')
+        notes = request.POST.get('notes')
+
+        # Parse the date and time from the string input into Python date and time objects
+        try:
+            interview_date = parse_date(interview_date)
+            interview_time = parse_time(interview_time)
+        except ValueError:
+            return HttpResponse("Invalid date or time format.", status=400)
+
+        # Create an Interview object
+        interview = Interview.objects.create(
+            candidate=applicant,
+            job=applicant.job,  # assuming job is linked to the applicant
+            date=interview_date,
+            time=interview_time,
+            interview_link=interview_link,
+            notes=notes,
+        )
+        interview.save()
+
+        return redirect('employer_calendar')  # Redirect to a success page or back to the calendar
+    else:
+        return render(request, 'schedule_interview.html', {'applicant': applicant})

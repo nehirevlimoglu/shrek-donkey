@@ -4,7 +4,7 @@ from django import forms
 from tutorials.models.employer_models import Job, Interview
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
-from tutorials.models.employer_models import Employer
+from tutorials.models.employer_models import Employer, Interview
 from django.conf import settings
 
 
@@ -89,3 +89,9 @@ class EmployerProfileForm(forms.ModelForm):
     class Meta:
         model = Employer
         fields = ['company_name', 'company_logo', 'company_website', 'industry', 'company_location']
+
+
+class InterviewForm(forms.ModelForm):
+    class Meta:
+        model = Interview
+        fields = ['date', 'time', 'interview_link', 'notes']
