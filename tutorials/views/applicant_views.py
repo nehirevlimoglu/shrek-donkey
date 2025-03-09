@@ -1,7 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
-from tutorials.models.applicants_models import Applicant, Application
+from tutorials.models.applicants_models import Applicant, Application, ApplicantNotification
 from tutorials.forms.applicants_forms import ApplicantForm, ApplicationForm
 from django.contrib.auth.decorators import login_required
 from decorators import applicant_only  # Import the decorator
@@ -70,12 +69,10 @@ def applicants_favourites(request):
     return render(request, 'applicants_favourites.html')
 
 @applicant_only
+@login_required
 def applicants_notifications(request):
-    notifications = [
-        {"title": "Interview Scheduled", "message": "Your interview with XYZ Corp is scheduled for tomorrow.", "timestamp": "2025-02-18 10:00 AM"},
-        {"title": "Job Application Update", "message": "Your application for the Software Engineer role at ABC Ltd. has been viewed.", "timestamp": "2025-02-17 05:00 PM"},
-    ]
-    
+    applicant = get_object_or_404(Applicant, user=request.user)
+    notifications = ApplicantNotification.objects.filter(applicant=applicant).order_by('-timestamp')
     return render(request, 'applicants_notifications.html', {'notifications': notifications})
 
 @applicant_only
@@ -112,37 +109,30 @@ def job_detail(request, job_id):
 import logging
 
 logger = logging.getLogger(__name__)
-
+@applicant_only
 @login_required
 def apply_for_job(request, job_id):
     """Handles job application submission, preventing duplicate applications"""
-    
     job = get_object_or_404(Job, id=job_id)
     applicant = get_object_or_404(Applicant, user=request.user)
 
-    # ✅ Check if the applicant has already applied for this job
     existing_application = Application.objects.filter(applicant=applicant, job=job).exists()
-
     if existing_application:
         messages.warning(request, "You have already applied for this job.")
-        return redirect("job_detail", job_id=job.id)  # Redirect to job detail page
+        return redirect("job_detail", job_id=job.id)
 
     if request.method == "POST":
         form = ApplicationForm(request.POST, request.FILES)
-
         if form.is_valid():
             application = form.save(commit=False)
             application.job = job
-            application.applicant = applicant  # ✅ Assign the applicant
+            application.applicant = applicant
             application.save()
 
-            # ✅ Debugging logs
-            logger.info(f"Creating candidate for {applicant.user.username} for job {job.title}")
-
-            # ✅ Create a Candidate entry to be listed under employer's candidates
+            # Also create a Candidate entry for the employer
             candidate, created = Candidate.objects.get_or_create(
-                user=applicant.user,  # ✅ Link to the user
-                job=job,              # ✅ Link to the job they applied for
+                user=applicant.user,
+                job=job,
                 defaults={
                     "resume": form.cleaned_data.get("resume"),
                     "cover_letter": form.cleaned_data.get("cover_letter"),
@@ -150,22 +140,33 @@ def apply_for_job(request, job_id):
                 }
             )
 
-            if created:
-                logger.info(f"✅ Candidate created for {applicant.user.username} and job {job.title}")
-            else:
-                logger.warning(f"⚠️ Candidate already existed for {applicant.user.username} and job {job.title}")
-
-            # ✅ Create an employer notification for new application
+            # Create an EmployerNotification so the employer knows
             EmployerNotification.objects.create(
                 employer=job.employer,
                 title="New Job Application",  
                 message=f"📩 New application received for {job.title} by {applicant.user.first_name} {applicant.user.last_name}!"
             )
 
-            messages.success(request, "✅ Your application has been submitted successfully!")
-            return redirect("job_detail", job_id=job.id)  # Redirect to job detail page
+            # **Create an ApplicantNotification** so the applicant sees a new record
+            ApplicantNotification.objects.create(
+                applicant=applicant,
+                title="Application Submitted",
+                message=f"Your application for '{job.title}' has been submitted successfully!"
+            )
 
+            messages.success(request, "✅ Your application has been submitted successfully!")
+            return redirect("job_detail", job_id=job.id)
     else:
         form = ApplicationForm()
 
     return render(request, "applicants_application.html", {"form": form, "job": job, "existing_application": existing_application})
+
+
+@applicant_only
+@login_required
+def applicants_notifications(request):
+    """Display real notifications for the logged-in applicant"""
+    applicant = get_object_or_404(Applicant, user=request.user)
+    notifications = ApplicantNotification.objects.filter(applicant=applicant).order_by('-timestamp')
+
+    return render(request, 'applicants_notifications.html', {'notifications': notifications})

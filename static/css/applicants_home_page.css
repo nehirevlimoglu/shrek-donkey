@@ -1,154 +1,110 @@
-/* General Styling */
-body {
-    font-family: Arial, sans-serif;
+/* 1) Reset margins & paddings; allow scrolling */
+html, body {
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: #f4f4f4;
-    width: 100vw;
+    font-family: Arial, sans-serif;
+    /* Let the browser automatically add a scroll bar if content overflows */
+    overflow-y: auto;
+    /* (Optional) Ensure 'body' at least fills the viewport height */
+    height: 100%;
 }
 
-/* Navbar */
-.navbar {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    padding: 15px;
+/* 2) Main container for sidebar + main content side-by-side */
+.dashboard-container {
+    display: flex;            /* place sidebar and content side by side */
+    min-height: 100vh;        /* ensures at least full viewport height */
+    width: 100%;              /* occupy full width */
+    box-sizing: border-box;
+    /* The container will grow beyond 100vh and allow the browser to scroll
+       if the content is taller than the window. */
+}
+
+/* 3) Sidebar styling */
+.sidebar {
+    width: 220px; 
     background-color: #0073e6;
-    color: white;
+    color: #fff;
+    padding: 20px;
+    box-sizing: border-box;
+    flex-shrink: 0;           /* prevent sidebar from shrinking on narrow screens */
 }
 
-/* Left & Right Sections */
-.left-section, .right-section {
-    display: flex;
-    align-items: center;
+.sidebar h2 {
+    margin-top: 0;
 }
 
-.right-section {
-    flex-direction: row;
+.sidebar nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
 }
 
-/* Button Styles */
-.filter-button, .nav-link {
-    background-color: white;
-    color: #0073e6;
-    padding: 10px 15px;
-    margin: 5px;
-    border: 1px solid #0073e6;
-    cursor: pointer;
-    border-radius: 5px;
+.sidebar nav li {
+    margin: 15px 0;
+}
+
+.sidebar nav a {
+    color: #fff;
     text-decoration: none;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.filter-button:hover, 
-.nav-link:hover {
-    background-color: #005bb5;
-    color: white;
-}
-
-/* Top Stats Boxes */
-.stats-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 90%;
-    max-width: 1200px;
-    margin: 20px auto;
-    gap: 15px;
-}
-
-.stats-box {
-    flex: 1;
-    background: white;
-    padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    font-size: 1.3rem;
     font-weight: bold;
 }
 
-/* Page Header */
-.page-header {
-    font-size: 2rem;
+.content {
+    flex: 1;
+    padding: 20px;
+    box-sizing: border-box;
+    height: 100vh;      /* fill the viewport's height */
+    overflow-y: auto;   /* only the main content scrolls if overflow */
+}
+
+.content h1 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
     color: #333;
-    margin: 20px 0;
+}
+
+/* 5) Job listings container */
+.job-listings-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+/* 6) Headings */
+.job-listings-container h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #0073e6;
+}
+
+/* 7) Job table styling */
+.job-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: transparent;
+    overflow: hidden;
+    border: none;
     text-align: center;
 }
 
-/* Job Listings Container */
-.job-listings {
-    width: 95%;
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 20px;
-}
-
-/* Job Table */
-.table-container {
-    width: 100%;
-    background: transparent; /* Remove any background color */
-    box-shadow: none; /* Remove shadow */
-    border-radius: 0; /* Remove rounded corners */
-    overflow: hidden;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: transparent; /* Make table background transparent */
-    box-shadow: none; /* Remove shadow */
-    border-radius: 0; /* Remove rounded corners */
-    overflow: hidden;
-    border: none; /* Remove any border */
-}
-
-th, td {
-    padding: 15px;
-    text-align: left;
-    border: none; /* Remove table cell borders */
-}
-
-th {
+.job-table thead {
     background: #e2e8f0;
 }
 
-/* Job Card Styling */
-.job-card {
-    background-color: white;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: relative;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.job-table th, 
+.job-table td {
+    padding: 15px;
+    border: none;
+    text-align: center;
 }
 
-.job-info {
-    flex: 1;
+.job-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
 }
 
-.job-info h2 {
-    color: #0073e6;
-    margin: 0 0 10px 0;
-    font-size: 1.5em;
-}
-
-.job-info p {
-    margin: 5px 0;
-    color: #333;
-    font-size: 1em;
-}
-
-/* Favorite Star Styling */
+/* 8) Favorite star */
 .favorite-star {
-    font-size: 2rem;
+    font-size: 1.5rem;
     color: #ccc;
     cursor: pointer;
     transition: color 0.3s ease, transform 0.2s ease;
@@ -164,27 +120,19 @@ th {
     color: #ffd700;
 }
 
-/* Responsive Design */
+/* 9) Responsive adjustments */
 @media (max-width: 1024px) {
-    .stats-container {
-        flex-direction: column;
-        align-items: center;
+    .dashboard-container {
+        flex-direction: column; /* sidebar on top, content below */
     }
-    .stats-box {
-        width: 80%;
+    
+    .sidebar {
+        width: 100%;           /* full width on smaller screens */
     }
 }
 
 @media (max-width: 768px) {
-    .stats-container {
-        flex-direction: column;
-        align-items: center;
-    }
-    .stats-box {
-        width: 90%;
-    }
-    .job-listings {
-        width: 100%;
+    .job-listings-container {
         padding: 10px;
     }
 }

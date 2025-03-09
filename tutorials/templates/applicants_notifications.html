@@ -4,54 +4,40 @@
 {% block title %}Applicant Notifications | Swamp Hiring{% endblock %}
 
 {% block content %}
-    <head>
-        <link rel="stylesheet" href="{% static 'css/applicants_notifications.css' %}">
-    </head>
+<head>
+    <link rel="stylesheet" href="{% static 'css/applicants_notifications.css' %}">
+</head>
+
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <h2>Swamp Hiring</h2>
+        <nav>
+            <ul>
+                <li><a href="{% url 'applicants-home-page' %}">Home Page</a></li>
+                <li><a href="{% url 'applicants-account' %}">Account</a></li>
+                <li><a href="{% url 'applicants-favourites' %}">Favourites</a></li>
+                <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
+                <li><a href="{% url 'applicants-notifications' %}">Notifications</a></li>
+                <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
+            </ul>
+        </nav>
+    </aside>
     
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            let notificationIndicator = document.querySelector(".notification-indicator");
-            if (notificationIndicator) {
-                notificationIndicator.style.display = "none";
-            }
-        });
-    </script>
-    
-    <div class="dashboard-container">
-        <aside class="sidebar">
-            <h2>Swamp Hiring</h2>
-            <nav>
-                <ul>
-                    <li><a href="{% url 'applicants-home-page' %}">Home Page</a></li>
-                    <li><a href="{% url 'applicants-account' %}">Account</a></li>
-                    <li><a href="{% url 'applicants-favourites' %}">Favourites</a></li>
-                    <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
-                    <li class="notification-btn-container">
-                        <a href="{% url 'applicants-notifications' %}">Notifications</a>
-                        {% if notifications and notifications|length > 0 %}
-                            <span class="notification-indicator">{{ notifications|length }}</span>
-                        {% endif %}
-                    <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
+    <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
+        <h2>Applicant Notifications</h2>
+        {% if notifications %}
+            <ul class="notifications-list">
+                {% for notification in notifications %}
+                    <li class="notification-item">
+                        <p><strong>{{ notification.title }}</strong></p>
+                        <p>{{ notification.message }}</p>
+                        <p class="notification-time">📅 {{ notification.timestamp|date:"Y-m-d H:i" }}</p>
                     </li>
-                </ul>
-            </nav>
-        </aside>
-        
-        <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
-            <h2>Applicant Notifications</h2>
-            {% if notifications %}
-                <ul class="notifications-list">
-                    {% for notification in notifications %}
-                        <li class="notification-item">
-                            <p><strong>{{ notification.title }}</strong></p>
-                            <p>{{ notification.message }}</p>
-                            <p class="notification-time">📅 {{ notification.timestamp }}</p>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p>No new notifications.</p>
-            {% endif %}
-        </main>
-    </div>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No new notifications.</p>
+        {% endif %}
+    </main>
+</div>
 {% endblock %}

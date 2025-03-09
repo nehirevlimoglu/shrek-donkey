@@ -15,8 +15,11 @@ from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponseForbidden
 import logging
-from tutorials.models.applicants_models import Application
+from tutorials.models.applicants_models import Application, ApplicantNotification, Applicant
 from django.utils.dateparse import parse_date, parse_time
+
+
+logger = logging.getLogger(__name__)
 
 def is_employer(user):
     return hasattr(user, 'role') and user.role == 'Employer'
@@ -378,24 +381,23 @@ def schedule_interview(request, applicant_id):
         return HttpResponse("Candidate does not exist.", status=404)
 
     if request.method == "POST":
-        # Get form data from the request
+        # 1 Grab form data
         interview_date = request.POST.get('interview_date')
         interview_time = request.POST.get('interview_time')
-        interview_location = request.POST.get('interview_location')
         interview_link = request.POST.get('interview_link')
         notes = request.POST.get('notes')
 
-        # Parse the date and time from the string input into Python date and time objects
+        # 2 Parse date/time from string
         try:
             interview_date = parse_date(interview_date)
             interview_time = parse_time(interview_time)
         except ValueError:
             return HttpResponse("Invalid date or time format.", status=400)
-
-        # Create an Interview object
+        
+        # 3) Create the interview
         interview = Interview.objects.create(
             candidate=applicant,
-            job=applicant.job,  # assuming job is linked to the applicant
+            job=applicant.job,
             date=interview_date,
             time=interview_time,
             interview_link=interview_link,
@@ -403,6 +405,28 @@ def schedule_interview(request, applicant_id):
         )
         interview.save()
 
-        return redirect('employer_calendar')  # Redirect to a success page or back to the calendar
+        # 4 Create an ApplicantNotification for the actual applicant
+        #    The Candidate model references user=User. We need to find the `Applicant` object that belongs to that user.
+        try:
+            applicant_obj = Applicant.objects.get(user=applicant.user)
+
+            ApplicantNotification.objects.create(
+                applicant=applicant_obj,
+                title="Interview Scheduled",
+                message=(
+                    f"Your interview for '{applicant.job.title}' has been scheduled "
+                    f"on {interview_date} at {interview_time}.\n\n"
+                    f"Link/Location: {interview_link if interview_link else 'See employer message'}\n"
+                    f"Additional Notes: {notes or 'N/A'}"
+                )
+            )
+
+        except Applicant.DoesNotExist:
+            logger.warning(f"No matching Applicant found for user {applicant.user.username}. Cannot create notification.")
+
+        # 5 Redirect or render as you wish
+        messages.success(request, "Interview scheduled successfully!")
+        return redirect('employer_calendar')
+
     else:
         return render(request, 'schedule_interview.html', {'applicant': applicant})
