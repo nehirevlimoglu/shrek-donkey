@@ -1,14 +1,16 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from tutorials.models.admin_models import Admin
 from tutorials.models.admin_models import Notification
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from tutorials.models.user_model import User
 from django.db.models import Count
 from django.utils import timezone
 from datetime import timedelta
 import json
+from tutorials.models.employer_models import Job, Candidate, Employer
+from django.views.decorators.http import require_POST
 
 def is_admin(user):
     return user.role == 'Admin'
@@ -26,8 +28,27 @@ def admin_home_page(request):
     })
 
 
+@user_passes_test(is_admin)
 def admin_job_listings(request):
-    return render(request, 'admin_job_listings.html')
+    # Get all job listings, ordered by creation date (newest first)
+    jobs = Job.objects.all().order_by('-created_at')
+    
+    # Add applicant count information for each job
+    for job in jobs:
+        job.applicant_count = Candidate.objects.filter(job=job).count()
+        
+        # Determine job status based on application deadline
+        if job.application_deadline:
+            if job.application_deadline < timezone.now().date():
+                job.status = "Closed"
+            else:
+                job.status = "Open"
+        else:
+            job.status = "Open"
+    
+    return render(request, 'admin_job_listings.html', {
+        'jobs': jobs,
+    })
 
 def admin_settings(request):
     return render(request, 'admin_settings.html')
@@ -128,4 +149,90 @@ def get_active_users_data(request):
         })
     
     return JsonResponse({'error': 'Invalid period'}, status=400)
+
+@user_passes_test(is_admin)
+def admin_job_detail(request, job_id):
+    # 获取职位详情
+    job = get_object_or_404(Job, id=job_id)
+    
+    # 获取该职位的所有申请人
+    candidates = Candidate.objects.filter(job=job).select_related('user')
+    
+    # 获取雇主信息
+    employer = job.employer
+    
+    # 根据申请截止日期确定职位状态
+    if job.application_deadline:
+        if job.application_deadline < timezone.now().date():
+            job.status = "Closed"
+        else:
+            job.status = "Open"
+    else:
+        job.status = "Open"
+    
+    return render(request, 'admin_job_detail.html', {
+        'job': job,
+        'candidates': candidates,
+        'employer': employer,
+        'candidate_count': candidates.count(),
+    })
+
+@user_passes_test(is_admin)
+def admin_edit_job(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+    
+    if request.method == 'POST':
+        # Update job information
+        job.title = request.POST.get('title')
+        job.company_name = request.POST.get('company_name')
+        job.location = request.POST.get('location')
+        job.job_type = request.POST.get('job_type')
+        
+        salary = request.POST.get('salary')
+        if salary:
+            job.salary = salary
+        
+        job.description = request.POST.get('description')
+        job.requirements = request.POST.get('requirements')
+        job.benefits = request.POST.get('benefits')
+        
+        deadline = request.POST.get('application_deadline')
+        if deadline:
+            job.application_deadline = deadline
+        
+        job.contact_email = request.POST.get('contact_email')
+        
+        job.save()
+        
+        return redirect('admin_job_detail', job_id=job.id)
+    
+    return render(request, 'admin_edit_job.html', {
+        'job': job,
+    })
+
+@user_passes_test(is_admin)
+@require_POST
+def admin_delete_job(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+    job.delete()
+    return JsonResponse({'status': 'success'})
+
+@user_passes_test(is_admin)
+@require_POST
+def admin_toggle_job_status(request, job_id):
+    job = get_object_or_404(Job, id=job_id)
+    
+    data = json.loads(request.body)
+    status = data.get('status')
+    
+    if status == 'Closed':
+        # Set deadline to current date to indicate job is closed
+        job.application_deadline = timezone.now().date()
+    elif status == 'Open':
+        # Set deadline to a future date to indicate job is open
+        job.application_deadline = timezone.now().date() + timedelta(days=30)
+    
+    job.save()
+    
+    return JsonResponse({'status': 'success'})
 

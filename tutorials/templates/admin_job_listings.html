@@ -16,21 +16,33 @@
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>Software Engineer</td>
-                <td>ABC Tech</td>
-                <td><span class="badge open">Open</span></td>
-                <td>120</td>
-                <td><button class="view-btn">View</button></td>
-            </tr>
-            <tr>
-                <td>Product Manager</td>
-                <td>XYZ Corp</td>
-                <td><span class="badge closed">Closed</span></td>
-                <td>80</td>
-                <td><button class="view-btn">View</button></td>
-            </tr>
+            {% if jobs %}
+                {% for job in jobs %}
+                <tr>
+                    <td>{{ job.title }}</td>
+                    <td>{{ job.company_name }}</td>
+                    <td><span class="badge {% if job.status == 'Open' %}open{% else %}closed{% endif %}">{{ job.status }}</span></td>
+                    <td>{{ job.applicant_count }}</td>
+                    <td><button class="view-btn" data-job-id="{{ job.id }}">View</button></td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5" class="no-jobs">No job listings available</td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
 </section>
+
+<script>
+    // Add functionality to view job details
+    document.querySelectorAll('.view-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const jobId = this.getAttribute('data-job-id');
+            // Navigate to job detail page
+            window.location.href = `/admin_job_detail/${jobId}/`;
+        });
+    });
+</script>
 {% endblock %}

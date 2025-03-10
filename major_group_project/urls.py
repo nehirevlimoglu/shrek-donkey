@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites 
 from tutorials.views.views import log_in, log_out, sign_up  
-from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, get_active_users_data
+from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, get_active_users_data, admin_job_detail, admin_edit_job, admin_delete_job, admin_toggle_job_status
 from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings,change_password, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_interviews, employer_candidates, get_interviews, edit_company_profile, delete_account, schedule_interview, interview_detail, reschedule_interview
 
 
@@ -56,6 +56,10 @@ urlpatterns =[
     path('jobs/<int:pk>/edit/', edit_job_view, name='job_edit'),
     path('change-password/', change_password, name='change_password'),
     path('admin_job_listings/', admin_job_listings, name='admin_job_listings'),
+    path('admin_job_detail/<int:job_id>/', admin_job_detail, name='admin_job_detail'),
+    path('admin_edit_job/<int:job_id>/', admin_edit_job, name='admin_edit_job'),
+    path('admin_delete_job/<int:job_id>/', admin_delete_job, name='admin_delete_job'),
+    path('admin_toggle_job_status/<int:job_id>/', admin_toggle_job_status, name='admin_toggle_job_status'),
     path('admin_settings/', admin_settings, name='admin_settings'),
     path('sign_up', sign_up, name='sign-up'),
     path('employer_settings/', employer_settings, name='employer_settings'),

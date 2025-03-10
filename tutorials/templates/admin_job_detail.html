@@ -1,0 +1,337 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}{{ job.title }} | Swamp Hiring{% endblock %}
+
+{% block content %}
+<div class="job-detail-container">
+    <div class="back-link">
+        <a href="{% url 'admin_job_listings' %}">← Back to Job Listings</a>
+    </div>
+    
+    <div class="job-header">
+        <h1>{{ job.title }}</h1>
+        <span class="badge {% if job.status == 'Open' %}open{% else %}closed{% endif %}">{{ job.status }}</span>
+    </div>
+    
+    <div class="job-info">
+        <div class="info-item">
+            <strong>Company:</strong> {{ job.company_name }}
+        </div>
+        <div class="info-item">
+            <strong>Location:</strong> {{ job.location }}
+        </div>
+        <div class="info-item">
+            <strong>Job Type:</strong> {{ job.job_type }}
+        </div>
+        {% if job.salary %}
+        <div class="info-item">
+            <strong>Salary:</strong> {{ job.salary }}
+        </div>
+        {% endif %}
+        <div class="info-item">
+            <strong>Posted Date:</strong> {{ job.created_at|date:"Y-m-d" }}
+        </div>
+        {% if job.application_deadline %}
+        <div class="info-item">
+            <strong>Application Deadline:</strong> {{ job.application_deadline|date:"Y-m-d" }}
+        </div>
+        {% endif %}
+        <div class="info-item">
+            <strong>Contact Email:</strong> {{ job.contact_email }}
+        </div>
+    </div>
+    
+    <div class="job-description">
+        <h2>Job Description</h2>
+        <p>{{ job.description|linebreaks }}</p>
+    </div>
+    
+    {% if job.requirements %}
+    <div class="job-requirements">
+        <h2>Requirements</h2>
+        <p>{{ job.requirements|linebreaks }}</p>
+    </div>
+    {% endif %}
+    
+    {% if job.benefits %}
+    <div class="job-benefits">
+        <h2>Benefits</h2>
+        <p>{{ job.benefits|linebreaks }}</p>
+    </div>
+    {% endif %}
+    
+    <div class="employer-info">
+        <h2>Employer Information</h2>
+        {% if employer %}
+        <div class="info-item">
+            <strong>Company Name:</strong> {{ employer.company_name }}
+        </div>
+        <div class="info-item">
+            <strong>Industry:</strong> {{ employer.industry }}
+        </div>
+        <div class="info-item">
+            <strong>Company Size:</strong> {{ employer.company_size }} employees
+        </div>
+        <div class="info-item">
+            <strong>Company Location:</strong> {{ employer.company_location }}
+        </div>
+        {% if employer.company_website %}
+        <div class="info-item">
+            <strong>Company Website:</strong> <a href="{{ employer.company_website }}" target="_blank">{{ employer.company_website }}</a>
+        </div>
+        {% endif %}
+        <div class="info-item">
+            <strong>Account Status:</strong> {{ employer.account_status }}
+        </div>
+        {% else %}
+        <p>No employer information available</p>
+        {% endif %}
+    </div>
+    
+    <div class="candidates-section">
+        <h2>Applicants ({{ candidate_count }})</h2>
+        {% if candidates %}
+        <table class="candidates-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Application Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for candidate in candidates %}
+                <tr>
+                    <td>{{ candidate.user.username }}</td>
+                    <td>{{ candidate.application_date|date:"Y-m-d" }}</td>
+                    <td>{{ candidate.application_status }}</td>
+                    <td>
+                        <button class="view-candidate-btn" data-candidate-id="{{ candidate.id }}">View</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No applicants yet</p>
+        {% endif %}
+    </div>
+    
+    <div class="admin-actions">
+        <h2>Admin Actions</h2>
+        <div class="action-buttons">
+            <button class="action-btn edit-job" data-job-id="{{ job.id }}">Edit Job</button>
+            <button class="action-btn delete-job" data-job-id="{{ job.id }}">Delete Job</button>
+            {% if job.status == 'Open' %}
+            <button class="action-btn close-job" data-job-id="{{ job.id }}">Close Job</button>
+            {% else %}
+            <button class="action-btn reopen-job" data-job-id="{{ job.id }}">Reopen Job</button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .job-detail-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .back-link {
+        margin-bottom: 20px;
+    }
+    
+    .back-link a {
+        color: #4a6cf7;
+        text-decoration: none;
+    }
+    
+    .job-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .job-header h1 {
+        margin-right: 15px;
+        margin-bottom: 0;
+    }
+    
+    .badge {
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    
+    .badge.open {
+        background-color: #28a745;
+        color: white;
+    }
+    
+    .badge.closed {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .job-info, .employer-info {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    
+    .info-item {
+        margin-bottom: 10px;
+    }
+    
+    .job-description, .job-requirements, .job-benefits {
+        margin-bottom: 20px;
+    }
+    
+    .candidates-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+    
+    .candidates-table th, .candidates-table td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .candidates-table th {
+        background-color: #f2f2f2;
+    }
+    
+    .view-candidate-btn {
+        background-color: #4a6cf7;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .admin-actions {
+        margin-top: 30px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .action-btn {
+        padding: 8px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    
+    .edit-job {
+        background-color: #ffc107;
+        color: #212529;
+    }
+    
+    .delete-job {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .close-job, .reopen-job {
+        background-color: #6c757d;
+        color: white;
+    }
+</style>
+
+<script>
+    // View candidate details
+    document.querySelectorAll('.view-candidate-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const candidateId = this.getAttribute('data-candidate-id');
+            // Navigate to candidate detail page
+            window.location.href = `/admin_candidate_detail/${candidateId}/`;
+        });
+    });
+    
+    // Edit job
+    document.querySelector('.edit-job').addEventListener('click', function() {
+        const jobId = this.getAttribute('data-job-id');
+        window.location.href = `/admin_edit_job/${jobId}/`;
+    });
+    
+    // Delete job
+    document.querySelector('.delete-job').addEventListener('click', function() {
+        if (confirm('Are you sure you want to delete this job? This action cannot be undone.')) {
+            const jobId = this.getAttribute('data-job-id');
+            // Send delete request
+            fetch(`/admin_delete_job/${jobId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '{% url "admin_job_listings" %}';
+                } else {
+                    alert('Failed to delete. Please try again.');
+                }
+            });
+        }
+    });
+    
+    // Close/reopen job
+    {% if job.status == 'Open' %}
+    document.querySelector('.close-job').addEventListener('click', function() {
+        if (confirm('Are you sure you want to close this job?')) {
+            const jobId = this.getAttribute('data-job-id');
+            // Send close request
+            fetch(`/admin_toggle_job_status/${jobId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status: 'Closed' })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Operation failed. Please try again.');
+                }
+            });
+        }
+    });
+    {% else %}
+    document.querySelector('.reopen-job').addEventListener('click', function() {
+        if (confirm('Are you sure you want to reopen this job?')) {
+            const jobId = this.getAttribute('data-job-id');
+            // Send reopen request
+            fetch(`/admin_toggle_job_status/${jobId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status: 'Open' })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Operation failed. Please try again.');
+                }
+            });
+        }
+    });
+    {% endif %}
+</script>
+{% endblock %} 
