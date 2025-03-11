@@ -152,16 +152,15 @@ def get_active_users_data(request):
 
 @user_passes_test(is_admin)
 def admin_job_detail(request, job_id):
-    # 获取职位详情
+
     job = get_object_or_404(Job, id=job_id)
     
-    # 获取该职位的所有申请人
+
     candidates = Candidate.objects.filter(job=job).select_related('user')
-    
-    # 获取雇主信息
+
     employer = job.employer
     
-    # 根据申请截止日期确定职位状态
+
     if job.application_deadline:
         if job.application_deadline < timezone.now().date():
             job.status = "Closed"
