@@ -6,8 +6,10 @@ from django.contrib.auth.decorators import login_required
 from decorators import applicant_only  # Import the decorator
 from tutorials.models.employer_models import Job, EmployerNotification, JobTitle, Candidate
 from django.contrib.messages import get_messages
-
-
+from django.contrib import messages
+from django.http import JsonResponse
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 
 @applicant_only
@@ -96,19 +98,15 @@ def job_detail(request, job_id):
     job = get_object_or_404(Job, id=job_id)
     applicant = Applicant.objects.filter(user=request.user).first()
 
-    # Check if the user has already applied
-    existing_application = False
-    if applicant:
-        existing_application = Application.objects.filter(applicant=applicant, job=job).exists()
+    # ✅ Fix: Ensure `existing_application` is correctly set
+    existing_application = Application.objects.filter(applicant=applicant, job=job).exists() if applicant else False
 
     return render(request, "job_detail.html", {
         "job": job,
         "existing_application": existing_application
     })
 
-import logging
-
-logger = logging.getLogger(__name__)
+@csrf_exempt  # ✅ Bypass CSRF for AJAX requests
 @applicant_only
 @login_required
 def apply_for_job(request, job_id):
@@ -118,48 +116,33 @@ def apply_for_job(request, job_id):
 
     existing_application = Application.objects.filter(applicant=applicant, job=job).exists()
     if existing_application:
-        messages.warning(request, "You have already applied for this job.")
-        return redirect("job_detail", job_id=job.id)
+        return JsonResponse({"success": False, "error": "You have already applied for this job."})
 
     if request.method == "POST":
-        form = ApplicationForm(request.POST, request.FILES)
-        if form.is_valid():
-            application = form.save(commit=False)
-            application.job = job
-            application.applicant = applicant
-            application.save()
+        application = Application.objects.create(
+            job=job,
+            applicant=applicant,
+            resume=None,  
+            cover_letter=None,
+        )
 
-            # Also create a Candidate entry for the employer
-            candidate, created = Candidate.objects.get_or_create(
-                user=applicant.user,
-                job=job,
-                defaults={
-                    "resume": form.cleaned_data.get("resume"),
-                    "cover_letter": form.cleaned_data.get("cover_letter"),
-                    "application_status": "Pending"
-                }
-            )
+        # Notify employer
+        EmployerNotification.objects.create(
+            employer=job.employer,
+            title="New Job Application",
+            message=f"📩 New application received for {job.title} by {applicant.user.first_name} {applicant.user.last_name}!"
+        )
 
-            # Create an EmployerNotification so the employer knows
-            EmployerNotification.objects.create(
-                employer=job.employer,
-                title="New Job Application",  
-                message=f"📩 New application received for {job.title} by {applicant.user.first_name} {applicant.user.last_name}!"
-            )
+        # Notify applicant
+        ApplicantNotification.objects.create(
+            applicant=applicant,
+            title="Application Submitted",
+            message=f"Your application for '{job.title}' has been submitted successfully!"
+        )
 
-            # **Create an ApplicantNotification** so the applicant sees a new record
-            ApplicantNotification.objects.create(
-                applicant=applicant,
-                title="Application Submitted",
-                message=f"Your application for '{job.title}' has been submitted successfully!"
-            )
+        return JsonResponse({"success": True})
 
-            messages.success(request, "✅ Your application has been submitted successfully!")
-            return redirect("job_detail", job_id=job.id)
-    else:
-        form = ApplicationForm()
-
-    return render(request, "applicants_application.html", {"form": form, "job": job, "existing_application": existing_application})
+    return JsonResponse({"success": False, "error": "Invalid request method."})
 
 
 @applicant_only
