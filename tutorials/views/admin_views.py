@@ -5,12 +5,13 @@ from tutorials.models.admin_models import Admin
 from tutorials.models.admin_models import Notification
 from django.http import JsonResponse, HttpResponse
 from tutorials.models.user_model import User
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils import timezone
 from datetime import timedelta
 import json
 from tutorials.models.employer_models import Job, Candidate, Employer
 from django.views.decorators.http import require_POST
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 def is_admin(user):
     return user.role == 'Admin'
@@ -19,25 +20,87 @@ def is_admin(user):
 def admin_home_page(request):
     admins = Admin.objects.all()  # Your existing data
     
-    # Get total number of active users
-    total_active_users = User.objects.filter(is_active=True).count()
+    total_job_listings = Job.objects.count()
+    
+    pending_applications = Candidate.objects.filter(application_status='Pending').count()
+    
+    last_week = timezone.now() - timedelta(days=7)
+    total_active_users = User.objects.filter(last_login__gte=last_week).count()
+    
+    current_month = timezone.now().month
+    current_year = timezone.now().year
+    new_hires_this_month = Candidate.objects.filter(
+        application_status='Hired',
+        application_date__month=current_month,
+        application_date__year=current_year
+    ).count()
     
     return render(request, 'admin_home_page.html', {
         'admins': admins,
+        'total_job_listings': total_job_listings,
+        'pending_applications': pending_applications,
         'total_active_users': total_active_users,
+        'new_hires_this_month': new_hires_this_month,
     })
 
 
 @user_passes_test(is_admin)
 def admin_job_listings(request):
-    # Get all job listings, ordered by creation date (newest first)
-    jobs = Job.objects.all().order_by('-created_at')
+    # Get search parameters
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', 'all')
     
-    # Add applicant count information for each job
-    for job in jobs:
+    # Base query
+    jobs_query = Job.objects.all()
+    
+    # Apply search filter
+    if search_query:
+        jobs_query = jobs_query.filter(
+            Q(title__icontains=search_query) | 
+            Q(company_name__icontains=search_query) |
+            Q(location__icontains=search_query)
+        )
+    
+    # Apply status filter
+    if status_filter != 'all':
+        today = timezone.now().date()
+        if status_filter == 'open':
+            # Open jobs: no deadline or deadline after today
+            jobs_query = jobs_query.filter(
+                Q(application_deadline__isnull=True) | 
+                Q(application_deadline__gt=today)
+            )
+        elif status_filter == 'closed':
+            # Closed jobs: deadline before today
+            jobs_query = jobs_query.filter(application_deadline__lte=today)
+    
+    # Order by creation date (newest first)
+    jobs_query = jobs_query.order_by('-created_at')
+    
+    # Get statistics
+    total_jobs = Job.objects.count()
+    open_jobs = Job.objects.filter(
+        Q(application_deadline__isnull=True) | 
+        Q(application_deadline__gt=timezone.now().date())
+    ).count()
+    closed_jobs = total_jobs - open_jobs
+    
+    # Pagination
+    page = request.GET.get('page', 1)
+    paginator = Paginator(jobs_query, 5)  # Show 5 jobs per page instead of 10
+    
+    try:
+        jobs_page = paginator.page(page)
+    except PageNotAnInteger:
+        jobs_page = paginator.page(1)
+    except EmptyPage:
+        jobs_page = paginator.page(paginator.num_pages)
+    
+    # Add applicant count and status information
+    for job in jobs_page:
         job.applicant_count = Candidate.objects.filter(job=job).count()
         
-        # Determine job status based on application deadline
+        # Determine job status
         if job.application_deadline:
             if job.application_deadline < timezone.now().date():
                 job.status = "Closed"
@@ -47,7 +110,12 @@ def admin_job_listings(request):
             job.status = "Open"
     
     return render(request, 'admin_job_listings.html', {
-        'jobs': jobs,
+        'jobs': jobs_page,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'total_jobs': total_jobs,
+        'open_jobs': open_jobs,
+        'closed_jobs': closed_jobs,
     })
 
 def admin_settings(request):

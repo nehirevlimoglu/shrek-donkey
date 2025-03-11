@@ -4,7 +4,40 @@
 
 {% block content %}
 <section class="job-listings">
-    <h2>Recent Job Listings</h2>
+    <div class="job-listings-header">
+        <h2>Job Listings</h2>
+        <div class="job-stats">
+            <div class="stat-item">
+                <span class="stat-label">Total Jobs:</span>
+                <span class="stat-value">{{ total_jobs }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Open Jobs:</span>
+                <span class="stat-value">{{ open_jobs }}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Closed Jobs:</span>
+                <span class="stat-value">{{ closed_jobs }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="filters-container">
+        <div class="tabs">
+            <a href="?status=all{% if search_query %}&search={{ search_query }}{% endif %}{% if jobs.number > 1 %}&page={{ jobs.number }}{% endif %}" class="tab {% if status_filter == 'all' %}active{% endif %}">All Jobs</a>
+            <a href="?status=open{% if search_query %}&search={{ search_query }}{% endif %}{% if jobs.number > 1 %}&page={{ jobs.number }}{% endif %}" class="tab {% if status_filter == 'open' %}active{% endif %}">Open Jobs</a>
+            <a href="?status=closed{% if search_query %}&search={{ search_query }}{% endif %}{% if jobs.number > 1 %}&page={{ jobs.number }}{% endif %}" class="tab {% if status_filter == 'closed' %}active{% endif %}">Closed Jobs</a>
+        </div>
+        
+        <form class="search-form" method="GET" action="{% url 'admin_job_listings' %}">
+            <input type="hidden" name="status" value="{{ status_filter }}">
+            <div class="search-container">
+                <input type="text" name="search" placeholder="Search jobs..." value="{{ search_query }}">
+                <button type="submit" class="search-btn">Search</button>
+            </div>
+        </form>
+    </div>
+    
     <table>
         <thead>
             <tr>
@@ -33,7 +66,149 @@
             {% endif %}
         </tbody>
     </table>
+    
+    <!-- Pagination -->
+    <div class="pagination-info">
+        Showing page {{ jobs.number }} of {{ jobs.paginator.num_pages }} ({{ jobs.paginator.count }} total jobs)
+    </div>
+    
+    <div class="pagination">
+        {% if jobs.has_previous %}
+            <a href="?page={{ jobs.previous_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">&laquo; Previous</a>
+        {% else %}
+            <span class="page-link disabled">&laquo; Previous</span>
+        {% endif %}
+        
+        {% for i in jobs.paginator.page_range %}
+            {% if forloop.first or forloop.last or i == jobs.number or i == jobs.number|add:'-1' or i == jobs.number|add:'1' %}
+                {% if jobs.number == i %}
+                    <span class="page-link active">{{ i }}</span>
+                {% else %}
+                    <a href="?page={{ i }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">{{ i }}</a>
+                {% endif %}
+            {% elif i == jobs.number|add:'-2' or i == jobs.number|add:'2' %}
+                <span class="page-link disabled">...</span>
+            {% endif %}
+        {% endfor %}
+        
+        {% if jobs.has_next %}
+            <a href="?page={{ jobs.next_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">Next &raquo;</a>
+        {% else %}
+            <span class="page-link disabled">Next &raquo;</span>
+        {% endif %}
+    </div>
 </section>
+
+<style>
+    .job-listings-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .job-stats {
+        display: flex;
+        gap: 20px;
+    }
+    
+    .stat-item {
+        background-color: #f5f5f5;
+        padding: 8px 15px;
+        border-radius: 5px;
+    }
+    
+    .stat-label {
+        font-weight: bold;
+        margin-right: 5px;
+    }
+    
+    .filters-container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+    
+    .tabs {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .tab {
+        padding: 8px 15px;
+        background-color: #f5f5f5;
+        border-radius: 5px;
+        text-decoration: none;
+        color: #333;
+    }
+    
+    .tab.active {
+        background-color: #007bff;
+        color: white;
+    }
+    
+    .search-container {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .search-container input {
+        padding: 8px 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        width: 250px;
+    }
+    
+    .search-btn {
+        padding: 8px 15px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    
+    /* Pagination styles */
+    .pagination-info {
+        text-align: center;
+        margin-top: 15px;
+        color: #666;
+        font-size: 14px;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+        margin-bottom: 20px;
+        gap: 5px;
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .page-link {
+        padding: 8px 12px;
+        background-color: white;
+        border-radius: 5px;
+        text-decoration: none;
+        color: #333;
+        border: 1px solid #ddd;
+    }
+    
+    .page-link.active {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    .page-link.disabled {
+        color: #999;
+        pointer-events: none;
+    }
+</style>
 
 <script>
     // Add functionality to view job details
