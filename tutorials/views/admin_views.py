@@ -303,3 +303,58 @@ def admin_toggle_job_status(request, job_id):
     
     return JsonResponse({'status': 'success'})
 
+@user_passes_test(is_admin)
+def admin_applications_view(request):
+    # Get search parameters
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', 'all')
+    
+    # Base query
+    applications_query = Candidate.objects.all().select_related('user', 'job')
+    
+    # Apply search filter
+    if search_query:
+        applications_query = applications_query.filter(
+            Q(user__username__icontains=search_query) | 
+            Q(user__first_name__icontains=search_query) |
+            Q(user__last_name__icontains=search_query) |
+            Q(job__title__icontains=search_query) |
+            Q(job__company_name__icontains=search_query)
+        )
+    
+    # Apply status filter
+    if status_filter != 'all':
+        applications_query = applications_query.filter(application_status=status_filter)
+    
+    # Order by application date (newest first)
+    applications_query = applications_query.order_by('-application_date')
+    
+    # Get statistics
+    total_applications = Candidate.objects.count()
+    pending_applications = Candidate.objects.filter(application_status='Pending').count()
+    interview_applications = Candidate.objects.filter(application_status='Interview').count()
+    hired_applications = Candidate.objects.filter(application_status='Hired').count()
+    rejected_applications = Candidate.objects.filter(application_status='Rejected').count()
+    
+    # Pagination - show 5 applications per page for better pagination testing
+    page = request.GET.get('page', 1)
+    paginator = Paginator(applications_query, 5)  # Show 5 applications per page
+    
+    try:
+        applications_page = paginator.page(page)
+    except PageNotAnInteger:
+        applications_page = paginator.page(1)
+    except EmptyPage:
+        applications_page = paginator.page(paginator.num_pages)
+    
+    return render(request, 'admin_applications_view.html', {
+        'applications': applications_page,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'total_applications': total_applications,
+        'pending_applications': pending_applications,
+        'interview_applications': interview_applications,
+        'hired_applications': hired_applications,
+        'rejected_applications': rejected_applications,
+    })
+
