@@ -432,16 +432,34 @@ def schedule_interview(request, applicant_id):
         return render(request, 'schedule_interview.html', {'applicant': applicant})
 
 
+@csrf_exempt
 def accept_candidate(request, candidate_id):
+    """Marks a candidate as Hired, but prevents changing the status once set."""
     candidate = get_object_or_404(Candidate, id=candidate_id)
-    candidate.application_status = 'Hired'
-    candidate.save()
-    messages.success(request, "Candidate accepted successfully!")
-    return redirect('employer_candidates')  # Or wherever you want to redirect
 
-def reject_candidate(request, candidate_id):
-    candidate = get_object_or_404(Candidate, id=candidate_id)
-    candidate.application_status = 'Rejected'
+    # 🚨 Prevent changing status if already Hired or Rejected
+    if candidate.application_status in ["Hired", "Rejected"]:
+        return JsonResponse({"error": "Status cannot be changed once set."}, status=400)
+
+    candidate.application_status = "Hired"
     candidate.save()
-    messages.success(request, "Candidate rejected successfully!")
-    return redirect('employer_candidates')  # Or wherever you want to redirect
+
+    print(f"✅ Candidate {candidate_id} is now: {candidate.application_status}")
+    return JsonResponse({"message": "Candidate accepted successfully!", "status": "Hired"})
+
+
+
+@csrf_exempt
+def reject_candidate(request, candidate_id):
+    """Marks a candidate as Rejected, but prevents changing the status once set."""
+    candidate = get_object_or_404(Candidate, id=candidate_id)
+
+    # 🚨 Prevent changing status if already Hired or Rejected
+    if candidate.application_status in ["Hired", "Rejected"]:
+        return JsonResponse({"error": "Status cannot be changed once set."}, status=400)
+
+    candidate.application_status = "Rejected"
+    candidate.save()
+
+    print(f"❌ Candidate {candidate_id} is now: {candidate.application_status}")
+    return JsonResponse({"message": "Candidate rejected successfully!", "status": "Rejected"})

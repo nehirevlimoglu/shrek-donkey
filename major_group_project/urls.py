@@ -57,8 +57,8 @@ urlpatterns = [
 
 
     path('job/<int:job_id>/apply/', apply_for_job, name='apply_for_job'),
-    path('accept_candidate/<int:candidate_id>/', accept_candidate, name='accept_candidate'),
-    path('reject_candidate/<int:candidate_id>/', reject_candidate, name='reject_candidate'),
+    path("candidates/<int:candidate_id>/accept/", accept_candidate, name="accept_candidate"),
+    path("candidates/<int:candidate_id>/reject/", reject_candidate, name="reject_candidate"),
 
 
 ]
