@@ -18,6 +18,7 @@ import logging
 from tutorials.models.applicants_models import Application, ApplicantNotification, Applicant
 from django.utils.dateparse import parse_date, parse_time
 from django.utils.timezone import now
+from django.db.models import Count, Q
 
 
 logger = logging.getLogger(__name__)
@@ -61,9 +62,59 @@ def employer_home_page(request):
 
 
 
-
+@login_required
 def view_employer_analytics(request):
-    return render(request, 'employer_analytics.html')
+    """Fetch employer analytics data for reporting."""
+    try:
+        employer = Employer.objects.get(username=request.user.username)
+
+        # ✅ Fetch core analytics data
+        total_jobs = Job.objects.filter(employer=employer).count()
+        total_applicants = Candidate.objects.filter(job__employer=employer).count()
+        
+        # ✅ Count of scheduled interviews that have not been completed
+        pending_interviews = Interview.objects.filter(
+            job__employer=employer, date__gte=now().date()
+        ).count()
+        
+        average_apps_per_job = total_applicants / total_jobs if total_jobs > 0 else 0
+
+        # ✅ Fetch job-wise analytics
+        job_analytics = Job.objects.filter(employer=employer).annotate(
+            applicants=Count("candidates"),
+            interviews=Count("job_interviews"),
+            hires=Count("candidates", filter=Q(candidates__application_status="Hired"))
+        )
+
+        job_data = []
+        job_titles = []
+        job_applicants = []
+
+        for job in job_analytics:
+            job_titles.append(job.title)
+            job_applicants.append(job.applicants)
+            job_data.append({
+                "title": job.title,
+                "applicants": job.applicants,
+                "interviews": job.interviews,
+                "hires": job.hires,
+            })
+
+    except Employer.DoesNotExist:
+        return render(request, 'employer_analytics.html', {
+            "error": "Employer profile not found"
+        })
+
+    return render(request, 'employer_analytics.html', {
+        'total_jobs': total_jobs,
+        'total_applicants': total_applicants,
+        'average_apps_per_job': round(average_apps_per_job, 1),
+        'pending_interviews': pending_interviews,  # ✅ Scheduled but not yet completed interviews
+        'job_analytics': job_data,  # Pass job-specific analytics
+        'job_titles': job_titles,
+        'job_applicants': job_applicants,
+    })
+
 
 
 @login_required

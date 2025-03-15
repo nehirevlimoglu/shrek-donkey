@@ -14,19 +14,19 @@
     <section class="reports-overview">
         <div class="report-card">
             <h3>Total Job Listings</h3>
-            <p class="report-value">12</p>
+            <p class="report-value">{{ total_jobs }}</p>
         </div>
         <div class="report-card">
             <h3>Total Applicants</h3>
-            <p class="report-value">245</p>
+            <p class="report-value">{{ total_applicants }}</p>
         </div>
         <div class="report-card">
             <h3>Average Applications per Job</h3>
-            <p class="report-value">20.4</p>
+            <p class="report-value">{{ average_apps_per_job }}</p>
         </div>
         <div class="report-card">
-            <h3>Offer Acceptance Rate</h3>
-            <p class="report-value">67%</p>
+            <h3>Pending Interviews</h3>
+            <p class="report-value">{{ pending_interviews }}</p>
         </div>
     </section>
 
@@ -34,10 +34,6 @@
         <div class="chart-card">
             <h3>Applicants Per Job</h3>
             <canvas id="applicantsChart"></canvas>
-        </div>
-        <div class="chart-card">
-            <h3>Offer Acceptance Rate</h3>
-            <canvas id="acceptanceChart"></canvas>
         </div>
     </section>
 
@@ -50,62 +46,25 @@
                     <th>Applicants</th>
                     <th>Interviews Scheduled</th>
                     <th>Hires</th>
-                    <th>Acceptance Rate</th>
                 </tr>
             </thead>
             <tbody>
+                {% for job in job_analytics %}
                 <tr>
-                    <td>Software Engineer</td>
-                    <td>87</td>
-                    <td>15</td>
-                    <td>5</td>
-                    <td>33%</td>
+                    <td>{{ job.title }}</td>
+                    <td>{{ job.applicants }}</td>
+                    <td>{{ job.interviews }}</td>
+                    <td>{{ job.hires }}</td>
                 </tr>
+                {% empty %}
                 <tr>
-                    <td>Product Manager</td>
-                    <td>58</td>
-                    <td>10</td>
-                    <td>3</td>
-                    <td>30%</td>
+                    <td colspan="4">No hiring data available.</td>
                 </tr>
-                <tr>
-                    <td>Data Scientist</td>
-                    <td>100</td>
-                    <td>20</td>
-                    <td>10</td>
-                    <td>50%</td>
-                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </section>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        const ctx1 = document.getElementById('applicantsChart').getContext('2d');
-        const applicantsChart = new Chart(ctx1, {
-            type: 'bar',
-            data: {
-                labels: ['Software Engineer', 'Product Manager', 'Data Scientist'],
-                datasets: [{
-                    label: 'Applicants Per Job',
-                    data: [87, 58, 100],
-                    backgroundColor: ['#1A73E8', '#34A853', '#FBBC05'],
-                    borderRadius: 5
-                }]
-            },
-        });
-
-        const ctx2 = document.getElementById('acceptanceChart').getContext('2d');
-        const acceptanceChart = new Chart(ctx2, {
-            type: 'pie',
-            data: {
-                labels: ['Accepted', 'Declined'],
-                datasets: [{
-                    label: 'Offer Acceptance Rate',
-                    data: [67, 33],
-                    backgroundColor: ['#34A853', '#EA4335']
-                }]
-            },
-        });
-    </script>
+    <script src="{% static 'js/employer_analytics.js' %}"></script>
 {% endblock %}
