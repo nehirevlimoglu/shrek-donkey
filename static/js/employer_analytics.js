@@ -1,28 +1,59 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const ctx1 = document.getElementById('applicantsChart').getContext('2d');
-    const applicantsChart = new Chart(ctx1, {
-        type: 'bar',
-        data: {
-            labels: JSON.parse(document.getElementById('applicantsChart').dataset.labels),
-            datasets: [{
-                label: 'Applicants Per Job',
-                data: JSON.parse(document.getElementById('applicantsChart').dataset.data),
-                backgroundColor: ['#1A73E8', '#34A853', '#FBBC05'],
-                borderRadius: 5
-            }]
-        },
-    });
+    try {
+        // ✅ Ensure script elements exist before parsing
+        const jobTitlesElement = document.getElementById("job_titles_json");
+        const jobApplicantsElement = document.getElementById("job_applicants_json");
+        const jobInterviewsElement = document.getElementById("job_interviews_json");
 
-    const ctx2 = document.getElementById('acceptanceChart').getContext('2d');
-    const acceptanceChart = new Chart(ctx2, {
-        type: 'pie',
-        data: {
-            labels: ['Accepted', 'Declined'],
-            datasets: [{
-                label: 'Offer Acceptance Rate',
-                data: JSON.parse(document.getElementById('acceptanceChart').dataset.data),
-                backgroundColor: ['#34A853', '#EA4335']
-            }]
-        },
-    });
+        if (!jobTitlesElement || !jobApplicantsElement || !jobInterviewsElement) {
+            console.error("❌ Missing JSON script elements in the HTML.");
+            return;
+        }
+
+        // ✅ Parse JSON safely (Check for empty values)
+        const jobTitles = jobTitlesElement.textContent.trim() ? JSON.parse(jobTitlesElement.textContent) : [];
+        const jobApplicants = jobApplicantsElement.textContent.trim() ? JSON.parse(jobApplicantsElement.textContent) : [];
+        const jobInterviews = jobInterviewsElement.textContent.trim() ? JSON.parse(jobInterviewsElement.textContent) : [];
+
+        console.log("✅ Job Titles:", jobTitles);
+        console.log("✅ Applicants Data:", jobApplicants);
+        console.log("✅ Interviews Data:", jobInterviews);
+
+        // ✅ Ensure data exists before rendering charts
+        if (jobTitles.length > 0 && jobApplicants.length > 0) {
+            new Chart(document.getElementById("applicantsChart").getContext("2d"), {
+                type: "bar",
+                data: {
+                    labels: jobTitles,
+                    datasets: [{
+                        label: "Applicants Per Job",
+                        data: jobApplicants,
+                        backgroundColor: ["#1A73E8", "#34A853", "#FBBC05"],
+                        borderRadius: 5
+                    }]
+                },
+            });
+        } else {
+            console.warn("⚠ No applicant data available.");
+        }
+
+        if (jobTitles.length > 0 && jobInterviews.length > 0) {
+            new Chart(document.getElementById("interviewsChart").getContext("2d"), {
+                type: "bar",
+                data: {
+                    labels: jobTitles,
+                    datasets: [{
+                        label: "Interviews Per Job",
+                        data: jobInterviews,
+                        backgroundColor: ["#FF5733", "#C70039", "#900C3F"],
+                        borderRadius: 5
+                    }]
+                },
+            });
+        } else {
+            console.warn("⚠ No interview data available.");
+        }
+    } catch (error) {
+        console.error("❌ JSON Parsing Error:", error);
+    }
 });

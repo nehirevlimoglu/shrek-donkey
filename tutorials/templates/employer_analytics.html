@@ -35,36 +35,57 @@
             <h3>Applicants Per Job</h3>
             <canvas id="applicantsChart"></canvas>
         </div>
+        <div class="chart-card">
+            <h3>Interviews Per Job</h3>
+            <canvas id="interviewsChart"></canvas>
+        </div>
     </section>
 
     <section class="detailed-reports">
         <h2>Detailed Hiring Insights</h2>
         <table>
             <thead>
+                
                 <tr>
                     <th>Job Title</th>
                     <th>Applicants</th>
                     <th>Interviews Scheduled</th>
                     <th>Hires</th>
                 </tr>
-            </thead>
-            <tbody>
-                {% for job in job_analytics %}
-                <tr>
-                    <td>{{ job.title }}</td>
-                    <td>{{ job.applicants }}</td>
-                    <td>{{ job.interviews }}</td>
-                    <td>{{ job.hires }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4">No hiring data available.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
+                </thead>
+                <tbody>
+                    {% for job in job_analytics %}
+                    <tr>
+                        <td>{{ job.title }}</td>
+                        <td>{{ job.applicants }}</td>
+                        <td>{{ job.interviews }}</td>
+                        <td>{{ job.hires }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No hiring data available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                </table>
+                </section>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="{% static 'js/employer_analytics.js' %}"></script>
+                <script id="job_titles_json" type="application/json">
+                    {{ job_titles|json_script:"jobTitlesJson" }}
+                </script>
+                
+                <script id="job_applicants_json" type="application/json">
+                    {{ job_applicants|json_script:"jobApplicantsJson" }}
+                </script>
+                
+                <script id="job_interviews_json" type="application/json">
+                    {{ job_interviews|json_script:"jobInterviewsJson" }}
+                </script>
+                
+                
+                
+                
+
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script src="{% static 'js/employer_analytics.js' %}"></script>
 {% endblock %}

@@ -11,6 +11,37 @@
     <section class="candidates-section">
         <h2>Job Candidates</h2>
 
+        <!-- ✅ Filtering Form -->
+        <form method="GET" action="{% url 'employer_candidates' %}" class="filter-form">
+            <label for="job">Job Position:</label>
+            <select name="job" id="job">
+                <option value="">All Positions</option>
+                {% for job in jobs %}
+                    <option value="{{ job.id }}" {% if request.GET.job == job.id|stringformat:"s" %}selected{% endif %}>
+                        {{ job.title }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label for="status">Status:</label>
+            <select name="status" id="status">
+                <option value="">All Statuses</option>
+                {% for status_code, status_label in statuses %}
+                    <option value="{{ status_code }}" {% if request.GET.status == status_code %}selected{% endif %}>
+                        {{ status_label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label for="degree">Degree:</label>
+            <input type="text" name="degree" id="degree" placeholder="Enter Degree" value="{{ request.GET.degree|default:'' }}">
+
+            <label for="discipline">Discipline:</label>
+            <input type="text" name="discipline" id="discipline" placeholder="Enter Discipline" value="{{ request.GET.discipline|default:'' }}">
+
+            <button type="submit" class="btn-filter">Apply Filters</button>
+        </form>
+
         {% if candidates %}
             <table class="candidates-table">
                 <thead>
@@ -44,11 +75,10 @@
                             <td>
                                 <a href="{% url 'applicant_profile' candidate.id %}" class="btn-review">Review</a>
                             </td>
-                            
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="6" class="no-candidates">No candidates have applied yet.</td>
+                            <td colspan="6" class="no-candidates">No candidates match your filters.</td>
                         </tr>
                     {% endfor %}
                 </tbody>

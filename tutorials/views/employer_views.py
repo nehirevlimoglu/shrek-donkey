@@ -61,7 +61,6 @@ def employer_home_page(request):
     })
 
 
-
 @login_required
 def view_employer_analytics(request):
     """Fetch employer analytics data for reporting."""
@@ -89,10 +88,12 @@ def view_employer_analytics(request):
         job_data = []
         job_titles = []
         job_applicants = []
+        job_interviews = []
 
         for job in job_analytics:
             job_titles.append(job.title)
             job_applicants.append(job.applicants)
+            job_interviews.append(job.interviews)
             job_data.append({
                 "title": job.title,
                 "applicants": job.applicants,
@@ -113,8 +114,8 @@ def view_employer_analytics(request):
         'job_analytics': job_data,  # Pass job-specific analytics
         'job_titles': job_titles,
         'job_applicants': job_applicants,
+        'job_interviews': job_interviews,  # ✅ Pass interview data for the second chart
     })
-
 
 
 @login_required
@@ -245,7 +246,7 @@ def change_password(request):
 
 @login_required
 def employer_candidates(request):
-    """Retrieve all candidates who applied for jobs posted by the employer"""
+    """Retrieve all candidates who applied for jobs posted by the employer, with filtering options."""
     try:
         employer = Employer.objects.get(username=request.user.username)
     except Employer.DoesNotExist:
@@ -257,14 +258,29 @@ def employer_candidates(request):
     # ✅ Retrieve all candidates who applied to these jobs
     candidates = Candidate.objects.filter(job__in=employer_jobs).select_related('user', 'job')
 
-    print("Employer:", employer)
-    print("Jobs posted by employer:", employer_jobs)
-    print("Candidates who applied:", candidates.values())
+    # ✅ Get distinct degrees from candidates for the dropdown
+    degrees = Candidate.objects.exclude(degree__isnull=True).exclude(degree="").values_list('degree', flat=True).distinct()
+
+    # ✅ Filtering
+    job_id = request.GET.get("job")  # Job filter
+    status = request.GET.get("status")  # Application status filter
+    degree = request.GET.get("degree")  # Degree filter
+
+    if job_id:
+        candidates = candidates.filter(job_id=job_id)
+
+    if status:
+        candidates = candidates.filter(application_status=status)
+
+    if degree:
+        candidates = candidates.filter(degree=degree)
 
     return render(request, 'employer_candidates.html', {
         'candidates': candidates,
+        'jobs': employer_jobs,  # Pass job listings for dropdown
+        'statuses': Candidate.STATUS_CHOICES,  # Pass statuses for dropdown
+        'degrees': degrees,  # Pass degrees for dropdown
     })
-
 
 
 @login_required
