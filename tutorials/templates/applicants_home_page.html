@@ -83,19 +83,12 @@
     </main>
 </div>
 
-
 <!-- ✅ Load Intro.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/4.0.10/introjs.min.css">
 <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
 
-<!-- ✅ Ensure newApplicant is properly passed -->
-<script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const newApplicant = urlParams.get("newUser") === "true";
-    console.log("🔍 newApplicant =", newApplicant);
-</script>
-
-<!-- ✅ Load Applicant Tutorial -->
-<script src="{% static 'js/applicant_tutorial.js' %}"></script>
+<!-- ✅ Load Applicant Tutorial (Ensure Proper Loading Order) -->
+<script src="{% static 'js/applicant_tutorial.js' %}?v=1.0" defer></script>
 
 
 {% endblock %}

@@ -17,6 +17,7 @@ from django.http import HttpResponseForbidden
 import logging
 from tutorials.models.applicants_models import Application, ApplicantNotification, Applicant
 from django.utils.dateparse import parse_date, parse_time
+from django.utils.timezone import now
 
 
 logger = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ def is_employer(user):
 
 @login_required
 def employer_home_page(request):
-    """Employer dashboard with notifications & recent applicants"""
+    """Employer dashboard with statistics, notifications & recent applicants"""
 
     try:
         employer = Employer.objects.get(username=request.user.username)
@@ -39,13 +40,23 @@ def employer_home_page(request):
             job__employer=employer
         ).select_related('job', 'user').order_by('-application_date')[:10]
 
+        # ✅ Fetch Analytics Data
+        total_jobs = Job.objects.filter(employer=employer).count()
+        active_listings = Job.objects.filter(
+            employer=employer, 
+            application_deadline__gte=now()  # ✅ Only count jobs with valid deadlines
+        ).count()
+        total_applicants = Candidate.objects.filter(job__employer=employer).count()  # ✅ Fix: Count applicants for employer’s jobs
 
     except Employer.DoesNotExist:
         return JsonResponse({"success": False, "error": "Employer profile not found"}, status=403)
 
     return render(request, 'employers_home_page.html', {
         'notifications': notifications,
-        'recent_applicants': recent_applicants  # ✅ Pass the recent applicants to the template
+        'recent_applicants': recent_applicants,
+        'total_jobs': total_jobs,  # ✅ Pass total jobs
+        'active_listings': active_listings,  # ✅ Pass active job count
+        'total_applicants': total_applicants,  # ✅ Pass total applicants
     })
 
 

@@ -109,3 +109,8 @@ html, body {
     }
 }
 
+
+#tutorial-overlay {
+    min-height: 100px; /* Adjust height to match expected tutorial content */
+    visibility: hidden; /* Make it invisible initially */
+}

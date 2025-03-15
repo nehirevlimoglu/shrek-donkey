@@ -1,3 +1,26 @@
+// ✅ Ensure the function is globally available
+window.startApplicantTutorial = function () {
+    console.log("🔧 Ensuring Intro.js Styles Are Applied...");
+
+    introJs().setOptions({
+        steps: [
+            { intro: "👋 Welcome to your Applicant Dashboard! Let’s take a quick tour." },
+            { element: ".filter-options", intro: "🔎 Use these filters to refine job listings based on location, salary, type, and company.", position: "bottom" },
+            { element: ".job-table thead", intro: "📄 This table displays all the available job listings that match your filters.", position: "bottom" },
+            { element: ".job-listings td:nth-child(6)", intro: "⭐ Click the star icon to mark a job as your favorite for easy access later.", position: "right" },
+            { element: ".job-listings td:nth-child(7) a", intro: "👀 Click 'View Details' to see the full job description and application instructions.", position: "left" },
+            { intro: "🎉 That's it! You are now ready to explore and apply for jobs. Good luck!" }
+        ],
+        showProgress: true,
+        scrollToElement: true,
+        disableInteraction: false,
+        exitOnOverlayClick: false,
+        nextLabel: "Next →",
+        prevLabel: "← Back",
+        doneLabel: "Finish ✅"
+    }).start();
+};
+
 document.addEventListener("DOMContentLoaded", function () {
     console.log("✅ Applicant Tutorial Script Loaded!");
 
@@ -26,32 +49,12 @@ function startApplicantTutorial() {
 
     introJs().setOptions({
         steps: [
-            {
-                intro: "👋 Welcome to your Applicant Dashboard! Let’s take a quick tour."
-            },
-            {
-                element: ".filter-options",
-                intro: "🔎 Use these filters to find jobs based on location, salary, job type, and company.",
-                position: "bottom"
-            },
-            {
-                element: ".job-listings-container",
-                intro: "📄 Here you can see all available job listings.",
-                position: "top"
-            },
-            {
-                element: ".favorite-star",
-                intro: "⭐ Click this star to save jobs to your favorites for easy access later.",
-                position: "right"
-            },
-            {
-                element: ".btn-primary",
-                intro: "👀 Click 'View Details' to see more information about the job.",
-                position: "top"
-            },
-            {
-                intro: "🎉 That's it! Now you can browse and apply for jobs efficiently!"
-            }
+            { intro: "👋 Welcome to your Applicant Dashboard! Let’s take a quick tour." },
+            { element: ".filter-options", intro: "🔎 Use these filters to refine job listings based on location, salary, type, and company.", position: "bottom" },
+            { element: ".job-table thead", intro: "📄 This table displays all the available job listings that match your filters.", position: "bottom" },
+            { element: ".job-listings td:nth-child(6)", intro: "⭐ Click the star icon to mark a job as your favorite for easy access later.", position: "right" },
+            { element: ".job-listings td:nth-child(7) a", intro: "👀 Click 'View Details' to see the full job description and application instructions.", position: "left" },
+            { intro: "🎉 That's it! You are now ready to explore and apply for jobs. Good luck!" }
         ],
         showProgress: true,
         scrollToElement: true,
