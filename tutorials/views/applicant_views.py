@@ -10,17 +10,54 @@ from django.contrib.messages import get_messages
 
 
 
-
 @applicant_only
 @login_required
 def applicants_home_page(request):
-    """Show jobs matching applicant preferences."""
-    
     applicant = Applicant.objects.filter(user=request.user).first()
+    jobs = Job.objects.filter(status__iexact='approved')
 
-    approved_jobs = Job.objects.filter(status__iexact='approved')
+    location = request.GET.get('location')
+    salary_interval = request.GET.get('salary_interval')
+    job_type = request.GET.get('job_type')
+    company = request.GET.get('company')
 
-    return render(request, 'applicants_home_page.html', {"approved_jobs": approved_jobs})
+    if location:
+        jobs = jobs.filter(location__iexact=location)
+    
+    if salary_interval:
+        try:
+            lower, upper = salary_interval.split('-')
+            jobs = jobs.filter(salary__gte=lower, salary__lte=upper)
+        except ValueError:
+            pass
+
+    if job_type:
+        job_type_mapping = {
+            "full-time": "Full Time",
+            "part-time": "Part Time",
+            "internship": "Internship",
+            "apprenticeship": "Apprenticeship"
+        }
+        formatted_job_type = job_type_mapping.get(job_type.strip().lower())
+        if formatted_job_type:
+            jobs = jobs.filter(job_type__iexact=formatted_job_type)
+
+    if company:
+        jobs = jobs.filter(company_name__iexact=company)
+
+    # Get the list of unique companies from approved jobs
+    companies = Job.objects.filter(status__iexact='approved') \
+                           .values_list('company_name', flat=True).distinct()
+
+    # Get the list of unique locations from approved jobs
+    locations = Job.objects.filter(status__iexact='approved') \
+                           .values_list('location', flat=True).distinct()
+
+    return render(request, 'applicants_home_page.html', {
+        "approved_jobs": jobs,
+        "companies": companies,  # for company filter
+        "locations": locations,  # for location filter
+    })
 
 
 @applicant_only

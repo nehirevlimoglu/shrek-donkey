@@ -4,70 +4,101 @@
 {% block title %}Applicants Home Page | Swamp Hiring{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/applicants_home_page.css' %}">
 
-    <link rel="stylesheet" type="text/css" href="{% static 'css/applicants_home_page.css' %}">
+<div class="dashboard-container">
+    <!-- Main Content -->
+    <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
+        <!-- Filter Options and Heading -->
+        <div class="filter-options" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <h2>Available Jobs</h2>
+            <form method="get" action="" style="display: flex; gap: 1rem; align-items: center;">
+                <!-- Dynamically generated Location Dropdown -->
+                <select name="location">
+                    <option value="">All Locations</option>
+                    {% for loc in locations %}
+                        <option value="{{ loc }}">{{ loc }}</option>
+                    {% endfor %}
+                </select>
 
-    <div class="dashboard-container">
-        <!-- Main Content -->
-        <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
-            
-            
+                <select name="salary_interval">
+                    <option value="">Any Salary</option>
+                    <option value="0-50000">$0 - $50,000</option>
+                    <option value="50000-100000">$50,000 - $100,000</option>
+                    <option value="100000-150000">$100,000 - $150,000</option>
+                </select>
 
-        
+                <select name="job_type">
+                    <option value="">All Types</option>
+                    <!-- These values will be mapped in the view -->
+                    <option value="full-time">Full Time</option>
+                    <option value="part-time">Part Time</option>
+                    <option value="internship">Internship</option>
+                    <option value="apprenticeship">Apprenticeship</option>
+                </select>
 
-            <!-- Job Listings Table -->
-            <div class="job-listings-container" style="width: 100%;">
-                <h2>Available Jobs</h2>
-                <table class="job-table" style="width: 100%; text-align: center; border-collapse: collapse;">
-                    <thead>
-                        <tr>
-                            <th>Job Title</th>
-                            <th>Company</th>
-                            <th>Location</th>
-                            <th>Salary</th>
-                            <th>Type</th>
-                            <th>Favourite</th>
-                            <th>Details</th>
-                        </tr>
-                    </thead>
-                    <tbody class="job-listings">
-                        {% for job in approved_jobs %}
-                        <tr>
-                            <td>{{ job.title }}</td>  {# ✅ Fix: Display job title correctly #}
-                            <td>{{ job.company_name }}</td>
-                            <td>{{ job.location }}</td>
-                            <td>{{ job.salary }}</td>
-                            <td>{{ job.job_type }}</td>
-                            <td>
-                                <span class="favorite-star" onclick="toggleFavorite(this)">&#9734;</span>
-                            </td>
-                            <td>
-                                <a href="{% url 'job_detail' job.id %}" class="btn btn-primary">View Details</a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7">No job matches your preferences at the moment.</td>  {# ✅ Clarify empty state #}
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                    
-                </table>
-            </div>
-        </main>
-    </div>
+                <!-- Dynamically generated Company Dropdown -->
+                <select name="company">
+                    <option value="">All Companies</option>
+                    {% for comp in companies %}
+                        <option value="{{ comp }}">{{ comp }}</option>
+                    {% endfor %}
+                </select>
 
-    <!-- JavaScript -->
-    <script>
-        function toggleFavorite(starElement) {
-            if (starElement.classList.contains("active")) {
-                starElement.classList.remove("active");
-                starElement.innerHTML = "&#9734;"; // Empty star
-            } else {
-                starElement.classList.add("active");
-                starElement.innerHTML = "&#9733;"; // Filled star
-            }
+                <button type="submit" class="btn btn-secondary">Filter</button>
+            </form>
+        </div>
+
+        <!-- Job Listings Table -->
+        <div class="job-listings-container" style="width: 100%;">
+            <table class="job-table" style="width: 100%; text-align: center; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Location</th>
+                        <th>Salary</th>
+                        <th>Type</th>
+                        <th>Favourite</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody class="job-listings">
+                    {% for job in approved_jobs %}
+                    <tr>
+                        <td>{{ job.title }}</td>
+                        <td>{{ job.company_name }}</td>
+                        <td>{{ job.location }}</td>
+                        <td>{{ job.salary }}</td>
+                        <td>{{ job.job_type }}</td>
+                        <td>
+                            <span class="favorite-star" onclick="toggleFavorite(this)">&#9734;</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'job_detail' job.id %}" class="btn btn-primary">View Details</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">No job matches your preferences at the moment.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<!-- JavaScript for favorite toggle -->
+<script>
+    function toggleFavorite(starElement) {
+        if (starElement.classList.contains("active")) {
+            starElement.classList.remove("active");
+            starElement.innerHTML = "&#9734;"; // Empty star
+        } else {
+            starElement.classList.add("active");
+            starElement.innerHTML = "&#9733;"; // Filled star
         }
-    </script>
-
+    }
+</script>
 {% endblock %}

@@ -17,18 +17,17 @@
         <!-- Button container for alignment -->
         <div class="button-container">
             <a href="{% url 'applicants-home-page' %}" class="btn-primary">Back to Jobs</a>
-
+        
             {% if existing_application %}
-                <!-- ✅ Show a message instead of the Apply Now button -->
                 <p class="already-applied-message">✅ You have already applied for this job.</p>
             {% else %}
-                <!-- ✅ Show the Apply button if the user has not applied yet -->
-                <form method="POST" action="{% url 'apply_for_job' job.id %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-primary">Apply Now</button>
-                </form>
+                {% if existing_application %}
+                    <p class="already-applied-message">✅ You have already applied for this job.</p>
+                {% else %}
+                    <button id="apply-btn" class="btn-primary" data-job-id="{{ job.id }}">Apply Now</button>
+                {% endif %}    
             {% endif %}
-        </div>
+        </div>        
     </div>
-    <script src="{% static 'js/job_application.js' %}"></script>
+    <script src="{% static 'js/job_application.js' %}?v={{ request.timestamp }}"></script>
 {% endblock %}
