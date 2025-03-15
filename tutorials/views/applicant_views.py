@@ -21,6 +21,8 @@ def applicants_home_page(request):
     job_type = request.GET.get('job_type')
     company = request.GET.get('company')
 
+    new_applicant = request.GET.get('newUser') == "true"  # ✅ Capture newUser param
+
     if location:
         jobs = jobs.filter(location__iexact=location)
     
@@ -53,11 +55,15 @@ def applicants_home_page(request):
     locations = Job.objects.filter(status__iexact='approved') \
                            .values_list('location', flat=True).distinct()
 
+    print(f"🔍 new_applicant (Django) = {new_applicant}")  # Debugging
+
     return render(request, 'applicants_home_page.html', {
         "approved_jobs": jobs,
         "companies": companies,  # for company filter
         "locations": locations,  # for location filter
+        "new_applicant": new_applicant  # ✅ Pass to template
     })
+
 
 
 @applicant_only
