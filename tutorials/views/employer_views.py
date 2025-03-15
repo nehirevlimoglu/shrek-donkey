@@ -430,3 +430,18 @@ def schedule_interview(request, applicant_id):
 
     else:
         return render(request, 'schedule_interview.html', {'applicant': applicant})
+
+
+def accept_candidate(request, candidate_id):
+    candidate = get_object_or_404(Candidate, id=candidate_id)
+    candidate.application_status = 'Hired'
+    candidate.save()
+    messages.success(request, "Candidate accepted successfully!")
+    return redirect('employer_candidates')  # Or wherever you want to redirect
+
+def reject_candidate(request, candidate_id):
+    candidate = get_object_or_404(Candidate, id=candidate_id)
+    candidate.application_status = 'Rejected'
+    candidate.save()
+    messages.success(request, "Candidate rejected successfully!")
+    return redirect('employer_candidates')  # Or wherever you want to redirect

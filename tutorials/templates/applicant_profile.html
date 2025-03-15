@@ -37,20 +37,19 @@
         <!-- ✅ Education Details -->
         <section class="section">
             <h2>Education</h2>
-            {% if applicant.education %}
-                <ul>
-                    {% for edu in applicant.education %}
-                        <li>
-                            <strong>School:</strong> {{ edu.school|default:"N/A" }} <br>
-                            <strong>Degree:</strong> {{ edu.degree|default:"N/A" }} in {{ edu.discipline|default:"N/A" }} <br>
-                            <strong>Duration:</strong> {{ edu.start_date|default:"N/A" }} - {{ edu.end_date|default:"Present" }}
-                        </li>
-                    {% endfor %}
-                </ul>
+            {% if applicant.school or applicant.degree or applicant.discipline %}
+                <p><strong>School:</strong> {{ applicant.school|default:"Not Provided" }}</p>
+                <p><strong>Degree:</strong> {{ applicant.degree|default:"Not Provided" }} in {{ applicant.discipline|default:"Not Provided" }}</p>
+                <p><strong>Duration:</strong> 
+                    {{ applicant.start_date|default:"Not Provided" }} - 
+                    {{ applicant.end_date|default:"Present" }}
+                </p>
             {% else %}
                 <p>No education details provided.</p>
             {% endif %}
         </section>
+
+
 
         <!-- ✅ Work Experience -->
         <section class="section">
@@ -83,12 +82,37 @@
         <!-- ✅ Actions -->
         <section class="section actions">
             <h2>Application Status</h2>
-            <p><strong>Current Status:</strong> {{ applicant.application_status }}</p>
+            <div class="status-chip">
+                <span class="chip {% if applicant.application_status == 'Accepted' %}chip-accepted{% elif applicant.application_status == 'Rejected' %}chip-rejected{% else %}chip-pending{% endif %}">
+                    {{ applicant.application_status|default:"Pending" }}
+                </span>
+            </div>
 
-            <!-- Removed Status Dropdown, Added Schedule Interview Button -->
+            <!-- Accept / Reject buttons -->
+            <div class="action-buttons">
+                <button class="btn-accept" onclick="confirmAction('accept', '{{ applicant.user.get_full_name }}', '{{ job_listing.title }}')">Accept</button>
+                <button class="btn-reject" onclick="confirmAction('reject', '{{ applicant.user.get_full_name }}', '{{ job_listing.title }}')">Reject</button>
+            </div>
+
+            <!-- Schedule Interview Button -->
             <a href="{% url 'schedule_interview' applicant.id %}" class="btn-primary">Schedule Interview</a>
         </section>
 
         <a href="{% url 'employer_candidates' %}" class="btn-secondary">Back to Candidates</a>
     </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" class="confirmation-modal">
+        <div class="confirmation-content">
+            <h2 id="confirmation-title"></h2>
+            <p id="confirmation-message"></p>
+            <button id="confirm-button" onclick="confirmActionFinal()">Yes, Proceed</button>
+            <button onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/applicant_profile.js' %}"></script>
 {% endblock %}

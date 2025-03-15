@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages  # Import the messages module
 from tutorials.models.applicants_models import Applicant, Application, ApplicantNotification
 from tutorials.forms.applicants_forms import ApplicantForm, ApplicationForm
 from django.contrib.auth.decorators import login_required
@@ -108,8 +109,6 @@ def job_detail(request, job_id):
 
 import logging
 
-logger = logging.getLogger(__name__)
-@applicant_only
 @login_required
 def apply_for_job(request, job_id):
     """Handles job application submission, preventing duplicate applications"""
@@ -129,25 +128,44 @@ def apply_for_job(request, job_id):
             application.applicant = applicant
             application.save()
 
-            # Also create a Candidate entry for the employer
-            candidate, created = Candidate.objects.get_or_create(
+            # Save or update Candidate entry
+            candidate, created = Candidate.objects.update_or_create(
                 user=applicant.user,
                 job=job,
                 defaults={
                     "resume": form.cleaned_data.get("resume"),
                     "cover_letter": form.cleaned_data.get("cover_letter"),
+                    "first_name": form.cleaned_data.get("first_name"),
+                    "last_name": form.cleaned_data.get("last_name"),
+                    "phone": form.cleaned_data.get("phone"),
+                    "address": form.cleaned_data.get("address"),
+                    
+                    # Education fields
+                    "school": form.cleaned_data.get("school"),
+                    "degree": form.cleaned_data.get("degree"),
+                    "discipline": form.cleaned_data.get("discipline"),
+                    "start_date": form.cleaned_data.get("start_date"),
+                    "end_date": form.cleaned_data.get("end_date"),
+                    
+                    "linkedin_profile": form.cleaned_data.get("linkedin_profile"),
+                    "portfolio_website": form.cleaned_data.get("portfolio_website"),
+                    "how_did_you_hear": form.cleaned_data.get("how_did_you_hear"),
+                    "current_job_title": form.cleaned_data.get("current_job_title"),
+                    "current_employer": form.cleaned_data.get("current_employer"),
                     "application_status": "Pending"
                 }
             )
 
-            # Create an EmployerNotification so the employer knows
+
+
+            # Create an EmployerNotification
             EmployerNotification.objects.create(
                 employer=job.employer,
                 title="New Job Application",  
                 message=f"📩 New application received for {job.title} by {applicant.user.first_name} {applicant.user.last_name}!"
             )
 
-            # **Create an ApplicantNotification** so the applicant sees a new record
+            # Create an ApplicantNotification
             ApplicantNotification.objects.create(
                 applicant=applicant,
                 title="Application Submitted",

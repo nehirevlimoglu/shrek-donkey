@@ -83,100 +83,45 @@ class ApplicantForm(forms.ModelForm):
     
 
 
-
-class EducationForm(forms.Form):
-    school = forms.CharField(max_length=100, required=True)
-    degree = forms.CharField(max_length=100, required=True)
-    discipline = forms.CharField(max_length=100, required=True)
-    start_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)))
-    end_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
-
-
 class ApplicationForm(forms.ModelForm):
     # Personal Information
-    first_name = forms.CharField(
-        max_length=50, required=True, widget=forms.TextInput(attrs={"class": "form-control"})
-    )
-    last_name = forms.CharField(
-        max_length=50, required=True, widget=forms.TextInput(attrs={"class": "form-control"})
-    )
-    phone = forms.CharField(
-        max_length=20, required=True, widget=forms.TextInput(attrs={"class": "form-control"})
-    )
-    email = forms.EmailField(
-        required=True, widget=forms.EmailInput(attrs={"class": "form-control"})
-    )
-    address = forms.CharField(
-        max_length=255,
-        required=True,
-        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Street, City, Country"}),
-    )
+    first_name = forms.CharField(max_length=50, required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
+    last_name = forms.CharField(max_length=50, required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
+    phone = forms.CharField(max_length=20, required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
+    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={"class": "form-control"}))
+    address = forms.CharField(max_length=255, required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
 
     # Resume & Cover Letter
-    resume = forms.FileField(
-        required=True, widget=forms.FileInput(attrs={"class": "form-control"})
-    )
-    cover_letter = forms.FileField(
-        required=False, widget=forms.FileInput(attrs={"class": "form-control"})
-    )
+    resume = forms.FileField(required=True, widget=forms.FileInput(attrs={"class": "form-control"}))
+    cover_letter = forms.FileField(required=False, widget=forms.FileInput(attrs={"class": "form-control"}))
 
-    # Education Section (Dynamic)
-    education = forms.CharField(widget=forms.HiddenInput(), required=False)
+    # ✅ Make Education Fields Optional (Fix for blocking issue)
+    school = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    degree = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    discipline = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    start_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
+    end_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
 
-    # ✅ Restoring Current Job Fields
-    current_job_title = forms.CharField(
-        max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"})
-    )
-    current_employer = forms.CharField(
-        max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"})
-    )
-    linkedin_profile = forms.URLField(
-        required=False, widget=forms.URLInput(attrs={"class": "form-control"})
-    )
-    portfolio_website = forms.URLField(
-        required=False, widget=forms.URLInput(attrs={"class": "form-control"})
-    )
+    # ✅ Keep Other Fields the Same
+    current_job_title = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    current_employer = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    linkedin_profile = forms.URLField(required=False, widget=forms.URLInput(attrs={"class": "form-control"}))
+    portfolio_website = forms.URLField(required=False, widget=forms.URLInput(attrs={"class": "form-control"}))
 
-    # ✅ Restoring Additional Questions
     how_did_you_hear = forms.ChoiceField(
-        choices=[
-            ("linkedin", "LinkedIn"),
-            ("website", "Company Website"),
-            ("referral", "Referral"),
-            ("other", "Other"),
-        ],
-        required=True,
-        widget=forms.Select(attrs={"class": "form-control"}),
+        choices=[("linkedin", "LinkedIn"), ("website", "Company Website"), ("referral", "Referral"), ("other", "Other")],
+        required=True, widget=forms.Select(attrs={"class": "form-control"})
     )
 
-    sponsorship_needed = forms.ChoiceField(
-        choices=[("yes", "Yes"), ("no", "No")],
-        required=True,
-        widget=forms.Select(attrs={"class": "form-control"}),
-    )
+    sponsorship_needed = forms.ChoiceField(choices=[("yes", "Yes"), ("no", "No")], required=True, widget=forms.Select(attrs={"class": "form-control"}))
 
-    # ✅ Restoring Confirmation Checkbox
-    confirm_information = forms.BooleanField(
-        required=True, label="I confirm all information is accurate.", widget=forms.CheckboxInput()
-    )
+    confirm_information = forms.BooleanField(required=True, label="I confirm all information is accurate.", widget=forms.CheckboxInput())
 
     class Meta:
         model = Application
         fields = [
-            "first_name",
-            "last_name",
-            "email",
-            "phone",
-            "address",
-            "resume",
-            "cover_letter",
-            "education",  # Dynamic Education Fields
-            "current_job_title",
-            "current_employer",
-            "linkedin_profile",
-            "portfolio_website",
-            "how_did_you_hear",
-            "sponsorship_needed",
-            "confirm_information",
+            "first_name", "last_name", "email", "phone", "address", "resume", "cover_letter",
+            "school", "degree", "discipline", "start_date", "end_date",  # ✅ Education is now optional
+            "current_job_title", "current_employer", "linkedin_profile", "portfolio_website",
+            "how_did_you_hear", "sponsorship_needed", "confirm_information",
         ]
-
