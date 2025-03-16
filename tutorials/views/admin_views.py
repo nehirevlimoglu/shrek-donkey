@@ -123,15 +123,163 @@ def admin_settings(request):
 
 @user_passes_test(is_admin)
 def admin_notifications(request):
-    unread_count = Notification.objects.filter(recipient=request.user, is_read=False).count()
-    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
-
-    notifications.update(is_read=True)
-
+    # Get filter parameters
+    notification_type = request.GET.get('type', 'all')
+    priority = request.GET.get('priority', 'all')
+    is_read = request.GET.get('is_read', 'all')
+    search_query = request.GET.get('search', '')
+    
+    # Base query - exclude soft-deleted notifications
+    notifications_query = Notification.objects.filter(
+        recipient=request.user,
+        is_deleted=False
+    )
+    
+    # Apply type filter
+    if notification_type != 'all':
+        notifications_query = notifications_query.filter(notification_type=notification_type)
+    
+    # Apply priority filter
+    if priority != 'all':
+        notifications_query = notifications_query.filter(priority=priority)
+    
+    # Apply read status filter
+    if is_read == 'read':
+        notifications_query = notifications_query.filter(is_read=True)
+    elif is_read == 'unread':
+        notifications_query = notifications_query.filter(is_read=False)
+    
+    # Apply search filter
+    if search_query:
+        notifications_query = notifications_query.filter(
+            Q(title__icontains=search_query) | 
+            Q(message__icontains=search_query)
+        )
+    
+    # Get notification statistics
+    total_count = Notification.objects.filter(recipient=request.user, is_deleted=False).count()
+    unread_count = Notification.objects.filter(recipient=request.user, is_read=False, is_deleted=False).count()
+    
+    # Get notification type counts for filtering UI
+    type_counts = {
+        'job': Notification.objects.filter(recipient=request.user, notification_type='job', is_deleted=False).count(),
+        'application': Notification.objects.filter(recipient=request.user, notification_type='application', is_deleted=False).count(),
+        'user': Notification.objects.filter(recipient=request.user, notification_type='user', is_deleted=False).count(),
+        'system': Notification.objects.filter(recipient=request.user, notification_type='system', is_deleted=False).count(),
+        'general': Notification.objects.filter(recipient=request.user, notification_type='general', is_deleted=False).count(),
+    }
+    
+    # Get priority counts
+    priority_counts = {
+        'high': Notification.objects.filter(recipient=request.user, priority='high', is_deleted=False).count(),
+        'medium': Notification.objects.filter(recipient=request.user, priority='medium', is_deleted=False).count(),
+        'low': Notification.objects.filter(recipient=request.user, priority='low', is_deleted=False).count(),
+    }
+    
+    # Order by creation date (newest first)
+    notifications_query = notifications_query.order_by('-created_at')
+    
+    # Pagination
+    page = request.GET.get('page', 1)
+    paginator = Paginator(notifications_query, 10)
+    
+    try:
+        notifications_page = paginator.page(page)
+    except PageNotAnInteger:
+        notifications_page = paginator.page(1)
+    except EmptyPage:
+        notifications_page = paginator.page(paginator.num_pages)
+    
+    # Don't mark as read automatically - let user manually mark them
+    # This was the previous behavior: notifications_query.update(is_read=True)
+    
     return render(request, 'admin_notifications.html', {
-        'notifications': notifications,
-        'unread_count': unread_count, 
+        'notifications': notifications_page,
+        'total_count': total_count,
+        'unread_count': unread_count,
+        'type_counts': type_counts,
+        'priority_counts': priority_counts,
+        'notification_type': notification_type,
+        'priority': priority,
+        'is_read': is_read,
+        'search_query': search_query,
     })
+
+@user_passes_test(is_admin)
+def admin_notifications_count(request):
+    """Return the count of unread notifications for the admin user"""
+    unread_count = Notification.objects.filter(recipient=request.user, is_read=False, is_deleted=False).count()
+    return JsonResponse({'count': unread_count})
+
+@user_passes_test(is_admin)
+@require_POST
+def mark_notification_as_read(request, notification_id):
+    """Mark a single notification as read"""
+    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+    notification.is_read = True
+    notification.save()
+    return JsonResponse({'status': 'success'})
+
+@user_passes_test(is_admin)
+@require_POST
+def mark_all_notifications_as_read(request):
+    """Mark all notifications as read for the current user"""
+    Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+    return JsonResponse({'status': 'success'})
+
+@user_passes_test(is_admin)
+@require_POST
+def delete_notification(request, notification_id):
+    """Soft delete a notification (mark as deleted)"""
+    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+    notification.is_deleted = True
+    notification.save()
+    return JsonResponse({'status': 'success'})
+
+@user_passes_test(is_admin)
+@require_POST
+def delete_all_notifications(request):
+    """Soft delete all notifications for the current user"""
+    Notification.objects.filter(recipient=request.user).update(is_deleted=True)
+    return JsonResponse({'status': 'success'})
+
+@user_passes_test(is_admin)
+def generate_admin_notification(request):
+    """Generate a test notification for the admin user"""
+    Notification.objects.create(
+        recipient=request.user,
+        title="Test Notification",
+        message="This is a test notification for admin users.",
+        is_read=False
+    )
+    return redirect('admin_notifications')
+
+def create_admin_notification(user, title, message, notification_type='general', priority='medium', related_object_id=None, related_object_type=None, action_url=None):
+    """
+    Enhanced utility function to create notifications for admin users
+    
+    Args:
+        user: The recipient user (should be an admin)
+        title: The notification title
+        message: The notification message content
+        notification_type: Type of notification (job, application, user, system, general)
+        priority: Priority level (high, medium, low)
+        related_object_id: ID of related object (e.g., job ID, user ID)
+        related_object_type: Type of related object (e.g., 'job', 'application')
+        action_url: URL for action button in notification
+    """
+    if user.role == 'Admin':
+        Notification.objects.create(
+            recipient=user,
+            title=title,
+            message=message,
+            notification_type=notification_type,
+            priority=priority,
+            related_object_id=related_object_id,
+            related_object_type=related_object_type,
+            action_url=action_url,
+            is_read=False
+        )
 
 @user_passes_test(is_admin)
 def get_active_users_data(request):

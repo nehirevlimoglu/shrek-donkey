@@ -25,7 +25,7 @@ from tutorials.views.employer_views import employer_home_page, view_employer_ana
 from django.urls import path
 from tutorials.views.views import log_in, log_out, sign_up  
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile, applicants_analytics
-from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications, admin_applications_view
+from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications, admin_applications_view, admin_notifications_count, generate_admin_notification, mark_notification_as_read, mark_all_notifications_as_read, delete_notification, delete_all_notifications
 from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings,change_password, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_interviews, employer_candidates, get_interviews, edit_company_profile, delete_account
 from tutorials.models.applicants_models import Applicant
 
@@ -47,7 +47,13 @@ urlpatterns =[
 
     path('admin_home_page/', admin_home_page, name='admin_home_page'),
     path('admin_job_listings', admin_job_listings, name='admin_job_listings'),
-    path('ádmin_notifications/', admin_notifications, name='admin_notifications'),
+    path('admin_notifications/', admin_notifications, name='admin_notifications'),
+    path('admin_notifications/count/', admin_notifications_count, name='admin_notifications_count'),
+    path('admin_notifications/generate/', generate_admin_notification, name='admin_notifications_generate'),
+    path('admin_notifications/mark_read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
+    path('admin_notifications/mark_all_read/', mark_all_notifications_as_read, name='mark_all_notifications_as_read'),
+    path('admin_notifications/delete/<int:notification_id>/', delete_notification, name='delete_notification'),
+    path('admin_notifications/delete_all/', delete_all_notifications, name='delete_all_notifications'),
     path('admin_applications_view/', admin_applications_view, name='admin_applications_view'),
     path('employer_home_page', employer_home_page, name='employer_home_page'),
     path('employer_job_listings', employer_job_listings, name='employer_job_listings'),
