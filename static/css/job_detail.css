@@ -43,3 +43,15 @@
     background: #005bb5;
 }
 
+/* Disabled "Already Applied" button */
+.btn-disabled {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #ccc;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    border: none;
+    font-size: 16px;
+    cursor: not-allowed;
+}

@@ -7,7 +7,11 @@ from django.contrib.auth.decorators import login_required
 from decorators import applicant_only  # Import the decorator
 from tutorials.models.employer_models import Job, EmployerNotification, JobTitle, Candidate
 from django.contrib.messages import get_messages
-
+from django.contrib import messages
+from django.http import JsonResponse
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from random import randint
 
 
 @applicant_only
@@ -92,8 +96,6 @@ def applicants_edit_profile(request):
         'applicant': applicant,
     })
 
-
-
 @login_required
 def applicants_applied_jobs(request):
     """ Display jobs that the logged-in applicant has applied to """
@@ -134,93 +136,56 @@ def applicants_analytics(request):
 
 
 
-@login_required
 def job_detail(request, job_id):
     """Display job details and check if the user has applied"""
     job = get_object_or_404(Job, id=job_id)
     applicant = Applicant.objects.filter(user=request.user).first()
 
-    # Check if the user has already applied
-    existing_application = False
-    if applicant:
-        existing_application = Application.objects.filter(applicant=applicant, job=job).exists()
+    existing_application = Application.objects.filter(applicant=applicant, job=job).exists() if applicant else False
 
     return render(request, "job_detail.html", {
         "job": job,
-        "existing_application": existing_application
+        "existing_application": existing_application,
+        "random": randint(1, 10000)  # Forces browser to reload JavaScript
     })
 
-import logging
 
+
+@csrf_exempt
+@applicant_only
 @login_required
 def apply_for_job(request, job_id):
-    """Handles job application submission, preventing duplicate applications"""
+    """
+    Handles job applications and updates the button correctly.
+    Returns JSON with either already_applied=True or a redirect_url.
+    """
     job = get_object_or_404(Job, id=job_id)
     applicant = get_object_or_404(Applicant, user=request.user)
 
-    existing_application = Application.objects.filter(applicant=applicant, job=job).exists()
-    if existing_application:
-        messages.warning(request, "You have already applied for this job.")
-        return redirect("job_detail", job_id=job.id)
-
     if request.method == "POST":
-        form = ApplicationForm(request.POST, request.FILES)
-        if form.is_valid():
-            application = form.save(commit=False)
-            application.job = job
-            application.applicant = applicant
-            application.save()
+        existing_application = Application.objects.filter(applicant=applicant, job=job).exists()
+        if existing_application:
+            # If user already applied, do NOT treat it as an error
+            return JsonResponse({
+                "success": True,
+                "already_applied": True
+            })
 
-            # Save or update Candidate entry
-            candidate, created = Candidate.objects.update_or_create(
-                user=applicant.user,
-                job=job,
-                defaults={
-                    "resume": form.cleaned_data.get("resume"),
-                    "cover_letter": form.cleaned_data.get("cover_letter"),
-                    "first_name": form.cleaned_data.get("first_name"),
-                    "last_name": form.cleaned_data.get("last_name"),
-                    "phone": form.cleaned_data.get("phone"),
-                    "address": form.cleaned_data.get("address"),
-                    
-                    # Education fields
-                    "school": form.cleaned_data.get("school"),
-                    "degree": form.cleaned_data.get("degree"),
-                    "discipline": form.cleaned_data.get("discipline"),
-                    "start_date": form.cleaned_data.get("start_date"),
-                    "end_date": form.cleaned_data.get("end_date"),
-                    
-                    "linkedin_profile": form.cleaned_data.get("linkedin_profile"),
-                    "portfolio_website": form.cleaned_data.get("portfolio_website"),
-                    "how_did_you_hear": form.cleaned_data.get("how_did_you_hear"),
-                    "current_job_title": form.cleaned_data.get("current_job_title"),
-                    "current_employer": form.cleaned_data.get("current_employer"),
-                    "application_status": "Pending"
-                }
-            )
+        # Otherwise create the application
+        Application.objects.create(
+            job=job,
+            applicant=applicant,
+            resume=None,
+            cover_letter=None,
+        )
+        return JsonResponse({
+            "success": True,
+            "already_applied": False,
+            "redirect_url": f"/applicants_application/{job_id}/"
+        })
 
-
-
-            # Create an EmployerNotification
-            EmployerNotification.objects.create(
-                employer=job.employer,
-                title="New Job Application",  
-                message=f"📩 New application received for {job.title} by {applicant.user.first_name} {applicant.user.last_name}!"
-            )
-
-            # Create an ApplicantNotification
-            ApplicantNotification.objects.create(
-                applicant=applicant,
-                title="Application Submitted",
-                message=f"Your application for '{job.title}' has been submitted successfully!"
-            )
-
-            messages.success(request, "✅ Your application has been submitted successfully!")
-            return redirect("job_detail", job_id=job.id)
-    else:
-        form = ApplicationForm()
-
-    return render(request, "applicants_application.html", {"form": form, "job": job, "existing_application": existing_application})
+    # If not a POST request, return an error
+    return JsonResponse({"success": False, "error": "Invalid request method."})
 
 
 @applicant_only
@@ -231,3 +196,29 @@ def applicants_notifications(request):
     notifications = ApplicantNotification.objects.filter(applicant=applicant).order_by('-timestamp')
 
     return render(request, 'applicants_notifications.html', {'notifications': notifications})
+
+@applicant_only
+@login_required
+def applicants_application(request, job_id):
+    """Displays the job application form"""
+    job = get_object_or_404(Job, id=job_id)
+    applicant = get_object_or_404(Applicant, user=request.user)
+
+    existing_application = Application.objects.filter(applicant=applicant, job=job).first()
+
+    if request.method == "POST":
+        form = ApplicationForm(request.POST, request.FILES, instance=existing_application)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Your application has been submitted successfully.")
+            return redirect('job_detail', job_id=job.id)
+        else:
+            messages.error(request, "Please fix the errors in your application form.")
+    else:
+        form = ApplicationForm(instance=existing_application)
+
+    return render(request, 'applicants_application.html', {
+        'form': form,
+        'job': job,
+        'existing_application': existing_application
+    })

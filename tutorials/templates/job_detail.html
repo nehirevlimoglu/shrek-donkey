@@ -14,20 +14,19 @@
         <p><strong>Job Type:</strong> {{ job.job_type }}</p>
         <p><strong>Description:</strong> {{ job.description }}</p>
 
-        <!-- Button container for alignment -->
         <div class="button-container">
+            <!-- "Back to Jobs" link -->
             <a href="{% url 'applicants-home-page' %}" class="btn-primary">Back to Jobs</a>
-        
+
+            <!-- Conditionally show a disabled button if already applied -->
             {% if existing_application %}
-                <p class="already-applied-message">✅ You have already applied for this job.</p>
+                <button id="apply-btn" class="btn-disabled" disabled>Already Applied</button>
             {% else %}
-                {% if existing_application %}
-                    <p class="already-applied-message">✅ You have already applied for this job.</p>
-                {% else %}
-                    <button id="apply-btn" class="btn-primary" data-job-id="{{ job.id }}">Apply Now</button>
-                {% endif %}    
+                <button id="apply-btn" class="btn-primary" data-job-id="{{ job.id }}">Apply Now</button>
             {% endif %}
-        </div>        
+        </div>
     </div>
-    <script src="{% static 'js/job_application.js' %}?v={{ request.timestamp }}"></script>
+
+    <!-- JavaScript that handles the “Apply” click/response -->
+    <script src="{% static 'js/job_application.js' %}?v={{ random }}"></script>
 {% endblock %}

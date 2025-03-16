@@ -3,7 +3,7 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from tutorials.views.views import log_in, log_out, sign_up  
-from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile, applicants_analytics, apply_for_job
+from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile, applicants_analytics, apply_for_job, job_detail, applicants_application
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications, review_job, update_job_status
 from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, change_password, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_calendar, employer_candidates, get_interviews, edit_company_profile, delete_account, employer_notifications, get_employer_events, review_application, mark_notification_as_read, applicant_profile, schedule_interview, accept_candidate, reject_candidate
 
@@ -44,7 +44,6 @@ urlpatterns = [
     path("settings/edit_profile/", edit_company_profile, name="edit_company_profile"),
     path("settings/delete_account/", delete_account, name="delete_account"),
     path('job/<int:job_id>/', job_detail_view, name='job_detail'),
-
     
     path('employer-notifications/', employer_notifications, name='employer_notifications'),
     path('get-employer-events/', get_employer_events, name='get_employer_events'),
@@ -54,12 +53,13 @@ urlpatterns = [
     path('interviews/schedule/<int:applicant_id>/', schedule_interview, name='schedule_interview'),
     path('get-interview-events/', get_interviews, name='get_interview_events'),
 
-
-
     path('job/<int:job_id>/apply/', apply_for_job, name='apply_for_job'),
     path("candidates/<int:candidate_id>/accept/", accept_candidate, name="accept_candidate"),
     path("candidates/<int:candidate_id>/reject/", reject_candidate, name="reject_candidate"),
 
+    path('job/<int:job_id>/', job_detail, name='job_detail'),
+    path('job/<int:job_id>/apply/', apply_for_job, name='apply_for_job'),
+    path('applicants_application/<int:job_id>/', applicants_application, name='applicants_application'),
 
 ]
 
