@@ -7,40 +7,22 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("✅ Apply button found:", applyBtn);
 
         applyBtn.addEventListener("click", function () {
-            console.log("🟢 Apply button clicked! Processing application...");
+            console.log("🟢 Apply button clicked! Submitting form...");
 
-            const jobId = applyBtn.getAttribute("data-job-id");
+            const form = document.createElement("form"); // Create a new form element
+            form.method = "POST";
+            form.action = `/job/${applyBtn.getAttribute("data-job-id")}/apply/`;
+            form.enctype = "multipart/form-data"; // Ensure file upload works
 
-            // Send POST request to our Django view
-            fetch(`/job/${jobId}/apply/`, {  
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": getCookie("csrftoken"),
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({}),
-            })
-            .then(response => response.json())
-            .then(data => {
-                // If success = true, check whether we already applied
-                if (data.success) {
-                    if (data.already_applied) {
-                        // ✅ Disable button + show "Already Applied"
-                        console.log("❌ User already applied. Updating button...");
-                        applyBtn.textContent = "Already Applied";
-                        applyBtn.disabled = true;
-                        applyBtn.classList.add("btn-disabled");
-                    } else {
-                        // ✅ User just applied for the first time => redirect
-                        console.log("✅ Job applied successfully! Redirecting to the application form...");
-                        window.location.href = data.redirect_url;
-                    }
-                } else {
-                    // Some other error (invalid request method, etc.)
-                    console.warn("⚠️ Something went wrong:", data.error);
-                }
-            })
-            .catch(error => console.error("🔴 Fetch Error:", error));
+            // Add CSRF token
+            const csrfInput = document.createElement("input");
+            csrfInput.type = "hidden";
+            csrfInput.name = "csrfmiddlewaretoken";
+            csrfInput.value = getCookie("csrftoken");
+            form.appendChild(csrfInput);
+
+            document.body.appendChild(form);
+            form.submit();
         });
     } else {
         console.log("❌ Apply button NOT found");

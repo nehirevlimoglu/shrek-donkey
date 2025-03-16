@@ -97,8 +97,8 @@ class Candidate(models.Model):
     last_name = models.CharField(max_length=255, blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     address = models.CharField(max_length=255, blank=True, null=True)
-    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
-    cover_letter = models.TextField(blank=True, null=True)
+    resume = models.FileField(upload_to='resumes/', blank=True, null=True)  # ✅ Already correct
+    cover_letter = models.FileField(upload_to='cover_letters/', blank=True, null=True)  # ✅ Change this
 
     # Education fields
     school = models.CharField(max_length=255, blank=True, null=True)

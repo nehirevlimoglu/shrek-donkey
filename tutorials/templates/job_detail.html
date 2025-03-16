@@ -22,7 +22,11 @@
             {% if existing_application %}
                 <button id="apply-btn" class="btn-disabled" disabled>Already Applied</button>
             {% else %}
-                <button id="apply-btn" class="btn-primary" data-job-id="{{ job.id }}">Apply Now</button>
+            <form method="POST" action="{% url 'apply_for_job' job.id %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <button type="submit" class="btn-primary">Apply Now</button>
+            </form>
+            
             {% endif %}
         </div>
     </div>

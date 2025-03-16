@@ -112,17 +112,7 @@ class ApplicationForm(forms.ModelForm):
 
     # ✅ Make Education Fields Optional (Fix for blocking issue)
     school = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
-    DEGREE_CHOICES = [
-        ("High School", "High School Diploma"),
-        ("Associate", "Associate's Degree"),
-        ("Bachelor", "Bachelor's Degree"),
-        ("Master", "Master's Degree"),
-        ("PhD", "Doctorate (PhD)"),
-        ("Other", "Other"),
-    ]
-    
-    degree = forms.ChoiceField(choices=DEGREE_CHOICES, required=False, widget=forms.Select(attrs={"class": "form-control"}))
-    
+    degree = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     discipline = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     start_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
     end_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)

@@ -14,6 +14,7 @@
 
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
+        
 
             <!-- ✅ Personal Details Section -->
             <h2>Personal Details</h2>
@@ -37,11 +38,12 @@
             <div id="education-section">
                 <div class="education-entry">
                     <div class="form-grid">
-                        <div><label>School</label><input type="text" name="school[]" required></div>
-                        <div><label>Degree</label><input type="text" name="degree[]" required></div>
-                        <div><label>Discipline</label><input type="text" name="discipline[]" required></div>
-                        <div><label>Start Date</label><input type="date" name="start_date[]" required></div>
-                        <div><label>End Date</label><input type="date" name="end_date[]"></div>
+                        <div><label>School</label><input type="text" name="school" required></div>
+                        <div><label>Degree</label><input type="text" name="degree" required></div>
+                        <div><label>Discipline</label><input type="text" name="discipline" required></div>
+                        <div><label>Start Date</label><input type="date" name="start_date" required></div>
+                        <div><label>End Date</label><input type="date" name="end_date"></div>
+                        
                     </div>
                 </div>
             </div>
