@@ -3,6 +3,8 @@
 from django import forms
 from tutorials.models.applicants_models import Applicant, Application
 from tutorials.models.employer_models import JobTitle
+from django.core.exceptions import ValidationError
+
 
 
 class ApplicantForm(forms.ModelForm):
@@ -80,8 +82,12 @@ class ApplicantForm(forms.ModelForm):
             applicant.save()  # Save the Applicant model
 
         return applicant
-    
 
+
+# ✅ Custom validator to enforce PDF file uploads only
+def validate_pdf(value):
+    if not value.name.endswith(".pdf"):
+        raise ValidationError("❌ Only PDF files are allowed for resumes!")
 
 class ApplicationForm(forms.ModelForm):
     # Personal Information
@@ -92,12 +98,31 @@ class ApplicationForm(forms.ModelForm):
     address = forms.CharField(max_length=255, required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
 
     # Resume & Cover Letter
-    resume = forms.FileField(required=True, widget=forms.FileInput(attrs={"class": "form-control"}))
-    cover_letter = forms.FileField(required=False, widget=forms.FileInput(attrs={"class": "form-control"}))
+    resume = forms.FileField(
+        required=True, 
+        widget=forms.FileInput(attrs={"class": "form-control"}), 
+        validators=[validate_pdf]  # Enforce PDF validation
+    )
+    
+    cover_letter = forms.FileField(
+        required=False, 
+        widget=forms.FileInput(attrs={"class": "form-control"}), 
+        validators=[validate_pdf]  
+    )
 
     # ✅ Make Education Fields Optional (Fix for blocking issue)
     school = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
-    degree = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    DEGREE_CHOICES = [
+        ("High School", "High School Diploma"),
+        ("Associate", "Associate's Degree"),
+        ("Bachelor", "Bachelor's Degree"),
+        ("Master", "Master's Degree"),
+        ("PhD", "Doctorate (PhD)"),
+        ("Other", "Other"),
+    ]
+    
+    degree = forms.ChoiceField(choices=DEGREE_CHOICES, required=False, widget=forms.Select(attrs={"class": "form-control"}))
+    
     discipline = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     start_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
     end_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
