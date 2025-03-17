@@ -12,7 +12,7 @@ from tutorials.views.employer_views import job_detail_view
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', log_in, name='home'),
-    path('log_in/', log_in, name='log_in'),  
+    path('log_in/', log_in, name='log-in'),  
     path('logout/', log_out, name='log-out'),
 
     path('applicants_home_page/', applicants_home_page, name='applicants-home-page'),
