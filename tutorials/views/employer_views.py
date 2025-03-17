@@ -14,11 +14,12 @@ from django.http import JsonResponse
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponseForbidden
-import logging
+import logging, json
 from tutorials.models.applicants_models import Application, ApplicantNotification, Applicant
 from django.utils.dateparse import parse_date, parse_time
 from django.utils.timezone import now
 from django.db.models import Count, Q
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 logger = logging.getLogger(__name__)
@@ -60,7 +61,6 @@ def employer_home_page(request):
         'total_applicants': total_applicants,  # ✅ Pass total applicants
     })
 
-
 @login_required
 def view_employer_analytics(request):
     """Fetch employer analytics data for reporting."""
@@ -70,12 +70,12 @@ def view_employer_analytics(request):
         # ✅ Fetch core analytics data
         total_jobs = Job.objects.filter(employer=employer).count()
         total_applicants = Candidate.objects.filter(job__employer=employer).count()
-        
+
         # ✅ Count of scheduled interviews that have not been completed
         pending_interviews = Interview.objects.filter(
             job__employer=employer, date__gte=now().date()
         ).count()
-        
+
         average_apps_per_job = total_applicants / total_jobs if total_jobs > 0 else 0
 
         # ✅ Fetch job-wise analytics
@@ -111,12 +111,11 @@ def view_employer_analytics(request):
         'total_applicants': total_applicants,
         'average_apps_per_job': round(average_apps_per_job, 1),
         'pending_interviews': pending_interviews,  # ✅ Scheduled but not yet completed interviews
-        'job_analytics': job_data,  # Pass job-specific analytics
-        'job_titles': job_titles,
-        'job_applicants': job_applicants,
-        'job_interviews': job_interviews,  # ✅ Pass interview data for the second chart
+        'job_analytics': job_data,  # ✅ Pass job-specific analytics
+        'job_titles': json.dumps(job_titles, cls=DjangoJSONEncoder),  # ✅ Convert to JSON
+        'job_applicants': json.dumps(job_applicants, cls=DjangoJSONEncoder),  # ✅ Convert to JSON
+        'job_interviews': json.dumps(job_interviews, cls=DjangoJSONEncoder),  # ✅ Convert to JSON
     })
-
 
 @login_required
 def employer_settings(request):

@@ -71,15 +71,16 @@
                 </section>
 
                 <script id="job_titles_json" type="application/json">
-                    {{ job_titles|json_script:"jobTitlesJson" }}
+                    {{ job_titles|safe }}
                 </script>
                 
+                
                 <script id="job_applicants_json" type="application/json">
-                    {{ job_applicants|json_script:"jobApplicantsJson" }}
+                    {{ job_applicants|safe }}
                 </script>
                 
                 <script id="job_interviews_json" type="application/json">
-                    {{ job_interviews|json_script:"jobInterviewsJson" }}
+                    {{ job_interviews|safe }}
                 </script>
                 
                 
@@ -88,4 +89,5 @@
 
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                 <script src="{% static 'js/employer_analytics.js' %}"></script>
+
 {% endblock %}
