@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from random import randint
+import json
 
 
 @applicant_only
@@ -287,4 +288,47 @@ def applicants_application(request, job_id):
         'form': form,
         'job': job,
         'existing_application': existing_application
+    })
+
+@applicant_only
+@login_required
+def applicants_analytics(request):
+    """ Fetch and display real applicant analytics data """
+
+    # Get the logged-in applicant
+    applicant = request.user.applicant
+
+    # Fetch statistics
+    total_applications = Application.objects.filter(applicant=applicant).count()
+    interviews_scheduled = Application.objects.filter(applicant=applicant, status="interviewed").count()
+    job_offers_received = Application.objects.filter(applicant=applicant, status="hired").count()
+    
+    # Calculate acceptance rate
+    accepted_offers = Application.objects.filter(applicant=applicant, status="hired", confirm_information=True).count()
+    offer_acceptance_rate = (accepted_offers / job_offers_received * 100) if job_offers_received > 0 else 0
+
+    # Applications over time (grouping by month)
+    applications_per_month = Application.objects.filter(applicant=applicant).values_list("applied_at", flat=True)
+    
+    month_counts = {m: 0 for m in ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]}  # Adjust based on data range
+    for date in applications_per_month:
+        month_name = date.strftime("%b")
+        if month_name in month_counts:
+            month_counts[month_name] += 1
+
+    # Offer Acceptance Breakdown
+    accepted_count = accepted_offers
+    declined_count = job_offers_received - accepted_offers
+
+    # Fetch applications list for table
+    applications = Application.objects.filter(applicant=applicant).select_related("job")
+
+    return render(request, 'applicants_analytics.html', {
+        "total_applications": total_applications,
+        "interviews_scheduled": interviews_scheduled,
+        "job_offers_received": job_offers_received,
+        "offer_acceptance_rate": round(offer_acceptance_rate, 2),
+        "applications": applications,  # Pass applications for the table
+        "applications_over_time": json.dumps(list(month_counts.values())),
+        "offer_acceptance_breakdown": json.dumps([accepted_count, declined_count]),
     })
