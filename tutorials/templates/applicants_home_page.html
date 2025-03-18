@@ -4,6 +4,7 @@
 {% block title %}Applicants Home Page | Swamp Hiring{% endblock %}
 
 {% block content %}
+<!-- Link to your custom CSS file; ensure it is loaded after any framework CSS -->
 <link rel="stylesheet" type="text/css" href="{% static 'css/applicants_home_page.css' %}">
 
 <div class="dashboard-container">
@@ -11,21 +12,25 @@
         <div class="filter-options" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
             <h2>Available Jobs</h2>
             <form method="get" action="" style="display: flex; gap: 1rem; align-items: center;">
-                <select name="location">
+                <select name="location" class="pill-select">
                     <option value="">All Locations</option>
                     {% for loc in locations %}
                         <option value="{{ loc }}">{{ loc }}</option>
                     {% endfor %}
                 </select>
 
-                <select name="salary_interval">
+                <select name="salary_interval" class="pill-select">
                     <option value="">Any Salary</option>
                     <option value="0-50000">$0 - $50,000</option>
                     <option value="50000-100000">$50,000 - $100,000</option>
                     <option value="100000-150000">$100,000 - $150,000</option>
+                    <option value="150000-200000">$150,000 - $200,000</option>
+                    <option value="200000-250000">$200,000 - $250,000</option>
+                    <option value="250000-300000">$250,000 - $300,000</option>
+                    <option value="300000-999999999">$300,000+</option>
                 </select>
 
-                <select name="job_type">
+                <select name="job_type" class="pill-select">
                     <option value="">All Types</option>
                     <option value="full-time">Full Time</option>
                     <option value="part-time">Part Time</option>
@@ -33,14 +38,15 @@
                     <option value="apprenticeship">Apprenticeship</option>
                 </select>
 
-                <select name="company">
+                <select name="company" class="pill-select">
                     <option value="">All Companies</option>
                     {% for comp in companies %}
                         <option value="{{ comp }}">{{ comp }}</option>
                     {% endfor %}
                 </select>
 
-                <button type="submit" class="btn btn-secondary">Filter</button>
+                <!-- Use ONLY the custom class -->
+                <button type="submit" class="filter-btn">Filter</button>
             </form>
         </div>
 
@@ -83,12 +89,10 @@
     </main>
 </div>
 
-<!-- ✅ Load Intro.js -->
+<!-- Load Intro.js -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/4.0.10/introjs.min.css">
 <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
 
-<!-- ✅ Load Applicant Tutorial (Ensure Proper Loading Order) -->
+<!-- Load Applicant Tutorial (Ensure Proper Loading Order) -->
 <script src="{% static 'js/applicant_tutorial.js' %}?v=1.0" defer></script>
-
-
 {% endblock %}
