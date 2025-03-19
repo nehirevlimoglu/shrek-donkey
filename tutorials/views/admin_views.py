@@ -119,7 +119,162 @@ def admin_job_listings(request):
     })
 
 def admin_settings(request):
-    return render(request, 'admin_settings.html')
+    if not request.user.is_authenticated:
+        return redirect('log-in')
+    
+    if request.user.role != 'Admin':
+        return HttpResponse("Access Denied: You are not authorized to access this page.", status=403)
+    
+    try:
+        # Try to get the Admin object
+        admin = Admin.objects.get(id=request.user.id)
+    except Admin.DoesNotExist:
+        # If Admin object doesn't exist, create it based on the existing User
+        try:
+            admin = Admin(
+                id=request.user.id,
+                username=request.user.username,
+                email=request.user.email,
+                first_name=request.user.first_name,
+                last_name=request.user.last_name,
+                password=request.user.password,
+                role='Admin'
+            )
+            admin.save()
+        except Exception as e:
+            # Log the error for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to create Admin object: {str(e)}")
+            # Return a more user-friendly error message
+            return render(request, 'admin_settings.html', {
+                'admin': request.user,
+                'error': 'We encountered a problem with your admin profile. Some features may be limited.',
+                'tab': request.GET.get('tab', 'profile')
+            })
+    
+    if request.method == 'POST':
+        if 'update_profile' in request.POST:
+            admin.username = request.POST.get('username')
+            admin.email = request.POST.get('email')
+            admin.first_name = request.POST.get('first_name')
+            admin.last_name = request.POST.get('last_name')
+            admin.phone_number = request.POST.get('phone_number', '')
+            admin.save()
+            
+            # Update the User object as well
+            user = request.user
+            user.username = admin.username
+            user.email = admin.email
+            user.first_name = admin.first_name
+            user.last_name = admin.last_name
+            user.save()
+            
+            # Create success notification
+            Notification.objects.create(
+                recipient=request.user,
+                title="Profile Updated",
+                message="Your admin profile has been successfully updated.",
+                notification_type='system',
+                priority='low',
+                is_read=False
+            )
+            
+            return redirect('admin_settings')
+        
+        elif 'change_password' in request.POST:
+            # Get password data
+            current_password = request.POST.get('current_password')
+            new_password = request.POST.get('new_password')
+            confirm_password = request.POST.get('confirm_password')
+            
+            # Verify current password
+            if not request.user.check_password(current_password):
+                return render(request, 'admin_settings.html', {
+                    'admin': admin,
+                    'error': 'Current password is incorrect.',
+                    'tab': 'password'
+                })
+            
+            # Check if new passwords match
+            if new_password != confirm_password:
+                return render(request, 'admin_settings.html', {
+                    'admin': admin,
+                    'error': 'New passwords do not match.',
+                    'tab': 'password'
+                })
+            
+            # Update password for both Admin and User
+            admin.set_password(new_password)
+            admin.save()
+            
+            request.user.set_password(new_password)
+            request.user.save()
+            
+            # Create success notification
+            Notification.objects.create(
+                recipient=request.user,
+                title="Password Changed",
+                message="Your password has been successfully changed.",
+                notification_type='system',
+                priority='medium',
+                is_read=False
+            )
+            
+            # Re-authenticate user with new password
+            user = authenticate(username=admin.username, password=new_password)
+            if user:
+                login(request, user)
+            
+            return redirect('admin_settings')
+            
+        elif 'update_notification_prefs' in request.POST:
+            # Get checkbox values
+            job_notifications = request.POST.get('job_notifications') == 'on'
+            application_notifications = request.POST.get('application_notifications') == 'on'
+            user_notifications = request.POST.get('user_notifications') == 'on'
+            system_notifications = request.POST.get('system_notifications') == 'on'
+            
+            email_delivery = request.POST.get('email_delivery') == 'on'
+            dashboard_delivery = request.POST.get('dashboard_delivery') == 'on'
+            
+            # Create notification types and delivery methods lists
+            notification_types = []
+            if job_notifications:
+                notification_types.append("job listings")
+            if application_notifications:
+                notification_types.append("applications")
+            if user_notifications:
+                notification_types.append("user accounts")
+            if system_notifications:
+                notification_types.append("system updates")
+                
+            delivery_methods = []
+            if email_delivery:
+                delivery_methods.append("email")
+            if dashboard_delivery:
+                delivery_methods.append("dashboard")
+                
+            # Create notification message
+            notification_message = f"You will receive notifications for: {', '.join(notification_types)}. "
+            notification_message += f"Delivery methods: {', '.join(delivery_methods)}."
+            
+            Notification.objects.create(
+                recipient=request.user,
+                title="Notification Preferences Updated",
+                message=notification_message,
+                notification_type='system',
+                priority='low',
+                is_read=False
+            )
+            
+            return redirect('admin_settings?tab=notifications')
+    
+    # For GET requests or after processing POST
+    return render(request, 'admin_settings.html', {
+        'admin': admin,
+        'tab': request.GET.get('tab', 'profile')
+    })
 
 @user_passes_test(is_admin)
 def admin_notifications(request):
