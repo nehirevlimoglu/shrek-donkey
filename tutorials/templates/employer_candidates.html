@@ -1,46 +1,91 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Candidates | Swamp Hiring{% endblock %}
+{% block title %}Job Candidates | Swamp Hiring{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/employer_candidates.css' }">
 {% endblock %}
 
 {% block content %}
-    <div class="candidates-section">
+    <section class="candidates-section">
         <h2>Job Candidates</h2>
 
+        <!-- ✅ Filtering Form -->
+        <form method="GET" action="{% url 'employer_candidates' %}" class="filter-form">
+            <label for="job">Job Position:</label>
+            <select name="job" id="job">
+                <option value="">All Positions</option>
+                {% for job in jobs %}
+                    <option value="{{ job.id }}" {% if request.GET.job == job.id|stringformat:"s" %}selected{% endif %}>
+                        {{ job.title }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label for="status">Status:</label>
+            <select name="status" id="status">
+                <option value="">All Statuses</option>
+                {% for status_code, status_label in statuses %}
+                    <option value="{{ status_code }}" {% if request.GET.status == status_code %}selected{% endif %}>
+                        {{ status_label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label for="degree">Degree:</label>
+            <input type="text" name="degree" id="degree" placeholder="Enter Degree" value="{{ request.GET.degree|default:'' }}">
+
+            <label for="discipline">Discipline:</label>
+            <input type="text" name="discipline" id="discipline" placeholder="Enter Discipline" value="{{ request.GET.discipline|default:'' }}">
+
+            <button type="submit" class="btn-filter">Apply Filters</button>
+        </form>
+
         {% if candidates %}
-            <table>
+            <table class="candidates-table">
                 <thead>
                     <tr>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Position Applied</th>
                         <th>Status</th>
-                        <th>Profile</th>
+                        <th>Resume</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for candidate in candidates %}
                         <tr>
-                            <td>{{ candidate.user.first_name }} {{ candidate.user.last_name }}</td>
-                            <td>{{ candidate.user.email }}</td>
-                            <td>{{ candidate.job.title }}</td>
+                            <td>{{ candidate.user.get_full_name|default:"N/A" }}</td>
+                            <td>{{ candidate.user.email|default:"N/A" }}</td>
+                            <td>{{ candidate.job.title|default:"N/A" }}</td>
                             <td>
-                                <span class="status status-{{ candidate.application_status|lower }}">
-                                    {{ candidate.application_status }}
+                                <span class="status-tag status-{{ candidate.application_status|lower }}">
+                                    {{ candidate.application_status|default:"Pending" }}
                                 </span>
                             </td>
                             <td>
+                                {% if candidate.resume %}
+                                    <a href="{{ candidate.resume.url }}" target="_blank">View Resume</a>
+                                {% else %}
+                                    No Resume
+                                {% endif %}
                             </td>
+                            <td>
+                                <a href="{% url 'applicant_profile' candidate.id %}" class="btn-review">Review</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="no-candidates">No candidates match your filters.</td>
                         </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        
         {% else %}
-            <p>No candidates have applied yet.</p>
+            <p class="no-candidates">No candidates have applied yet.</p>
         {% endif %}
-    </div>
+    </section>
 {% endblock %}

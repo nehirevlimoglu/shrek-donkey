@@ -1,7 +1,11 @@
 # tutorials/forms/applicants_forms.py
 
 from django import forms
-from tutorials.models.applicants_models import Applicant
+from tutorials.models.applicants_models import Applicant, Application
+from tutorials.models.employer_models import JobTitle
+from django.core.exceptions import ValidationError
+
+
 
 class ApplicantForm(forms.ModelForm):
     first_name = forms.CharField(
@@ -15,6 +19,11 @@ class ApplicantForm(forms.ModelForm):
         max_length=150,
         required=True,
         widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    job_preferences = forms.ModelMultipleChoiceField(
+        queryset=JobTitle.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False
     )
 
     MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
@@ -73,3 +82,61 @@ class ApplicantForm(forms.ModelForm):
             applicant.save()  # Save the Applicant model
 
         return applicant
+
+
+# ✅ Custom validator to enforce PDF file uploads only
+def validate_pdf(value):
+    if not value.name.endswith(".pdf"):
+        raise ValidationError("❌ Only PDF files are allowed for resumes!")
+
+class ApplicationForm(forms.ModelForm):
+    # Personal Information
+    first_name = forms.CharField(max_length=50, required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
+    last_name = forms.CharField(max_length=50, required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
+    phone = forms.CharField(max_length=20, required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
+    email = forms.EmailField(required=True, widget=forms.EmailInput(attrs={"class": "form-control"}))
+    address = forms.CharField(max_length=255, required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
+
+    # Resume & Cover Letter
+    resume = forms.FileField(
+        required=True, 
+        widget=forms.FileInput(attrs={"class": "form-control"}), 
+        validators=[validate_pdf]  # Enforce PDF validation
+    )
+    
+    cover_letter = forms.FileField(
+        required=False, 
+        widget=forms.FileInput(attrs={"class": "form-control"}), 
+        validators=[validate_pdf]  
+    )
+
+    # ✅ Make Education Fields Optional (Fix for blocking issue)
+    school = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    degree = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    discipline = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    start_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
+    end_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
+
+    # ✅ Keep Other Fields the Same
+    current_job_title = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    current_employer = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    linkedin_profile = forms.URLField(required=False, widget=forms.URLInput(attrs={"class": "form-control"}))
+    portfolio_website = forms.URLField(required=False, widget=forms.URLInput(attrs={"class": "form-control"}))
+
+    how_did_you_hear = forms.ChoiceField(
+        choices=[("linkedin", "LinkedIn"), ("website", "Company Website"), ("referral", "Referral"), ("other", "Other")],
+        required=True, widget=forms.Select(attrs={"class": "form-control"})
+    )
+
+    sponsorship_needed = forms.ChoiceField(choices=[("yes", "Yes"), ("no", "No")], required=True, widget=forms.Select(attrs={"class": "form-control"}))
+
+    confirm_information = forms.BooleanField(required=True, label="I confirm all information is accurate.", widget=forms.CheckboxInput())
+
+    class Meta:
+        model = Application
+        fields = [
+            "first_name", "last_name", "email", "phone", "address", "resume", "cover_letter",
+            "school", "degree", "discipline", "start_date", "end_date",  # ✅ Education is now optional
+            "current_job_title", "current_employer", "linkedin_profile", "portfolio_website",
+            "how_did_you_hear", "sponsorship_needed", "confirm_information",
+        ]

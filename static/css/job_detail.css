@@ -1,0 +1,57 @@
+/* Job Detail Page Styling */
+.job-detail-container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Button container with space between */
+/* Button container - ensures buttons are positioned properly */
+.button-container {
+    display: flex;
+    justify-content: space-between; /* Pushes buttons to opposite sides */
+    align-items: center;
+    margin-top: 20px;
+    width: 100%;
+}
+
+/* Ensure the apply button stays to the right */
+.apply-form {
+    margin-left: auto; /* Pushes the form to the right */
+}
+
+
+/* Ensure buttons are aligned properly */
+.btn-primary {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #0073e6;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* Hover effect */
+.btn-primary:hover {
+    background: #005bb5;
+}
+
+/* Disabled "Already Applied" button */
+.btn-disabled {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #ccc;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    border: none;
+    font-size: 16px;
+    cursor: not-allowed;
+}

@@ -21,7 +21,7 @@
                             <li><a href="{% url 'create_job_listings' %}">Create New Listing</a></li>
                             <li><a href="{% url 'employer_job_listings' %}">Job Listings</a></li>
                             <li><a href="{% url 'employer_candidates' %}">Candidates</a></li>
-                            <li><a href="{% url 'employer_interviews' %}">Interviews</a></li>
+                            <li><a href="{% url 'employer_calendar' %}">Interviews</a></li>
                             <li><a href="{% url 'employer_analytics' %}">Analytics</a></li>
                             <li><a href="{% url 'employer_settings' %}">Settings</a></li>
                         {% elif user.role == "Admin" %}
@@ -46,19 +46,14 @@
         
         <main class="content">
             <header>
-                <div class="user-profile" id="userProfile">
+                <div class="user-profile">
                     <h1>Welcome Back, {{ user.first_name }} 👋</h1>
-                    <div class="dropdown-menu" id="dropdownMenu">
-                        <ul>
-                            <li><a href="{% url 'employer_settings' %}">Settings</a></li>
-                            <li>
-                                <form action="{% url 'log-out' %}" method="POST">
-                                    {% csrf_token %}
-                                    <button type="submit" class="logout-btn">Logout</button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
+                </div>
+                <div class="logout-container">
+                    <form action="{% url 'log-out' %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">Logout</button>
+                    </form>
                 </div>
             </header>
 

@@ -7,23 +7,25 @@
 
 <link rel="stylesheet" type="text/css" href="{% static 'css/applicants_applied_jobs.css' %}?v={{ timestamp }}">
 
-    <div class="dashboard-container">
-        <aside class="sidebar">
-            <h2>Swamp Hiring</h2>
-            <nav>
-                <ul>
-                    <li><a href="{% url 'applicants-home-page' %}">Home Page</a></li>
-                    <li><a href="{% url 'applicants-account' %}">Account</a></li>
-                    <li><a href="{% url 'applicants-favourites' %}">Favourites</a></li>
-                    <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
-                    <li><a href="{% url 'applicants-notifications' %}">Notifications</a></li>
-                    <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
-                </ul>
-            </nav>
-        </aside>
-        
-        <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
-            <h1 class="page-header">Applied Jobs</h1>
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <h2>Swamp Hiring</h2>
+        <nav>
+            <ul>
+                <li><a href="{% url 'applicants-home-page' %}">Home Page</a></li>
+                <li><a href="{% url 'applicants-account' %}">Account</a></li>
+                <li><a href="{% url 'applicants-favourites' %}">Favourites</a></li>
+                <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
+                <li><a href="{% url 'applicants-notifications' %}">Notifications</a></li>
+                <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
+            </ul>
+        </nav>
+    </aside>
+    
+    <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
+        <h1 class="page-header">Applied Jobs</h1>
+
+        {% if applied_jobs %}
             <div class="job-listings-container" style="width: 100%;">
                 <table class="job-table" style="width: 100%; text-align: center;">
                     <thead>
@@ -38,51 +40,48 @@
                         </tr>
                     </thead>
                     <tbody class="job-listings">
-                        <!-- Applied jobs will be dynamically loaded here -->
+                        {% for application in applied_jobs %}
+                            <tr>
+                                <td><a href="{% url 'job_detail' application.job.id %}" class="job-link">{{ application.job.title }}</a></td>
+                                <td>{{ application.job.company_name }}</td>
+                                <td>{{ application.job.location }}</td>
+                                <td>${{ application.job.salary }}</td>
+                                <td>{{ application.job.job_type }}</td>
+                                <td>
+                                    {% if application.status == "under_review" %}
+                                        <span class="badge under-review">Under Review</span>
+                                    {% elif application.status == "interviewed" %}
+                                        <span class="badge interviewed">Interviewed</span>
+                                    {% elif application.status == "hired" %}
+                                        <span class="badge hired">Hired</span>
+                                    {% else %}
+                                        <span class="badge pending">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="favorite-star" onclick="toggleFavorite(this)">&#9734;</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
-        </main>
-    </div>
-    
-    <script>
-        function toggleFavorite(starElement) {
-            if (starElement.classList.contains("active")) {
-                starElement.classList.remove("active");
-                starElement.innerHTML = "&#9734;"; // Empty star (☆)
-            } else {
-                starElement.classList.add("active");
-                starElement.innerHTML = "&#9733;"; // Filled star (★)
-            }
+        {% else %}
+            <p>You haven't applied to any jobs yet.</p>
+        {% endif %}
+    </main>
+</div>
+
+<script>
+    function toggleFavorite(starElement) {
+        if (starElement.classList.contains("active")) {
+            starElement.classList.remove("active");
+            starElement.innerHTML = "&#9734;"; // Empty star (☆)
+        } else {
+            starElement.classList.add("active");
+            starElement.innerHTML = "&#9733;"; // Filled star (★)
         }
+    }
+</script>
 
-        function loadAppliedJobs() {
-            const appliedJobs = [
-                { title: "Software Engineer", company: "TechCorp", location: "San Francisco, CA", salary: "$120,000/year", jobType: "Full-Time", status: "In Review" },
-                { title: "Marketing Manager", company: "MarketPros", location: "New York, NY", salary: "$90,000/year", jobType: "Part-Time", status: "Interview Scheduled" },
-                { title: "Data Analyst", company: "DataVision", location: "Austin, TX", salary: "$85,000/year", jobType: "Contract", status: "Application Sent" }
-            ];
-
-            const jobListings = document.querySelector(".job-listings");
-            jobListings.innerHTML = "";
-
-            appliedJobs.forEach(job => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${job.title}</td>
-                    <td>${job.company}</td>
-                    <td>${job.location}</td>
-                    <td>${job.salary}</td>
-                    <td>${job.jobType}</td>
-                    <td>${job.status}</td>
-                    <td>
-                        <span class="favorite-star" onclick="toggleFavorite(this)">&#9734;</span>
-                    </td>
-                `;
-                jobListings.appendChild(row);
-            });
-        }
-
-        window.onload = loadAppliedJobs;
-    </script>
 {% endblock %}

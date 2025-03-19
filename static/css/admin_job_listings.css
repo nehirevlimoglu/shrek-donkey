@@ -1,3 +1,9 @@
+/* General Styling for Reports Page */
+html, body {
+    overflow-y: auto; /* Enable vertical scrolling */
+    height: 100vh;
+}
+
 /* General reset */
 * {
     margin: 0;
@@ -25,17 +31,31 @@ h1 {
     width: 100%;
 }
 
-/* Listings - Grid Layout */
+/* Job Listings Container */
+.job-listings-container {
+    width: 100%;
+    max-width: 1600px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
+    /* Ensure it doesn't grow infinitely */
+    height: 80vh;  /* Set fixed height */
+    overflow-y: auto;  /* Enable scrolling inside */
+}
+
+/* Listings - Scrollable Grid Layout */
 .listings {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));  /* Auto-adjust columns */
     gap: 20px;
     width: 100%;
-    max-width: 1600px;  /* Max width of the listings container */
-    margin-top: 20px;
     padding: 10px;
-    overflow-y: auto;  /* Scrollable if there are many job cards */
-    max-height: 80vh;  /* Set maximum height for scrolling */
+
+    /* Make it scrollable */
+    overflow-y: auto;
+    max-height: 100%;  /* Ensure it takes full height of container */
 }
 
 .job-card {
@@ -45,7 +65,7 @@ h1 {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     text-align: center;
     width: 100%;
-    min-height: 250px;  /* Minimum height to ensure consistency in card size */
+    min-height: 250px;
 }
 
 .job-card h2 {
@@ -75,11 +95,134 @@ h1 {
     background: #1558B5;
 }
 
-/* Optional: Enhance the appearance of the job-listings-container */
-.job-listings-container {
+/* Wrapper to limit table height */
+.table-wrapper {
     width: 100%;
-    padding: 20px;
-    background-color: #fff;
+    max-width: 900px;
+    height: 60vh; /* Restrict overall height */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 15px;
 }
+
+/* Scrollable Table Container */
+.table-container {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto; /* Enables vertical scrolling */
+    border: 1px solid #ddd;
+}
+
+/* Ensure table fits within container */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* Prevents expansion */
+}
+
+/* Scrollable tbody */
+tbody {
+    display: block;
+    max-height: 50vh; /* Restrict row height */
+    overflow-y: auto;
+    width: 100%;
+}
+
+/* Fix headers so they stay visible */
+thead, tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+/* Sticky headers */
+thead tr {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 10;
+}
+
+/* Table Cell Styling */
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    word-wrap: break-word; /* Ensures content doesn't overflow */
+}
+
+/* Action Buttons */
+.approve-btn {
+    color: green;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.reject-btn {
+    color: red;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+
+.review-btn {
+    background: #1A73E8;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 250px;
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+    padding: 10px;
+    z-index: 1;
+    border-radius: 5px;
+}
+
+.dropdown-content p {
+    margin: 5px 0;
+    color: #333;
+}
+
+.dropdown-content a {
+    display: block;
+    text-decoration: none;
+    padding: 5px;
+    margin-top: 5px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.approve-btn {
+    background: green;
+    color: white;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.reject-btn {
+    background: red;
+    color: white;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.show {
+    display: block;
+}
+

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Application Review{% endblock %}
+
+{% block content %}
+    <h2>Application Review</h2>
+    <p><strong>Candidate:</strong> {{ application.candidate.user.first_name }} {{ application.candidate.user.last_name }}</p>
+    <p><strong>Job Applied:</strong> {{ application.job.title }}</p>
+    <p><strong>Status:</strong> {{ application.status }}</p>
+    <p><strong>Cover Letter:</strong></p>
+    <p>{{ application.cover_letter }}</p>
+    <p><strong>Resume:</strong> <a href="{{ application.resume.url }}" target="_blank">Download Resume</a></p>
+{% endblock %}
+
+

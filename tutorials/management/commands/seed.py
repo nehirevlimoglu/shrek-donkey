@@ -82,12 +82,12 @@ class Command(BaseCommand):
     def generate_user(self, role):
         first_name = self.faker.first_name()
         last_name = self.faker.last_name()
-        email = create_email(first_name, last_name)
+        email = self.create_email(first_name, last_name)
 
         while User.objects.filter(email=email).exists():
             first_name = self.faker.first_name()
             last_name = self.faker.last_name()
-            email = create_email(first_name, last_name)
+            email = self.create_email(first_name, last_name)
 
         username = create_username(first_name, last_name)
         data = {
@@ -115,7 +115,9 @@ class Command(BaseCommand):
                 "first_name": data['first_name'],
                 "last_name": data['last_name'],
                 "role": data['role'],
-                "is_active": True
+                "is_active": True,
+                "is_staff": data['role'] == "Admin",  # ✅ Set is_staff=True for admins
+                "is_superuser": data['role'] == "Admin"  # ✅ Set is_superuser=True for admins
             }
         )
         if created:
@@ -204,7 +206,7 @@ class Command(BaseCommand):
                 )
                 if emp_created:
                     print(f"✅ Employer profile created for {user.username}")
-            
+
             # Create Applicant profile
             elif data['role'] == 'Applicant':
                 applicant, app_created = Applicant.objects.get_or_create(
@@ -238,8 +240,10 @@ class Command(BaseCommand):
             except Applicant.DoesNotExist:
                 print("     ❌ No applicant profile found")
 
-def create_username(first_name, last_name):
-    return '@' + first_name.lower() + last_name.lower()
+    @staticmethod
+    def create_username(first_name, last_name):
+        """Creates a username in the format '@firstname_lastname'"""
+        return f"@{first_name.lower()}{last_name.lower()}"
 
 def create_email(first_name, last_name):
     return f"{first_name.lower()}@example.org"
