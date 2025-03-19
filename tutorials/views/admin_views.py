@@ -1,9 +1,10 @@
 import json
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404  # Added get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib import messages  # Added messages import
 from tutorials.models.admin_models import Admin, Notification
 from tutorials.models.employer_models import EmployerNotification 
 from tutorials.models.employer_models import Job
