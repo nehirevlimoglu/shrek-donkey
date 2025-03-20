@@ -12,15 +12,55 @@ class Admin(User):
         return self.username
 
 class Notification(models.Model):
+    # Notification type choices
+    TYPE_GENERAL = 'general'
+    TYPE_JOB = 'job'
+    TYPE_APPLICATION = 'application'
+    TYPE_USER = 'user'
+    TYPE_SYSTEM = 'system'
+    
+    TYPE_CHOICES = [
+        (TYPE_GENERAL, 'General'),
+        (TYPE_JOB, 'Job Listing'),
+        (TYPE_APPLICATION, 'Application'),
+        (TYPE_USER, 'User'),
+        (TYPE_SYSTEM, 'System'),
+    ]
+    
+    # Priority choices
+    PRIORITY_LOW = 'low'
+    PRIORITY_MEDIUM = 'medium'
+    PRIORITY_HIGH = 'high'
+    
+    PRIORITY_CHOICES = [
+        (PRIORITY_LOW, 'Low'),
+        (PRIORITY_MEDIUM, 'Medium'),
+        (PRIORITY_HIGH, 'High'),
+    ]
+
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     title = models.CharField(max_length=200)
     message = models.TextField()
+    notification_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default=TYPE_GENERAL)
+    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default=PRIORITY_MEDIUM)
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
+    related_object_id = models.PositiveIntegerField(null=True, blank=True)
+    related_object_type = models.CharField(max_length=50, null=True, blank=True)
+    action_url = models.CharField(max_length=255, blank=True, null=True)
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
         return f"{self.title} - {self.recipient.username}"
+        
+    def mark_as_read(self):
+        self.is_read = True
+        self.save()
+        
+    def soft_delete(self):
+        self.is_deleted = True
+        self.save()
 

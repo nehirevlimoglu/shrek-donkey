@@ -1,46 +1,226 @@
-{% extends 'base.html' %}
+{% extends 'admin_base.html' %}
 
-{% block title %}Profile | Swamp Hiring{% endblock %}
+{% block title %}Admin Settings | Swamp Hiring{% endblock %}
 
 {% block content %}
-<div class="container vh-100 d-flex justify-content-center align-items-center">
-    <div class="row w-100">
-        <div class="col-md-6 offset-md-3">
-            <div class="card shadow-sm">
-                <div class="card-header text-center bg-light">
-                    <h1 class="mb-0">Edit Profile</h1>
+<div class="settings-container">
+    <div class="page-header mb-4">
+        <h2><i class="bi bi-gear-fill me-2"></i>Admin Settings</h2>
+        <p class="text-muted">Manage your profile and preferences</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    {% if error %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ error }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Settings Menu</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="?tab=profile" class="list-group-item list-group-item-action {% if tab == 'profile' %}active{% endif %}">
+                        <i class="bi bi-person-fill me-2"></i> Profile Settings
+                    </a>
+                    <a href="?tab=password" class="list-group-item list-group-item-action {% if tab == 'password' %}active{% endif %}">
+                        <i class="bi bi-lock-fill me-2"></i> Change Password
+                    </a>
+                    <a href="?tab=notifications" class="list-group-item list-group-item-action {% if tab == 'notifications' %}active{% endif %}">
+                        <i class="bi bi-bell-fill me-2"></i> Notification Preferences
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-body text-center">
+                    <img src="{{ admin.gravatar|default:user.gravatar }}" alt="Admin Avatar" class="rounded-circle img-fluid mb-3" style="width: 120px;">
+                    <h5>{{ admin.full_name|default:user.full_name }}</h5>
+                    <p class="text-muted mb-0">{{ admin.email|default:user.email }}</p>
+                    <div class="badge bg-primary mt-2">Administrator</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <!-- Profile Settings Tab -->
+            <div class="card {% if tab != 'profile' %}d-none{% endif %}" id="profile-settings">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-person-fill me-2"></i>Profile Settings</h5>
                 </div>
                 <div class="card-body">
                     <form action="{% url 'admin_settings' %}" method="post" class="p-3">
                         {% csrf_token %}
+                        <input type="hidden" name="update_profile" value="1">
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       value="{{ admin.username|default:user.username }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email address</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ admin.email|default:user.email }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="first_name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" 
+                                       value="{{ admin.first_name|default:user.first_name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" 
+                                       value="{{ admin.last_name|default:user.last_name }}" required>
+                            </div>
+                        </div>
                         
                         <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" name="username" 
-                                   value="{{ form.username.value|default:'' }}" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email address</label>
-                            <input type="email" class="form-control" id="email" name="email" 
-                                   value="{{ form.email.value|default:'' }}" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="first_name" class="form-label">First Name</label>
-                            <input type="text" class="form-control" id="first_name" name="first_name" 
-                                   value="{{ form.first_name.value|default:'' }}" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="last_name" class="form-label">Last Name</label>
-                            <input type="text" class="form-control" id="last_name" name="last_name" 
-                                   value="{{ form.last_name.value|default:'' }}" required>
+                            <label for="phone_number" class="form-label">Phone Number (optional)</label>
+                            <input type="tel" class="form-control" id="phone_number" name="phone_number" 
+                                   value="{{ admin.phone_number|default:'' }}" 
+                                   placeholder="+1234567890">
+                            <div class="form-text">Format: +country code followed by number (e.g., +12345678901)</div>
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-save me-2"></i>Update Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Change Password Tab -->
+            <div class="card {% if tab != 'password' %}d-none{% endif %}" id="change-password">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-lock-fill me-2"></i>Change Password</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'admin_settings' %}" method="post" class="p-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="change_password" value="1">
+                        
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-lock-fill me-2"></i>Change Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Notification Preferences Tab -->
+            <div class="card {% if tab != 'notifications' %}d-none{% endif %}" id="notification-preferences">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-bell-fill me-2"></i>Notification Preferences</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{% url 'admin_settings' %}" method="post" class="p-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="update_notification_prefs" value="1">
+                        
+                        <div class="list-group mb-4">
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Job Listing Notifications</h6>
+                                        <p class="text-muted mb-0 small">Receive alerts when new job listings are posted</p>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="job_notifications" name="job_notifications" checked>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">Application Notifications</h6>
+                                        <p class="text-muted mb-0 small">Receive alerts when candidates apply for jobs</p>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="application_notifications" name="application_notifications" checked>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">User Account Notifications</h6>
+                                        <p class="text-muted mb-0 small">Receive alerts when new users register</p>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="user_notifications" name="user_notifications" checked>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">System Notifications</h6>
+                                        <p class="text-muted mb-0 small">Receive system updates and maintenance alerts</p>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="system_notifications" name="system_notifications" checked>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Notification Delivery Method</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="email_delivery" name="email_delivery" checked>
+                                <label class="form-check-label" for="email_delivery">
+                                    Email Notifications
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="dashboard_delivery" name="dashboard_delivery" checked>
+                                <label class="form-check-label" for="dashboard_delivery">
+                                    Dashboard Notifications
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Save Preferences
                             </button>
                         </div>
                     </form>
@@ -49,4 +229,17 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabLinks = document.querySelectorAll('.list-group-item-action');
+        
+        tabLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                // The default link behavior (URL parameter) will handle the tab switching
+                // This is just a hook for potential future enhancements
+            });
+        });
+    });
+</script>
 {% endblock %}

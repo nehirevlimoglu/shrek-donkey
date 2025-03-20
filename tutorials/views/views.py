@@ -57,11 +57,11 @@ def sign_up(request):
     return render(request, 'sign_up.html', {'form': form})
 
 def log_out(request):
-    print("User before logout:", request.user)  # ✅ Debug: Check user before logout
-    logout(request)
-    return redirect('log-in')  # Redirect to login page after logout
 
+    print("User before logout:", request.user) 
 
+    return redirect('log-in')  
 
-
-    
+    logout(request)  
+    print("User after logout:", request.user)  
+    return redirect('log-in')

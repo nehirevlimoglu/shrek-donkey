@@ -1,24 +1,542 @@
-
 {% extends 'admin_base.html' %}
+{% load static %}
 
-{% block title %}Admin Dashboard | Swamp Hiring{% endblock %}
+{% block title %}Notifications | Admin Dashboard | Swamp Hiring{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_notifications.css' %}">
+<style>
+    /* Ensure the entire content area is scrollable */
+    body {
+        overflow-y: auto !important;
+        min-height: 100vh;
+    }
+    
+    .notifications-container {
+        padding-bottom: 120px; /* Add sufficient bottom padding to ensure pagination is visible */
+        position: relative;
+    }
+    
+    /* New pagination styles - more clean and user-friendly */
+    .pagination-wrapper {
+        margin-top: 30px;
+        margin-bottom: 30px;
+        border-top: 1px solid #eee;
+        padding: 20px;
+        background-color: #f9fafb;
+        border-radius: 0 0 10px 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        z-index: 10; /* Increase z-index to ensure it's not covered */
+    }
+    
+    .pagination-controls {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .pagination-info {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+    
+    .pagination-per-page {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .pagination-per-page select {
+        padding: 5px 10px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        background-color: #fff;
+    }
+    
+    .pagination-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 15px;
+    }
+    
+    .page-link {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 8px;
+        border-radius: 4px;
+        text-decoration: none;
+        color: #333;
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        transition: all 0.2s ease;
+        font-size: 14px;
+    }
+    
+    .page-link:hover {
+        background-color: #e5e5e5;
+    }
+    
+    .page-link.active {
+        background-color: #007bff;
+        color: #fff;
+        border-color: #007bff;
+        font-weight: bold;
+    }
+    
+    .page-link.disabled {
+        color: #999;
+        pointer-events: none;
+        background-color: #f5f5f5;
+    }
+    
+    .page-ellipsis {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 36px;
+        height: 36px;
+    }
+    
+    /* Back to top button */
+    .back-to-top {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #007bff;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        z-index: 100;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .back-to-top.visible {
+        opacity: 1;
+    }
+    
+    @media (max-width: 768px) {
+        .pagination-controls {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .notifications-container {
+            padding-bottom: 150px; /* Add more bottom padding on small screens */
+        }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<body>
-            <section class="notifications-list">
-                {% if notifications %}
-                    {% for notification in notifications %}
-                    <div class="notification-card {% if not notification.is_read %}unread{% endif %}">
-                        <h3>{{ notification.title }}</h3>
-                        <p>{{ notification.message }}</p>
-                        <span class="timestamp">{{ notification.created_at|date:"M d, Y H:i" }}</span>
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <p class="no-notifications">No notifications available</p>
-                {% endif %}
-            </section>
-        </main>
+<div class="notifications-container">
+    <div class="notifications-header">
+        <h2>Notifications</h2>
+        <div class="notifications-actions">
+            {% if unread_count > 0 %}
+            <button id="markAllReadBtn" class="btn btn-secondary">Mark All as Read</button>
+            {% endif %}
+            <button id="deleteAllBtn" class="btn btn-danger">Clear All</button>
+        </div>
     </div>
-</body>
+    
+    <div class="notifications-filters">
+        <form method="get" action="{% url 'admin_notifications' %}" id="filterForm">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <label for="type">Type:</label>
+                    <select name="type" id="type" class="filter-select">
+                        <option value="all" {% if notification_type == 'all' %}selected{% endif %}>All Types</option>
+                        <option value="job" {% if notification_type == 'job' %}selected{% endif %}>Job Listings ({{ type_counts.job }})</option>
+                        <option value="application" {% if notification_type == 'application' %}selected{% endif %}>Applications ({{ type_counts.application }})</option>
+                        <option value="user" {% if notification_type == 'user' %}selected{% endif %}>Users ({{ type_counts.user }})</option>
+                        <option value="system" {% if notification_type == 'system' %}selected{% endif %}>System ({{ type_counts.system }})</option>
+                        <option value="general" {% if notification_type == 'general' %}selected{% endif %}>General ({{ type_counts.general }})</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="priority">Priority:</label>
+                    <select name="priority" id="priority" class="filter-select">
+                        <option value="all" {% if priority == 'all' %}selected{% endif %}>All Priorities</option>
+                        <option value="high" {% if priority == 'high' %}selected{% endif %}>High ({{ priority_counts.high }})</option>
+                        <option value="medium" {% if priority == 'medium' %}selected{% endif %}>Medium ({{ priority_counts.medium }})</option>
+                        <option value="low" {% if priority == 'low' %}selected{% endif %}>Low ({{ priority_counts.low }})</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="is_read">Status:</label>
+                    <select name="is_read" id="is_read" class="filter-select">
+                        <option value="all" {% if is_read == 'all' %}selected{% endif %}>All</option>
+                        <option value="unread" {% if is_read == 'unread' %}selected{% endif %}>Unread</option>
+                        <option value="read" {% if is_read == 'read' %}selected{% endif %}>Read</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="filter-row">
+                <div class="search-group">
+                    <input type="text" name="search" placeholder="Search notifications..." value="{{ search_query }}" class="search-input">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                    {% if search_query or notification_type != 'all' or priority != 'all' or is_read != 'all' %}
+                    <a href="{% url 'admin_notifications' %}" class="btn btn-secondary">Clear Filters</a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <div class="notifications-stats">
+        <span class="stats-item">Total: <strong>{{ total_count }}</strong></span>
+        <span class="stats-item">Unread: <strong>{{ unread_count }}</strong></span>
+    </div>
+    
+    <div class="notifications-list">
+        {% if notifications %}
+            {% for notification in notifications %}
+            <div class="notification-card {% if not notification.is_read %}unread{% endif %}" data-id="{{ notification.id }}">
+                <div class="notification-indicators">
+                    {% if notification.priority == 'high' %}
+                    <span class="priority-indicator high" title="High Priority">!</span>
+                    {% elif notification.priority == 'medium' %}
+                    <span class="priority-indicator medium" title="Medium Priority">●</span>
+                    {% else %}
+                    <span class="priority-indicator low" title="Low Priority">○</span>
+                    {% endif %}
+                    
+                    <span class="type-indicator {{ notification.notification_type }}" title="{{ notification.get_notification_type_display }}">
+                        {% if notification.notification_type == 'job' %}📄
+                        {% elif notification.notification_type == 'application' %}📝
+                        {% elif notification.notification_type == 'user' %}👤
+                        {% elif notification.notification_type == 'system' %}⚙️
+                        {% else %}📢
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="notification-content">
+                    <h3>{{ notification.title }}</h3>
+                    <p>{{ notification.message }}</p>
+                    <div class="notification-meta">
+                        <span class="timestamp">{{ notification.created_at|date:"M d, Y H:i" }}</span>
+                        {% if notification.action_url %}
+                        <a href="{{ notification.action_url }}" class="action-link">View Details</a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="notification-actions">
+                    {% if not notification.is_read %}
+                    <button class="mark-read-btn" data-id="{{ notification.id }}" title="Mark as Read">✓</button>
+                    {% endif %}
+                    <button class="delete-btn" data-id="{{ notification.id }}" title="Delete">×</button>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <!-- New pagination implementation -->
+            <div class="pagination-wrapper">
+                <div class="pagination-controls">
+                    <div class="pagination-per-page">
+                        <label for="per-page-select">Items per page:</label>
+                        <select id="per-page-select" name="items_per_page">
+                            <option value="5" {% if items_per_page == 5 %}selected{% endif %}>5</option>
+                            <option value="10" {% if items_per_page == 10 %}selected{% endif %}>10</option>
+                            <option value="25" {% if items_per_page == 25 %}selected{% endif %}>25</option>
+                            <option value="50" {% if items_per_page == 50 %}selected{% endif %}>50</option>
+                        </select>
+                    </div>
+                    
+                    <div class="pagination-info">
+                        Showing {{ notifications.start_index }} to {{ notifications.end_index }} of {{ paginator.count }} notifications
+                    </div>
+                </div>
+                
+                {% if notifications.paginator.num_pages > 1 %}
+                <div class="pagination-links">
+                    {% if notifications.has_previous %}
+                        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link" title="First Page">&laquo;</a>
+                        <a href="?page={{ notifications.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link" title="Previous Page">&lsaquo;</a>
+                    {% else %}
+                        <span class="page-link disabled">&laquo;</span>
+                        <span class="page-link disabled">&lsaquo;</span>
+                    {% endif %}
+                    
+                    {% for i in page_range %}
+                        {% if i == '...' %}
+                            <span class="page-ellipsis">...</span>
+                        {% else %}
+                            {% if i == notifications.number %}
+                                <span class="page-link active">{{ i }}</span>
+                            {% else %}
+                                <a href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">{{ i }}</a>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if notifications.has_next %}
+                        <a href="?page={{ notifications.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link" title="Next Page">&rsaquo;</a>
+                        <a href="?page={{ notifications.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link" title="Last Page">&raquo;</a>
+                    {% else %}
+                        <span class="page-link disabled">&rsaquo;</span>
+                        <span class="page-link disabled">&raquo;</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+        {% else %}
+            <p class="no-notifications">No notifications available</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Back to top button -->
+<div class="back-to-top" id="backToTop">↑</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter form auto-submit on select change
+        const filterSelects = document.querySelectorAll('.filter-select');
+        filterSelects.forEach(select => {
+            select.addEventListener('change', function() {
+                document.getElementById('filterForm').submit();
+            });
+        });
+        
+        // Handle items per page selection change
+        const perPageSelect = document.getElementById('per-page-select');
+        if (perPageSelect) {
+            perPageSelect.addEventListener('change', function() {
+                // Create URL parameters object
+                const urlParams = new URLSearchParams(window.location.search);
+                // Update items per page parameter
+                urlParams.set('items_per_page', this.value);
+                // Reset to first page
+                urlParams.set('page', '1');
+                // Redirect to new URL
+                window.location.href = window.location.pathname + '?' + urlParams.toString();
+            });
+        }
+        
+        // Mark notification as read
+        const markReadBtns = document.querySelectorAll('.mark-read-btn');
+        markReadBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const notificationId = this.getAttribute('data-id');
+                
+                fetch(`/admin_notifications/mark_read/${notificationId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Update UI
+                        const card = document.querySelector(`.notification-card[data-id="${notificationId}"]`);
+                        card.classList.remove('unread');
+                        this.remove();
+                        
+                        // Update notification count
+                        updateNotificationCount();
+                    }
+                })
+                .catch(error => console.error('Error marking notification as read:', error));
+            });
+        });
+        
+        // Delete notification
+        const deleteBtns = document.querySelectorAll('.delete-btn');
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const notificationId = this.getAttribute('data-id');
+                
+                if (confirm('Are you sure you want to delete this notification?')) {
+                    fetch(`/admin_notifications/delete/${notificationId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Remove notification from DOM
+                            const card = document.querySelector(`.notification-card[data-id="${notificationId}"]`);
+                            card.remove();
+                            
+                            // Update notification count
+                            updateNotificationCount();
+                        }
+                    })
+                    .catch(error => console.error('Error deleting notification:', error));
+                }
+            });
+        });
+        
+        // Mark all as read button
+        const markAllReadBtn = document.getElementById('markAllReadBtn');
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener('click', function() {
+                fetch('/admin_notifications/mark_all_read/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Update UI - remove unread class from all cards
+                        document.querySelectorAll('.notification-card.unread').forEach(card => {
+                            card.classList.remove('unread');
+                        });
+                        
+                        // Remove all mark read buttons
+                        document.querySelectorAll('.mark-read-btn').forEach(btn => {
+                            btn.remove();
+                        });
+                        
+                        // Update unread count in stats
+                        document.querySelector('.stats-item:last-child strong').textContent = '0';
+                        
+                        // Hide mark all read button
+                        this.style.display = 'none';
+                        
+                        // Update notification count
+                        updateNotificationCount();
+                    }
+                })
+                .catch(error => console.error('Error marking all notifications as read:', error));
+            });
+        }
+        
+        // Delete all notifications button
+        const deleteAllBtn = document.getElementById('deleteAllBtn');
+        if (deleteAllBtn) {
+            deleteAllBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to delete all notifications? This cannot be undone.')) {
+                    fetch('/admin_notifications/delete_all/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Remove all notifications from DOM
+                            document.querySelectorAll('.notification-card').forEach(card => {
+                                card.remove();
+                            });
+                            
+                            // Update stats
+                            document.querySelectorAll('.stats-item strong').forEach(el => {
+                                el.textContent = '0';
+                            });
+                            
+                            // Show "no notifications" message
+                            const noNotifications = document.createElement('p');
+                            noNotifications.className = 'no-notifications';
+                            noNotifications.textContent = 'No notifications available';
+                            document.querySelector('.notifications-list').appendChild(noNotifications);
+                            
+                            // Hide mark all read button
+                            if (markAllReadBtn) {
+                                markAllReadBtn.style.display = 'none';
+                            }
+                            
+                            // Update notification count
+                            updateNotificationCount();
+                        }
+                    })
+                    .catch(error => console.error('Error deleting all notifications:', error));
+                }
+            });
+        }
+        
+        // Back to top button
+        const backToTopButton = document.getElementById('backToTop');
+        if (backToTopButton) {
+            // Listen for scroll events
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.add('visible');
+                } else {
+                    backToTopButton.classList.remove('visible');
+                }
+            });
+            
+            // Add click event
+            backToTopButton.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        }
+        
+        // Ensure page is scrollable
+        document.body.style.overflow = 'auto';
+        document.documentElement.style.overflow = 'auto';
+        
+        // Helper function to update notification count in navbar
+        function updateNotificationCount() {
+            fetch('/admin_notifications/count/')
+                .then(response => response.json())
+                .then(data => {
+                    const countElement = document.querySelector('.notification-badge');
+                    if (countElement) {
+                        if (data.count > 0) {
+                            countElement.textContent = data.count;
+                            countElement.style.display = 'flex';
+                        } else {
+                            countElement.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error updating notification count:', error));
+        }
+        
+        // Helper function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
 {% endblock %}
