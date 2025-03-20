@@ -43,7 +43,6 @@ class Command(BaseCommand):
 
         self.create_jobs()
         self.create_candidates()
-        self.create_interviews()
 
         print("Seeding complete.")
 
@@ -176,48 +175,6 @@ class Command(BaseCommand):
                 cover_letter="Looking forward to joining your company!",
             )
             print(f"Created Candidate for user {user.username} on job {job.title}")
-
-    def create_interviews(self):
-        interview_date = date.today() + timedelta(days=1)
-        interview_time = time(10, 0)
-        for cand in Candidate.objects.all():
-            Interview.objects.create(
-                candidate=cand,
-                job=cand.job,
-                date=interview_date,
-                time=interview_time,
-                interview_link="https://zoom.us/fake-interview",
-                notes="Initial screening"
-            )
-            print(f"Created Interview for {cand.user.username} - {cand.job.title}")
-            # Create Employer profile
-            if data['role'] == 'Employer':
-                employer, emp_created = Employer.objects.get_or_create(
-                    username=user.username,
-                    defaults={
-                        "email": user.email,
-                        "company_name": f"{user.first_name} {user.last_name} Corp",
-                        "company_location": "Unknown",
-                        "industry": "General",
-                        "is_verified": True
-                    }
-                )
-                if emp_created:
-                    print(f"✅ Employer profile created for {user.username}")
-            
-            # Create Applicant profile
-            elif data['role'] == 'Applicant':
-                applicant, app_created = Applicant.objects.get_or_create(
-                    user=user,
-                    defaults={
-                        "degree": "Computer Science",
-                        "salary_preferences": "$50,000-$70,000",
-                        "job_preferences": "Software Development",
-                        "location_preferences": "Remote"
-                    }
-                )
-                if app_created:
-                    print(f"✅ Applicant profile created for {user.username}")
 
     def list_all_users(self):
         print("\n🔹 **Employers (OneToOne)**:")

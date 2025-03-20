@@ -3,7 +3,6 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import user_passes_test
 from tutorials.models.employer_models import Employer, Job, Candidate, Interview
 from tutorials.forms.forms import SignUpForm, LogInForm
-from schedule.models import Calendar, Event
 from tutorials.forms.employer_forms import JobForm, EmployerProfileForm, CustomPasswordChangeForm, InterviewForm
 from tutorials.forms.forms import CustomPasswordChangeForm
 from django.contrib.auth.decorators import login_required
