@@ -7,7 +7,6 @@ from tutorials.models.user_model import User
 
 
 
-
 class Employer(models.Model):
     # Link to the User model
     user = models.OneToOneField(User, on_delete=models.CASCADE)

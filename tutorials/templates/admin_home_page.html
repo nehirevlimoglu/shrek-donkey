@@ -1,8 +1,12 @@
-{% extends 'admin_base.html' %}
+{% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Admin Dashboard | Swamp Hiring{% endblock %}
 
+
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/admin_home_page.css' %}">
+
     <section class="overview">
         <div class="card">
             <h3>Total Job Listings</h3>
@@ -30,8 +34,6 @@
             </div>
             <canvas id="activeUserChart"></canvas>
         </div>
-        
-        
     </section>
 {% endblock %}
 

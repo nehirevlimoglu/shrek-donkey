@@ -1,8 +1,10 @@
-{% extends 'admin_base.html' %}
+{% extends 'base.html' %}
 
 {% load static %}  <!-- Ensure the static tag is loaded -->
 
 {% block content %}
+
+<link rel="stylesheet" href="{% static 'css/admin_job_listings.css' %}">
 <section class="job-listings">
     <div class="job-listings-header">
         <h2>Job Listings</h2>

@@ -25,8 +25,9 @@
                             <li><a href="{% url 'employer_analytics' %}">Analytics</a></li>
                             <li><a href="{% url 'employer_settings' %}">Settings</a></li>
                         {% elif user.role == "Admin" %}
-                            <li><a href="{% url 'admin_home_page' %}">Admin Dashboard</a></li>
+                            <li><a href="{% url 'admin_home_page' %}">Dashboard</a></li>
                             <li><a href="{% url 'admin_job_listings' %}">Manage Job Listings</a></li>
+                            <li><a href="{% url 'admin_applications_view' %}">Applicants View</a></li>
                             <li><a href="{% url 'admin_settings' %}">Settings</a></li>
                         {% elif user.role == "Applicant" %}
                             <!-- Your 5 menu items for Applicants -->

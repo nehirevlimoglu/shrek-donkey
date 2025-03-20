@@ -1,0 +1,20 @@
+/* Admin Dashboard Styles */
+h2 {
+    font-weight: 600;
+    font-size: 22px;
+    padding: 20px;
+}
+
+.notifications-btn {
+    font-size: 18px;
+}
+
+.notifications-icon {
+    font-size: 20px;
+    margin-right: 8px;
+}
+
+.notifications-count {
+    font-weight: bold;
+    color: red;
+}
