@@ -10,13 +10,10 @@ from django.conf import settings
 
 
 
-<<<<<<< HEAD
-=======
 class JobForm(forms.ModelForm):
     class Meta:
         model = Job
         fields = ['title', 'description', 'requirements', 'salary', 'job_type']
->>>>>>> admin_backend_functionality
 
 class InterviewForm(forms.ModelForm):
     class Meta:

@@ -149,6 +149,7 @@ def job_detail(request, job_id):
         "existing_application": existing_application,
         "random": randint(1, 10000)  # Forces browser to reload JavaScript
     })
+    
 @login_required
 def apply_for_job(request, job_id):
     """Handles job application submission, preventing duplicate applications"""

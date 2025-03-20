@@ -1,8 +1,12 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Admin Dashboard | Swamp Hiring{% endblock %}
 
+
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/admin_home_page.css' %}">
+
     <section class="overview">
         <div class="card">
             <h3>Total Job Listings</h3>
@@ -30,8 +34,6 @@
             </div>
             <canvas id="activeUserChart"></canvas>
         </div>
-        
-        
     </section>
 {% endblock %}
 
@@ -81,6 +83,17 @@
                                 display: true,
                                 text: 'Active Users',
                                 color: '#333'
+                            },
+                            beginAtZero: true,
+                            min: 0,
+                            ticks: {
+                                precision: undefined,
+                                callback: function(value) {
+                                    if (Math.max(...this.chart.data.datasets[0].data) < 10) {
+                                        return Number(value).toFixed(1);
+                                    }
+                                    return Math.round(value);
+                                }
                             }
                         }
                     }
@@ -90,7 +103,7 @@
 
         // Fetch data from backend
         function fetchData(period) {
-            fetch(`/api/get_active_users_data/?period=${period}`)
+            fetch(⁠ /api/get_active_users_data/?period=${period} ⁠)
                 .then(response => response.json())
                 .then(data => {
                     if (activeUserChart) {

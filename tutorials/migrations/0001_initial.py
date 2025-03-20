@@ -101,7 +101,6 @@ class Migration(migrations.Migration):
             name='Notification',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-<<<<<<< HEAD
                 ('degree', models.CharField(blank=True, max_length=255, null=True)),
                 ('cv', models.FileField(blank=True, null=True, upload_to='uploads/cv/')),
                 ('salary_preferences', models.CharField(blank=True, max_length=100)),
@@ -144,13 +143,11 @@ class Migration(migrations.Migration):
                 ('how_did_you_hear', models.CharField(blank=True, max_length=255, null=True)),
                 ('application_status', models.CharField(choices=[('Pending', 'Pending'), ('Interview', 'Interview Scheduled'), ('Hired', 'Hired'), ('Rejected', 'Rejected')], default='Pending', max_length=50)),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='applications', to=settings.AUTH_USER_MODEL)),
-=======
                 ('title', models.CharField(max_length=200)),
                 ('message', models.TextField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('is_read', models.BooleanField(default=False)),
                 ('recipient', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications', to=settings.AUTH_USER_MODEL)),
->>>>>>> admin_backend_functionality
             ],
             options={
                 'ordering': ['-created_at'],
