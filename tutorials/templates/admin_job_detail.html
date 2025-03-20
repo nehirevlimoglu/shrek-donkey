@@ -1,4 +1,5 @@
 {% extends 'admin_base.html' %}
+{% load static %}
 
 {% block title %}{{ job.title }} | Swamp Hiring{% endblock %}
 
@@ -66,30 +67,39 @@
         <div class="info-item">
             <strong>Company Name:</strong> {{ employer.company_name }}
         </div>
+        {% if employer.industry %}
         <div class="info-item">
             <strong>Industry:</strong> {{ employer.industry }}
         </div>
+        {% endif %}
+        {% if employer.company_size %}
         <div class="info-item">
             <strong>Company Size:</strong> {{ employer.company_size }} employees
         </div>
+        {% endif %}
+        {% if employer.company_location %}
         <div class="info-item">
             <strong>Company Location:</strong> {{ employer.company_location }}
         </div>
+        {% endif %}
         {% if employer.company_website %}
         <div class="info-item">
-            <strong>Company Website:</strong> <a href="{{ employer.company_website }}" target="_blank">{{ employer.company_website }}</a>
+            <strong>Company Website:</strong>
+            <a href="{{ employer.company_website }}" target="_blank">{{ employer.company_website }}</a>
         </div>
         {% endif %}
+        {% if employer.account_status %}
         <div class="info-item">
             <strong>Account Status:</strong> {{ employer.account_status }}
         </div>
+        {% endif %}
         {% else %}
         <p>No employer information available</p>
         {% endif %}
     </div>
     
     <div class="candidates-section">
-        <h2>Applicants ({{ candidate_count }})</h2>
+        <h2>Applicants ({{ candidate_count|default:"0" }})</h2>
         {% if candidates %}
         <table class="candidates-table">
             <thead>
@@ -249,89 +259,12 @@
     }
 </style>
 
+<!-- Pass Django variables to JavaScript -->
 <script>
-    // View candidate details
-    document.querySelectorAll('.view-candidate-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const candidateId = this.getAttribute('data-candidate-id');
-            // Navigate to candidate detail page
-            window.location.href = `/admin_candidate_detail/${candidateId}/`;
-        });
-    });
-    
-    // Edit job
-    document.querySelector('.edit-job').addEventListener('click', function() {
-        const jobId = this.getAttribute('data-job-id');
-        window.location.href = `/admin_edit_job/${jobId}/`;
-    });
-    
-    // Delete job
-    document.querySelector('.delete-job').addEventListener('click', function() {
-        if (confirm('Are you sure you want to delete this job? This action cannot be undone.')) {
-            const jobId = this.getAttribute('data-job-id');
-            // Send delete request
-            fetch(`/admin_delete_job/${jobId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    window.location.href = '{% url "admin_job_listings" %}';
-                } else {
-                    alert('Failed to delete. Please try again.');
-                }
-            });
-        }
-    });
-    
-    // Close/reopen job
-    {% if job.status == 'Open' %}
-    document.querySelector('.close-job').addEventListener('click', function() {
-        if (confirm('Are you sure you want to close this job?')) {
-            const jobId = this.getAttribute('data-job-id');
-            // Send close request
-            fetch(`/admin_toggle_job_status/${jobId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ status: 'Closed' })
-            })
-            .then(response => {
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    alert('Operation failed. Please try again.');
-                }
-            });
-        }
-    });
-    {% else %}
-    document.querySelector('.reopen-job').addEventListener('click', function() {
-        if (confirm('Are you sure you want to reopen this job?')) {
-            const jobId = this.getAttribute('data-job-id');
-            // Send reopen request
-            fetch(`/admin_toggle_job_status/${jobId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ status: 'Open' })
-            })
-            .then(response => {
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    alert('Operation failed. Please try again.');
-                }
-            });
-        }
-    });
-    {% endif %}
+    const csrfToken = '{{ csrf_token }}';
+    const jobStatus = '{{ job.status }}';
 </script>
-{% endblock %} 
+
+<!-- Link to the external JavaScript file -->
+<script src="{% static 'js/admin_job_detail.js' %}"></script>
+{% endblock %}
