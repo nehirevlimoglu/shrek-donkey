@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from tutorials.models.admin_models import Admin
 from tutorials.models.admin_models import Notification
+from tutorials.models.employer_models import EmployerNotification
 from django.http import JsonResponse, HttpResponse
 from tutorials.models.user_model import User
 from django.db.models import Count, Q
@@ -510,7 +511,11 @@ def admin_applications_view(request):
     })
 
 
-@csrf_exempt 
+import logging
+logger = logging.getLogger(__name__)
+
+
+@csrf_exempt
 def update_job_status(request):
     if request.method == "POST":
         try:
@@ -518,26 +523,37 @@ def update_job_status(request):
             job_id = data.get("job_id")
             new_status = data.get("status")
 
-            job = Job.objects.get(id=job_id)
+            logger.debug(f"Received job_id: {job_id}, new_status: {new_status}")  # Log received data
+
+            if not job_id or not new_status:
+                logger.error("Missing job_id or status")  # Log error if job_id or status is missing
+                return JsonResponse({"success": False, "error": "Missing job ID or status"}, status=400)
+
+            try:
+                job = Job.objects.get(id=job_id)
+                logger.debug(f"Found job: {job.title} with current status: {job.status}")  # Log job details
+            except Job.DoesNotExist:
+                logger.error(f"Job with id {job_id} does not exist.")
+                return JsonResponse({"success": False, "error": "Job not found"}, status=404)
+
             job.status = new_status
             job.save()
+            logger.debug(f"Job status updated to: {job.status}")  # Log successful status update
 
-            # ✅ Create a notification in EmployerNotification model
-            if new_status.lower() == "approved":
-                if job.employer:  # Ensure job has an employer
-                    EmployerNotification.objects.create(
-                        employer=job.employer,  # ✅ Uses the new employer-specific notification model
-                        title="Job Approved",
-                        message=f"🎉 Your job listing '{job.title}' has been approved!",
-                        is_read=False
-                    )
-                else:
-                    return JsonResponse({"success": False, "error": "Job has no employer"})
+            # If the job is approved, send a notification
+            if new_status.lower() == "approved" and job.employer:
+                EmployerNotification.objects.create(
+                    employer=job.employer,
+                    title="Job Approved",
+                    message=f"🎉 Your job listing '{job.title}' has been approved!",
+                    is_read=False
+                )
 
             return JsonResponse({"success": True})
-        except Job.DoesNotExist:
-            return JsonResponse({"success": False, "error": "Job not found"})
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
 
+        except Exception as e:
+            logger.error(f"Unexpected error occurred: {str(e)}")  # Log any unexpected errors
+            return JsonResponse({"success": False, "error": f"An unexpected error occurred: {str(e)}"}, status=500)
+
+    logger.error("Invalid request method")  # Log if request method is not POST
     return JsonResponse({"success": False, "error": "Invalid request"}, status=400)

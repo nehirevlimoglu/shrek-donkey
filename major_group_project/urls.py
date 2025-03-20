@@ -109,6 +109,9 @@ urlpatterns = [
     path('applicants_application/<int:job_id>/', applicants_application, name='applicants_application'),
 
 
+
+
+
 ]
 
 

@@ -10,6 +10,7 @@ from .models.admin_models import Notification, Admin
 from .models.user_model import User
 from .views.admin_views import create_admin_notification
 
+
 @receiver(post_migrate)
 def populate_job_titles(sender, **kwargs):
     """Populate selectable job titles from JSON after migrations."""
@@ -87,17 +88,17 @@ def new_user_notification(sender, instance, created, **kwargs):
                 related_object_type='user'
             )
 
-@receiver(post_save, sender=Candidate)
-def application_status_change(sender, instance, created, **kwargs):
-    """Send notification when application status changes"""
-    if not created and instance.tracker.has_changed('application_status'):
-        admins = User.objects.filter(role='Admin')
-        for admin in admins:
-            create_admin_notification(
-                admin,
-                "Application Status Change",
-                f"The status of an application for '{instance.job.title}' has changed to '{instance.application_status}'."
-            )
+#@receiver(post_save, sender=Candidate)
+#def application_status_change(sender, instance, created, **kwargs):
+ #   """Send notification when application status changes"""
+  #  if not created and instance.tracker.has_changed('application_status'):
+   #     admins = User.objects.filter(role='Admin')
+    #    for admin in admins:
+     #       create_admin_notification(
+      #          admin,
+       #         "Application Status Change",
+        #        f"The status of an application for '{instance.job.title}' has changed to '{instance.application_status}'."
+         #   )
 
 @receiver(post_save, sender=Candidate)
 def application_status_changed(sender, instance, created, **kwargs):

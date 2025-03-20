@@ -128,8 +128,14 @@
             {% else %}
             <button class="action-btn reopen-job" data-job-id="{{ job.id }}">Reopen Job</button>
             {% endif %}
+            
+            <!-- Approve Job Button -->
+            {% if job.status != 'Approved' %}
+            <button class="action-btn approve-job" data-job-id="{{ job.id }}">Approve Job</button>
+            {% endif %}
         </div>
     </div>
+    
 </div>
 
 <style>
@@ -247,6 +253,38 @@
         background-color: #6c757d;
         color: white;
     }
+
+    .job-detail-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    max-height: 80vh; /* Adjust the height to your preference */
+    overflow-y: auto; /* Allows scrolling when content exceeds max-height */
+}
+
+.job-info, .employer-info, .job-description, .job-requirements, .job-benefits, .candidates-section, .admin-actions {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.candidates-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.candidates-table th, .candidates-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.candidates-table th {
+    background-color: #f2f2f2;
+}
+
 </style>
 
 <script>
@@ -286,6 +324,60 @@
             });
         }
     });
+
+    // Function to get CSRF token
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value;
+    }
+
+    // Approve Job functionality
+    document.querySelectorAll('.approve-job').forEach(button => {
+        button.addEventListener('click', function() {
+            const jobId = this.getAttribute('data-job-id'); // Get the job ID from the button's data attribute
+            
+            if (confirm('Are you sure you want to approve this job?')) {
+                // Send approve request to update job status
+                fetch('/update-job-status/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),  // Ensure CSRF protection
+                    },
+                    body: JSON.stringify({
+                        job_id: jobId,
+                        status: 'approved'  // Set the new status as 'approved'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the job status in the UI to 'Approved'
+                        const statusLabel = document.getElementById('status-' + jobId);  // Find the status label
+                        if (statusLabel) {
+                            statusLabel.innerText = 'Approved';  // Change status text to 'Approved'
+                            statusLabel.className = 'status-label status-approved';  // Apply the 'approved' style class
+                        }
+
+                        // Hide the approve button after approval
+                        const approveButton = document.querySelector('.approve-job[data-job-id="' + jobId + '"]');
+                        if (approveButton) {
+                            approveButton.style.display = 'none';  // Hide approve button after it's pressed
+                        }
+                        
+                        alert('Job has been approved successfully!');
+                    } else {
+                        alert("Error updating job status. Please try again.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while approving the job.');
+                });
+            }
+        });
+    });
+
+
     
     // Close/reopen job
     {% if job.status == 'Open' %}
