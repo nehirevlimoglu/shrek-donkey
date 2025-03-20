@@ -5,6 +5,142 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/admin_notifications.css' %}">
+<style>
+    /* Ensure the entire content area is scrollable */
+    body {
+        overflow-y: auto !important;
+        min-height: 100vh;
+    }
+    
+    .notifications-container {
+        padding-bottom: 120px; /* Add sufficient bottom padding to ensure pagination is visible */
+        position: relative;
+    }
+    
+    /* New pagination styles - more clean and user-friendly */
+    .pagination-wrapper {
+        margin-top: 30px;
+        margin-bottom: 30px;
+        border-top: 1px solid #eee;
+        padding: 20px;
+        background-color: #f9fafb;
+        border-radius: 0 0 10px 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        z-index: 10; /* Increase z-index to ensure it's not covered */
+    }
+    
+    .pagination-controls {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .pagination-info {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+    
+    .pagination-per-page {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .pagination-per-page select {
+        padding: 5px 10px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        background-color: #fff;
+    }
+    
+    .pagination-links {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 15px;
+    }
+    
+    .page-link {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 8px;
+        border-radius: 4px;
+        text-decoration: none;
+        color: #333;
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        transition: all 0.2s ease;
+        font-size: 14px;
+    }
+    
+    .page-link:hover {
+        background-color: #e5e5e5;
+    }
+    
+    .page-link.active {
+        background-color: #007bff;
+        color: #fff;
+        border-color: #007bff;
+        font-weight: bold;
+    }
+    
+    .page-link.disabled {
+        color: #999;
+        pointer-events: none;
+        background-color: #f5f5f5;
+    }
+    
+    .page-ellipsis {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 36px;
+        height: 36px;
+    }
+    
+    /* Back to top button */
+    .back-to-top {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #007bff;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        z-index: 100;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .back-to-top.visible {
+        opacity: 1;
+    }
+    
+    @media (max-width: 768px) {
+        .pagination-controls {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .notifications-container {
+            padding-bottom: 150px; /* Add more bottom padding on small screens */
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -114,32 +250,65 @@
             </div>
             {% endfor %}
             
-            <!-- Pagination -->
-            {% if notifications.has_other_pages %}
-            <div class="pagination">
-                {% if notifications.has_previous %}
-                <a href="?page={{ notifications.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if notification_type != 'all' %}&type={{ notification_type }}{% endif %}{% if priority != 'all' %}&priority={{ priority }}{% endif %}{% if is_read != 'all' %}&is_read={{ is_read }}{% endif %}" class="pagination-link">&laquo; Previous</a>
-                {% endif %}
+            <!-- New pagination implementation -->
+            <div class="pagination-wrapper">
+                <div class="pagination-controls">
+                    <div class="pagination-per-page">
+                        <label for="per-page-select">Items per page:</label>
+                        <select id="per-page-select" name="items_per_page">
+                            <option value="5" {% if items_per_page == 5 %}selected{% endif %}>5</option>
+                            <option value="10" {% if items_per_page == 10 %}selected{% endif %}>10</option>
+                            <option value="25" {% if items_per_page == 25 %}selected{% endif %}>25</option>
+                            <option value="50" {% if items_per_page == 50 %}selected{% endif %}>50</option>
+                        </select>
+                    </div>
+                    
+                    <div class="pagination-info">
+                        Showing {{ notifications.start_index }} to {{ notifications.end_index }} of {{ paginator.count }} notifications
+                    </div>
+                </div>
                 
-                {% for num in notifications.paginator.page_range %}
-                    {% if notifications.number == num %}
-                    <span class="pagination-link active">{{ num }}</span>
+                {% if notifications.paginator.num_pages > 1 %}
+                <div class="pagination-links">
+                    {% if notifications.has_previous %}
+                        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link" title="First Page">&laquo;</a>
+                        <a href="?page={{ notifications.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link" title="Previous Page">&lsaquo;</a>
                     {% else %}
-                    <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if notification_type != 'all' %}&type={{ notification_type }}{% endif %}{% if priority != 'all' %}&priority={{ priority }}{% endif %}{% if is_read != 'all' %}&is_read={{ is_read }}{% endif %}" class="pagination-link">{{ num }}</a>
+                        <span class="page-link disabled">&laquo;</span>
+                        <span class="page-link disabled">&lsaquo;</span>
                     {% endif %}
-                {% endfor %}
-                
-                {% if notifications.has_next %}
-                <a href="?page={{ notifications.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if notification_type != 'all' %}&type={{ notification_type }}{% endif %}{% if priority != 'all' %}&priority={{ priority }}{% endif %}{% if is_read != 'all' %}&is_read={{ is_read }}{% endif %}" class="pagination-link">Next &raquo;</a>
+                    
+                    {% for i in page_range %}
+                        {% if i == '...' %}
+                            <span class="page-ellipsis">...</span>
+                        {% else %}
+                            {% if i == notifications.number %}
+                                <span class="page-link active">{{ i }}</span>
+                            {% else %}
+                                <a href="?page={{ i }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">{{ i }}</a>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if notifications.has_next %}
+                        <a href="?page={{ notifications.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link" title="Next Page">&rsaquo;</a>
+                        <a href="?page={{ notifications.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link" title="Last Page">&raquo;</a>
+                    {% else %}
+                        <span class="page-link disabled">&rsaquo;</span>
+                        <span class="page-link disabled">&raquo;</span>
+                    {% endif %}
+                </div>
                 {% endif %}
             </div>
-            {% endif %}
             
         {% else %}
             <p class="no-notifications">No notifications available</p>
         {% endif %}
     </div>
 </div>
+
+<!-- Back to top button -->
+<div class="back-to-top" id="backToTop">↑</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -152,6 +321,21 @@
                 document.getElementById('filterForm').submit();
             });
         });
+        
+        // Handle items per page selection change
+        const perPageSelect = document.getElementById('per-page-select');
+        if (perPageSelect) {
+            perPageSelect.addEventListener('change', function() {
+                // Create URL parameters object
+                const urlParams = new URLSearchParams(window.location.search);
+                // Update items per page parameter
+                urlParams.set('items_per_page', this.value);
+                // Reset to first page
+                urlParams.set('page', '1');
+                // Redirect to new URL
+                window.location.href = window.location.pathname + '?' + urlParams.toString();
+            });
+        }
         
         // Mark notification as read
         const markReadBtns = document.querySelectorAll('.mark-read-btn');
@@ -203,26 +387,8 @@
                             const card = document.querySelector(`.notification-card[data-id="${notificationId}"]`);
                             card.remove();
                             
-                            // Update stats
-                            const totalCountEl = document.querySelector('.stats-item:first-child strong');
-                            totalCountEl.textContent = parseInt(totalCountEl.textContent) - 1;
-                            
-                            // Check if card was unread
-                            if (card.classList.contains('unread')) {
-                                const unreadCountEl = document.querySelector('.stats-item:last-child strong');
-                                unreadCountEl.textContent = parseInt(unreadCountEl.textContent) - 1;
-                                
-                                // Update notification count
-                                updateNotificationCount();
-                            }
-                            
-                            // Show "no notifications" message if all notifications are deleted
-                            if (document.querySelectorAll('.notification-card').length === 0) {
-                                const noNotifications = document.createElement('p');
-                                noNotifications.className = 'no-notifications';
-                                noNotifications.textContent = 'No notifications available';
-                                document.querySelector('.notifications-list').appendChild(noNotifications);
-                            }
+                            // Update notification count
+                            updateNotificationCount();
                         }
                     })
                     .catch(error => console.error('Error deleting notification:', error));
@@ -311,6 +477,49 @@
                     .catch(error => console.error('Error deleting all notifications:', error));
                 }
             });
+        }
+        
+        // Back to top button
+        const backToTopButton = document.getElementById('backToTop');
+        if (backToTopButton) {
+            // Listen for scroll events
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.add('visible');
+                } else {
+                    backToTopButton.classList.remove('visible');
+                }
+            });
+            
+            // Add click event
+            backToTopButton.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+        }
+        
+        // Ensure page is scrollable
+        document.body.style.overflow = 'auto';
+        document.documentElement.style.overflow = 'auto';
+        
+        // Helper function to update notification count in navbar
+        function updateNotificationCount() {
+            fetch('/admin_notifications/count/')
+                .then(response => response.json())
+                .then(data => {
+                    const countElement = document.querySelector('.notification-badge');
+                    if (countElement) {
+                        if (data.count > 0) {
+                            countElement.textContent = data.count;
+                            countElement.style.display = 'flex';
+                        } else {
+                            countElement.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error updating notification count:', error));
         }
         
         // Helper function to get CSRF token from cookies

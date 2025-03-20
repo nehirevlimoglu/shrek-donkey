@@ -24,7 +24,8 @@ user_fixtures = [
 ]
 
 class Command(BaseCommand):
-    help = 'Seeds the database with sample Employers, Admins, and Applicants'
+
+    """Automatically seeds Employers, Admins, and Applicants into the database."""
 
     USER_COUNT = 25
     EMPLOYER_COUNT = 5
@@ -82,22 +83,23 @@ class Command(BaseCommand):
     def generate_user(self, role):
         first_name = self.faker.first_name()
         last_name = self.faker.last_name()
-        email = create_email(first_name, last_name)
+        email = self.create_email(first_name, last_name)
 
         while User.objects.filter(email=email).exists():
             first_name = self.faker.first_name()
             last_name = self.faker.last_name()
-            email = create_email(first_name, last_name)
+            email = self.create_email(first_name, last_name)
 
-        username = create_username(first_name, last_name)
-        data = {
+
+        username = self.create_username(first_name, last_name)
+
+        self.try_create_user({
             'username': username,
             'email': email,
             'first_name': first_name,
             'last_name': last_name,
             'role': role,
-        }
-        self.try_create_user(data)
+        })
 
     def try_create_user(self, data):
         try:
@@ -115,7 +117,9 @@ class Command(BaseCommand):
                 "first_name": data['first_name'],
                 "last_name": data['last_name'],
                 "role": data['role'],
-                "is_active": True
+                "is_active": True,
+                "is_staff": data['role'] == "Admin",  # ✅ Set is_staff=True for admins
+                "is_superuser": data['role'] == "Admin"  # ✅ Set is_superuser=True for admins
             }
         )
         if created:
@@ -123,9 +127,11 @@ class Command(BaseCommand):
 
         if user.role == 'Employer':
             self.create_employer_profile(user)
+        elif user.role == 'Applicant':
+            self.create_applicant_profile(user)
 
     def create_employer_profile(self, user):
-    # Check if an Employer record already exists for this user
+        # Check if an Employer record already exists for this user
         if not Employer.objects.filter(user=user).exists():
             Employer.objects.create(
                 user=user,
@@ -140,6 +146,19 @@ class Command(BaseCommand):
                 is_verified=True
             )
             print(f"Created Employer profile for {user.username}")
+            
+    def create_applicant_profile(self, user):
+        # Check if an Applicant record already exists for this user
+        if not Applicant.objects.filter(user=user).exists():
+            Applicant.objects.create(
+                user=user,
+                degree="Computer Science",
+                salary_preferences="$50,000-$70,000",
+                job_preferences="Software Development",
+                location_preferences="Remote"
+            )
+            print(f"Created Applicant profile for {user.username}")
+
     # ---------------------------
     # Create Jobs, Candidates, Interviews
     # ---------------------------
@@ -190,34 +209,6 @@ class Command(BaseCommand):
                 notes="Initial screening"
             )
             print(f"Created Interview for {cand.user.username} - {cand.job.title}")
-            # Create Employer profile
-            if data['role'] == 'Employer':
-                employer, emp_created = Employer.objects.get_or_create(
-                    username=user.username,
-                    defaults={
-                        "email": user.email,
-                        "company_name": f"{user.first_name} {user.last_name} Corp",
-                        "company_location": "Unknown",
-                        "industry": "General",
-                        "is_verified": True
-                    }
-                )
-                if emp_created:
-                    print(f"✅ Employer profile created for {user.username}")
-            
-            # Create Applicant profile
-            elif data['role'] == 'Applicant':
-                applicant, app_created = Applicant.objects.get_or_create(
-                    user=user,
-                    defaults={
-                        "degree": "Computer Science",
-                        "salary_preferences": "$50,000-$70,000",
-                        "job_preferences": "Software Development",
-                        "location_preferences": "Remote"
-                    }
-                )
-                if app_created:
-                    print(f"✅ Applicant profile created for {user.username}")
 
     def list_all_users(self):
         print("\n🔹 **Employers (OneToOne)**:")
@@ -238,8 +229,12 @@ class Command(BaseCommand):
             except Applicant.DoesNotExist:
                 print("     ❌ No applicant profile found")
 
-def create_username(first_name, last_name):
-    return '@' + first_name.lower() + last_name.lower()
+    @staticmethod
+    def create_username(first_name, last_name):
+        """Creates a username in the format '@firstname_lastname'"""
+        return f"@{first_name.lower()}{last_name.lower()}"
 
-def create_email(first_name, last_name):
-    return f"{first_name.lower()}@example.org"
+    @staticmethod
+    def create_email(first_name, last_name):
+        """Creates an email in the format 'firstname.lastname@example.com'"""
+        return f"{first_name.lower()}.{last_name.lower()}@example.com"

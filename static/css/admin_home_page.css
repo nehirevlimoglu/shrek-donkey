@@ -7,7 +7,7 @@
 }
 
 body {
-    background: #F8F9FA;
+    background: #FFFFFF;
     color: #1A202C;
     display: flex;
     height: 100vh;
@@ -29,6 +29,7 @@ body {
     left: 0;
     top: 0;
     bottom: 0;
+    z-index: 10;
 }
 
 .sidebar h2 {
@@ -80,10 +81,11 @@ body {
     flex: 1;
     padding: 30px;
     background: #FFFFFF;
-    margin-left: 270px;
+    margin-left: 250px;
     min-height: 100vh;
-    width: calc(100vw - 270px);
+    width: calc(100vw - 250px);
     overflow-x: hidden;
+    padding-left: 25px;
 }
 
 /* Header */

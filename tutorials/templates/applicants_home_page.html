@@ -4,102 +4,95 @@
 {% block title %}Applicants Home Page | Swamp Hiring{% endblock %}
 
 {% block content %}
+<!-- Link to your custom CSS file; ensure it is loaded after any framework CSS -->
+<link rel="stylesheet" type="text/css" href="{% static 'css/applicants_home_page.css' %}">
 
-    <link rel="stylesheet" type="text/css" href="{% static 'css/applicants_home_page.css' %}">
+<div class="dashboard-container">
+    <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
+        <div class="filter-options" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <h2>Available Jobs</h2>
+            <form method="get" action="" style="display: flex; gap: 1rem; align-items: center;">
+                <select name="location" class="pill-select">
+                    <option value="">All Locations</option>
+                    {% for loc in locations %}
+                        <option value="{{ loc }}">{{ loc }}</option>
+                    {% endfor %}
+                </select>
 
-    <div class="dashboard-container">
-        <aside class="sidebar">
-            <h2>Swamp Hiring</h2>
-            <nav>
-                <ul>
-                    <li><a href="{% url 'applicants-home-page' %}">Home Page</a></li>
-                    <li><a href="{% url 'applicants-account' %}">Account</a></li>
-                    <li><a href="/applicants_favourites">Favourites</a></li>
-                    <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
-                    <li><a href="{% url 'applicants-notifications' %}">Notifications</a></li>
-                    <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
-                </ul>
-                </ul>
-            </nav>
-        </aside>
-        
-        <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
-            <div class="stats-container" style="display: flex; flex-direction: column; align-items: flex-start;">
-                <section class="overview">
-                    <div class="card" id="total-jobs">  <!-- 👉 Added ID -->
-                        <h3>Total Job Listings</h3>
-                        <p>15</p>
-                    </div>
-                    <div class="card" id="active-listings">  <!-- 👉 Added ID -->
-                        <h3>Favourited Jobs</h3>
-                        <p>6</p>
-                    </div>
-                    <div class="card" id="total-applicants">  <!-- 👉 Added ID -->
-                        <h3>Applications Sent</h3>
-                        <p>243</p>
-                    </div>
-                </section>
-            </div>
+                <select name="salary_interval" class="pill-select">
+                    <option value="">Any Salary</option>
+                    <option value="0-50000">$0 - $50,000</option>
+                    <option value="50000-100000">$50,000 - $100,000</option>
+                    <option value="100000-150000">$100,000 - $150,000</option>
+                    <option value="150000-200000">$150,000 - $200,000</option>
+                    <option value="200000-250000">$200,000 - $250,000</option>
+                    <option value="250000-300000">$250,000 - $300,000</option>
+                    <option value="300000-999999999">$300,000+</option>
+                </select>
 
-            <div class="job-listings-container" style="width: 100%;">
-                <h2>Available Jobs</h2>
-                <table class="job-table" style="width: 100%; text-align: center;">
-                    <thead>
-                        <tr>
-                            <th>Job Title</th>
-                            <th>Company</th>
-                            <th>Location</th>
-                            <th>Salary</th>
-                            <th>Type</th>
-                            <th>Favourite</th>
-                        </tr>
-                    </thead>
-                    <tbody class="job-listings">
-                        <!-- Jobs dynamically inserted here -->
-                    </tbody>
-                </table>
-            </div>
-        </main>
-    </div>
-    
-    <script>
-        function loadJobs() {
-            const jobs = [
-                { title: "Software Engineer", company: "TechCorp", location: "San Francisco, CA", salary: "$120,000/year", job_type: "Full-Time" },
-                { title: "Marketing Manager", company: "MarketPros", location: "New York, NY", salary: "$90,000/year", job_type: "Part-Time" },
-                { title: "Data Analyst", company: "DataVision", location: "Austin, TX", salary: "$85,000/year", job_type: "Contract" }
-            ];
-    
-            const jobListings = document.querySelector(".job-listings");
-            jobListings.innerHTML = "";
-    
-            jobs.forEach((job, index) => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${job.title}</td>
-                    <td>${job.company}</td>
-                    <td>${job.location}</td>
-                    <td>${job.salary}</td>
-                    <td>${job.job_type}</td>
-                    <td>
-                        <span class="favorite-star" onclick="toggleFavorite(this)">&#9734;</span> <!-- Empty star (☆) -->
-                    </td>
-                `;
-                jobListings.appendChild(row);
-            });
-        }
-    
-        function toggleFavorite(starElement) {
-            if (starElement.classList.contains("active")) {
-                starElement.classList.remove("active");
-                starElement.innerHTML = "&#9734;"; // Change to empty star (☆)
-            } else {
-                starElement.classList.add("active");
-                starElement.innerHTML = "&#9733;"; // Change to filled star (★)
-            }
-        }
-    
-        window.onload = loadJobs;
-    </script>    
-    
+                <select name="job_type" class="pill-select">
+                    <option value="">All Types</option>
+                    <option value="full-time">Full Time</option>
+                    <option value="part-time">Part Time</option>
+                    <option value="internship">Internship</option>
+                    <option value="apprenticeship">Apprenticeship</option>
+                </select>
+
+                <select name="company" class="pill-select">
+                    <option value="">All Companies</option>
+                    {% for comp in companies %}
+                        <option value="{{ comp }}">{{ comp }}</option>
+                    {% endfor %}
+                </select>
+
+                <!-- Use ONLY the custom class -->
+                <button type="submit" class="filter-btn">Filter</button>
+            </form>
+        </div>
+
+        <div class="job-listings-container" style="width: 100%;">
+            <table class="job-table" style="width: 100%; text-align: center; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Location</th>
+                        <th>Salary</th>
+                        <th>Type</th>
+                        <th>Favourite</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody class="job-listings">
+                    {% for job in approved_jobs %}
+                    <tr>
+                        <td>{{ job.title }}</td>
+                        <td>{{ job.company_name }}</td>
+                        <td>{{ job.location }}</td>
+                        <td>{{ job.salary }}</td>
+                        <td>{{ job.job_type }}</td>
+                        <td>
+                            <span class="favorite-star" data-job-id="{{ job.id }}">&#9734;</span>
+                        </td>
+                        <td>
+                            <a href="{% url 'job_detail' job.id %}" class="btn btn-primary">View Details</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">No job matches your preferences at the moment.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
+
+<!-- Load Intro.js -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/4.0.10/introjs.min.css">
+<script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
+
+<!-- Load Applicant Tutorial (Ensure Proper Loading Order) -->
+<script src="{% static 'js/applicant_tutorial.js' %}?v=1.0" defer></script>
 {% endblock %}

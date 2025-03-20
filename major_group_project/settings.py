@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'schedule',
     'tutorials',
-    "django_browser_reload"
+    'django_browser_reload',
+
 ]
 
 MIDDLEWARE = [

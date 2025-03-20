@@ -81,6 +81,17 @@
                                 display: true,
                                 text: 'Active Users',
                                 color: '#333'
+                            },
+                            beginAtZero: true,
+                            min: 0,
+                            ticks: {
+                                precision: undefined,
+                                callback: function(value) {
+                                    if (Math.max(...this.chart.data.datasets[0].data) < 10) {
+                                        return Number(value).toFixed(1);
+                                    }
+                                    return Math.round(value);
+                                }
                             }
                         }
                     }

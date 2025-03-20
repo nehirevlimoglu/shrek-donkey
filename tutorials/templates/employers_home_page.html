@@ -4,72 +4,95 @@
 {% block title %}Employer Dashboard | Swamp Hiring{% endblock %}
 
 {% block content %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'css/employers_home_page.css' %}">
+
     <section class="overview">
         <div class="card" id="total-jobs">
             <h3>Total Jobs Posted</h3>
-            <p>15</p>
+            <p>{{ total_jobs }}</p> <!-- Total Jobs -->
         </div>
         <div class="card" id="active-listings">
             <h3>Active Listings</h3>
-            <p>6</p>
+            <p>{{ active_listings }}</p>
         </div>
         <div class="card" id="total-applicants">
             <h3>Total Applicants</h3>
-            <p>243</p>
+            <p>{{ total_applicants }}</p>
         </div>
     </section>
 
-    <section class="recent-applicants" id="recent-applicants">
-        <h2>Recent Applicants</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Applicant Name</th>
-                    <th>Job Applied</th>
-                    <th>Status</th>
-                    <th>Resume</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>John Doe</td>
-                    <td>Software Engineer</td>
-                    <td><span class="badge under-review">Under Review</span></td>
-                    <td><a href="#" class="resume-link">View Resume</a></td>
-                    <td><button class="view-btn" id="review-button">Review</button></td>
-                </tr>
-                <tr>
-                    <td>Jane Smith</td>
-                    <td>Project Manager</td>
-                    <td><span class="badge interviewed">Interviewed</span></td>
-                    <td><a href="#" class="resume-link">View Resume</a></td>
-                    <td><button class="view-btn">Review</button></td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
+        <section class="recent-applicants" id="recent-applicants">
+            <h2>Recent Applicants</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Applicant Name</th>
+                        <th>Job Applied</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for application in recent_applicants %}
+                        <tr>
+                            <td>{{ application.user.first_name }} {{ application.user.last_name }}</td>
+                            <td>{{ application.job.title }}</td>
+                            <td>
+                                {% if application.application_status == "Pending" %}
+                                    <span class="badge under-review">Under Review</span>
+                                {% elif application.application_status == "Interview" %}
+                                    <span class="badge interviewed">Interview Scheduled</span>
+                                {% elif application.application_status == "Hired" %}
+                                    <span class="badge hired">Hired</span>
+                                {% elif application.application_status == "Rejected" %}
+                                    <span class="badge rejected">Rejected</span>
+                                {% else %}
+                                    <span class="badge">Pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3">No recent applicants yet.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    
+        <!-- HTML -->
+        <section class="notifications" id="notifications">
+            <h2>Notifications</h2>
+        
+            <!-- The container that will actually scroll -->
+            <div class="notifications-container">
+                {% if notifications|length > 0 %}
+                    {% for notification in notifications %}
+                    <div class="notification-card {% if not notification.is_read %}unread{% endif %}" id="notification-{{ notification.id }}">
+                        <p>{{ notification.message }}</p>
+                    
+                        {% if not notification.is_read %}
+                            <button class="seen-btn" data-notification-id="{{ notification.id }}">Seen</button>
+                        {% else %}
+                            <span style="color: #28A745; font-weight: bold;">✔ Seen</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No new notifications.</p>
+                {% endif %}
+            </div>
+        </section>
+        {% endblock %}
+    </div>
 
-    <section class="notifications" id="notifications">
-        <h2>Notifications</h2>
-        <div class="notifications-container">
-            <div class="notification-card">
-                <p>New applicant: Alice Johnson applied for Data Analyst</p>
-                <button class="seen-btn">Seen</button>
-            </div>
-            <div class="notification-card">
-                <p>Interview scheduled with John Doe on Feb 20</p>
-                <button class="seen-btn">Seen</button>
-            </div>
-            <div class="notification-card">
-                <p>System maintenance scheduled for Feb 25</p>
-                <button class="seen-btn">Seen</button>
-            </div>
-        </div>
-    </section>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intro.js/minified/introjs.min.css">
-    <link rel="stylesheet" href="{% static 'css/employers_home_page.css' %}">
+    <!-- Intro.js -->
     <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
+
+    <!-- Additional JS (tutorial.js, if used) -->
     <script src="{% static 'js/tutorial.js' %}"></script>
-{% endblock %}
+
+    <!-- Main JS (Separated) -->
+    <script src="{% static 'js/employer_dashboard.js' %}"></script>
+</body>
+</html>

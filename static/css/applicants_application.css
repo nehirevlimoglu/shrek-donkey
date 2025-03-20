@@ -1,0 +1,128 @@
+/* Reset default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Ensure scrolling works */
+html, body {
+    height: 100%;
+    overflow-y: auto;  /* Allows scrolling */
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Main application container */
+.application-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Header section */
+.application-container h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.application-container p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+/* Section titles */
+.application-container h2 {
+    font-size: 20px;
+    margin-top: 20px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #ddd;
+    color: #333;
+}
+
+/* Form layout */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Grid layout for input fields */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+/* Ensure full-width inputs */
+.full-width {
+    grid-column: span 2;
+}
+
+/* Input field styling */
+.application-container input,
+.application-container select,
+.application-container textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+/* Adjust file input fields */
+input[type="file"] {
+    border: none;
+    background: transparent;
+}
+
+/* Align confirm checkbox */
+.confirm-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Submit button */
+.btn-primary {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: #0073e6;
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.btn-primary:hover {
+    background: #005bb5;
+}
+
+/* Secondary button (Back to Job Details) */
+.btn-secondary {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    color: #0073e6;
+    text-decoration: none;
+    margin-top: 15px;
+}
+
+.btn-secondary:hover {
+    text-decoration: underline;
+}
+
+/* Ensure form is fully scrollable */
+.application-container {
+    overflow-y: auto;
+    max-height: 90vh;
+}

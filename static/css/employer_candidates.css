@@ -121,6 +121,34 @@ table td {
     color: #991B1B;
 }
 
+.filter-form {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.filter-form select,
+.filter-form input {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.filter-form button {
+    background-color: #1A73E8;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.filter-form button:hover {
+    background-color: #135ABC;
+}
+
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .content {

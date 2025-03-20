@@ -1,0 +1,33 @@
+/* Confirmation Modal Styles */
+.confirmation-modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Position it fixed on the screen */
+    top: 0;
+    left: 0;
+    width: 100%; /* Full screen width */
+    height: 100%; /* Full screen height */
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    z-index: 1000; /* Ensure it’s above other elements */
+}
+
+.confirmation-content {
+    background-color: white;
+    padding: 20px;
+    width: 400px;
+    margin: 100px auto; /* Center the modal */
+    border-radius: 10px;
+    text-align: center;
+}
+
+.confirmation-content button {
+    margin-top: 10px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 5px;
+    border: none;
+}
+
+.confirmation-content button:hover {
+    opacity: 0.8;
+}

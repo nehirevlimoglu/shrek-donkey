@@ -13,6 +13,44 @@
     <link rel="stylesheet" href="{% static 'css/admin_home_page.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
+        html, body {
+            height: 100%;
+            overflow-y: auto !important;
+            background-color: #FFFFFF;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .dashboard-container {
+            display: flex;
+            background-color: #FFFFFF;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 40px; 
+            height: 100vh;
+            padding-left: 25px;
+            margin-left: 250px;
+        }
+        
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100vh;
+            overflow-y: auto;
+            background-color: #FFFFFF;
+            z-index: 100;
+        }
+        
         /* Dropdown menu styles */
         .user-profile {
             position: relative;
@@ -100,7 +138,7 @@
                 </div>
                 <div class="header-actions">
                     <a href="{% url 'admin_notifications' %}" class="notifications-btn">
-                        <span class="notifications-icon">通知</span>
+                        <span class="notifications-icon">noti</span>
                         <span class="notifications-count" id="notificationCountBadge">{{ unread_count }}</span>
                     </a>  
                 </div>
@@ -146,6 +184,9 @@
         // Initial update on page load
         document.addEventListener('DOMContentLoaded', function() {
             updateNotificationCount();
+            
+            document.documentElement.style.overflow = 'auto';
+            document.body.style.overflow = 'auto';
         });
     </script>
 </body>
