@@ -21,7 +21,6 @@ from tutorials.views.employer_views import job_detail_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('schedule/', include('schedule.urls')),
     path('', log_in, name='home'),
     path('log_in/', log_in, name='log-in'),  
     path('logout/', log_out, name='log-out'),
