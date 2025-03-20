@@ -58,7 +58,8 @@
                     <td>{{ job.company_name }}</td>
                     <td><span class="badge {% if job.status == 'Open' %}open{% else %}closed{% endif %}">{{ job.status }}</span></td>
                     <td>{{ job.applicant_count }}</td>
-                    <td><button class="view-btn" data-job-id="{{ job.id }}">View</button></td>
+                    <td><a href="{% url 'admin_job_detail' job_id=job.id %}" class="view-btn">View</a>
+                    </td>
                 </tr>
                 {% endfor %}
             {% else %}
@@ -215,11 +216,18 @@
 <script>
     // Add functionality to view job details
     document.querySelectorAll('.view-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const jobId = this.getAttribute('data-job-id');
-            // Navigate to job detail page
-            window.location.href = `/admin_job_detail/${jobId}/`;
-        });
+    button.addEventListener('click', function() {
+        const jobId = this.getAttribute('data-job-id');  // Get the job ID from the data attribute
+        
+        if (jobId) {
+            // Ensure the URL is correctly formatted and jobId is defined
+            window.location.href = `/admin/job/${jobId}/`;  // Construct the correct URL
+        } else {
+            console.error('Job ID not found');
+        }
     });
+});
+
+
 </script>
 {% endblock %}

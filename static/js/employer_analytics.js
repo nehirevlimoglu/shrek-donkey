@@ -24,54 +24,9 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // ✅ Initialize Applicants Chart (Bar Chart)
-        const ctx1 = document.getElementById("applicantsChart").getContext("2d");
-        new Chart(ctx1, {
-            type: "bar",
-            data: {
-                labels: jobTitles,
-                datasets: [{
-                    label: "Applicants Per Job",
-                    data: jobApplicants,
-                    backgroundColor: ["#1A73E8", "#34A853", "#FBBC05"],
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: true },
-                    tooltip: { enabled: true }
-                },
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-
-        // ✅ Initialize Interviews Chart (Pie Chart)
-        const ctx2 = document.getElementById("interviewsChart").getContext("2d");
-        new Chart(ctx2, {
-            type: "pie",
-            data: {
-                labels: jobTitles,
-                datasets: [{
-                    label: "Interviews Per Job",
-                    data: jobInterviews,
-                    backgroundColor: ["#FF5733", "#C70039", "#900C3F"],
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: "top" },
-                    tooltip: { enabled: true }
-                }
-            }
-        });
+       
 
     } catch (error) {
         console.error("❌ JSON Parsing Error:", error);
     }
-});
+});s

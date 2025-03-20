@@ -6,7 +6,6 @@ from django.http import HttpResponse
 from tutorials.models.employer_models import Employer, Job, Candidate, Interview, EmployerNotification, EmployerEvent
 from tutorials.models.admin_models import Notification 
 from tutorials.forms.forms import SignUpForm, LogInForm
-
 from tutorials.forms.employer_forms import JobForm, EmployerProfileForm, InterviewForm
 from tutorials.forms.forms import CustomPasswordChangeForm
 from django.contrib.auth.decorators import login_required
