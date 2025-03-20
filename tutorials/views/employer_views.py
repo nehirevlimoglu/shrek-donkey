@@ -1,16 +1,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from tutorials.models.employer_models import Employer, Job, Candidate, Interview, EmployerNotification, EmployerEvent
 from tutorials.models.admin_models import Notification 
 from tutorials.forms.forms import SignUpForm, LogInForm
-from tutorials.forms.employer_forms import JobForm, EmployerProfileForm, InterviewForm
+from tutorials.forms.employer_forms import JobForm, EmployerProfileForm, CustomPasswordChangeForm, InterviewForm
 from tutorials.forms.forms import CustomPasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.core.exceptions import PermissionDenied
 from django.contrib import messages
 from django.http import HttpResponseForbidden
@@ -208,6 +208,7 @@ def edit_job_view(request, pk):
 
     return render(request, 'jobs/edit_job.html', {'form': form, 'job': job})
 
+
     
 def employer_login(request):
     if request.method == 'POST':
@@ -293,6 +294,66 @@ def employer_calendar(request):
         return HttpResponseForbidden("You are not an employer.")
 
     return render(request, 'employer_calendar.html', {'interviews': interviews})
+
+    
+
+def schedule_interview(request):
+    if request.method == 'POST':
+        form = InterviewForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('interview_list')  # or wherever you want to go
+    else:
+        form = InterviewForm()
+
+    return render(request, 'schedule_interview.html', {'form': form})
+
+
+def create_interview_event(request):
+    # Suppose you want to schedule an interview for tomorrow:
+    tomorrow = datetime.datetime.now() + datetime.timedelta(days=1)
+
+    # Grab or create a Calendar to hold interviews:
+    interview_calendar, created = Calendar.objects.get_or_create(
+        slug='interviews', 
+        defaults={'name': 'Interviews Calendar'}
+    )
+
+    # Create an Event for the candidate:
+    candidate = Candidate.objects.get(id=1)  # example
+    job_title = "Software Engineer"          # example
+
+    event = Event.objects.create(
+        start=tomorrow.replace(hour=10, minute=0),
+        end=tomorrow.replace(hour=11, minute=0),
+        title=f"Interview - {candidate.user.first_name} ({job_title})",
+        creator=request.user,  # or some user
+        calendar=interview_calendar
+    )
+
+    return redirect('schedule')  # or wherever your schedule is displayed
+
+
+def interview_detail(request, pk):
+    interview = get_object_or_404(Interview, pk=pk)
+    return render(request, 'interview_detail.html', {'interview': interview})
+
+def reschedule_interview(request, pk):
+    interview = get_object_or_404(Interview, pk=pk)
+
+    if request.method == 'POST':
+        # For example, get new date/time from the form
+        new_date = request.POST.get('date')
+        new_time = request.POST.get('time')
+        # Update the interview
+        interview.date = new_date
+        interview.time = new_time
+        interview.save()
+        return redirect('interview_detail', pk=interview.pk)
+    else:
+        return render(request, 'reschedule_interview.html', {'interview': interview})
+
+@user_passes_test(is_employer)
 
 @login_required
 def get_interviews(request):

@@ -3,3 +3,4 @@ Faker==30.8.2
 libgravatar==1.0.4
 Pillow==11.1.0
 django-browser-reload
+schedule

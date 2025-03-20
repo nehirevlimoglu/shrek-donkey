@@ -10,6 +10,13 @@ from django.conf import settings
 
 
 
+<<<<<<< HEAD
+=======
+class JobForm(forms.ModelForm):
+    class Meta:
+        model = Job
+        fields = ['title', 'description', 'requirements', 'salary', 'job_type']
+>>>>>>> admin_backend_functionality
 
 class InterviewForm(forms.ModelForm):
     class Meta:
@@ -34,6 +41,16 @@ class CustomPasswordChangeForm(PasswordChangeForm):
     class Meta:
         model = User
         fields = ['old_password', 'new_password1', 'new_password2']
+
+
+def get_job_titles():
+    json_path = os.path.join(settings.BASE_DIR, 'static/data/job_titles.json')
+    try:
+        with open(json_path, 'r') as file:
+            job_titles = json.load(file)
+        return [(title, title) for title in job_titles]
+    except FileNotFoundError:
+        return [("Other", "Other")]
 
 class JobForm(forms.ModelForm):
     """ Job form with text inputs for title and position. """

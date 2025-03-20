@@ -1,0 +1,158 @@
+{% extends 'admin_base.html' %}
+
+{% block title %}Edit Job | Swamp Hiring{% endblock %}
+
+{% block content %}
+<div class="edit-job-container">
+    <div class="back-link">
+        <a href="{% url 'admin_job_detail' job_id=job.id %}">← Back to Job Details</a>
+    </div>
+    
+    <h1>Edit Job</h1>
+    
+    <form method="post" class="job-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="title">Job Title</label>
+            <input type="text" id="title" name="title" value="{{ job.title }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="company_name">Company Name</label>
+            <input type="text" id="company_name" name="company_name" value="{{ job.company_name }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="location">Location</label>
+            <input type="text" id="location" name="location" value="{{ job.location }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="job_type">Job Type</label>
+            <select id="job_type" name="job_type">
+                <option value="Full Time" {% if job.job_type == 'Full Time' %}selected{% endif %}>Full Time</option>
+                <option value="Part Time" {% if job.job_type == 'Part Time' %}selected{% endif %}>Part Time</option>
+                <option value="Internship" {% if job.job_type == 'Internship' %}selected{% endif %}>Internship</option>
+                <option value="Apprenticeship" {% if job.job_type == 'Apprenticeship' %}selected{% endif %}>Apprenticeship</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="salary">Salary</label>
+            <input type="number" id="salary" name="salary" value="{{ job.salary|default:'' }}" step="0.01">
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Job Description</label>
+            <textarea id="description" name="description" rows="6" required>{{ job.description }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="requirements">Requirements</label>
+            <textarea id="requirements" name="requirements" rows="6">{{ job.requirements }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="benefits">Benefits</label>
+            <textarea id="benefits" name="benefits" rows="4">{{ job.benefits }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="application_deadline">Application Deadline</label>
+            <input type="date" id="application_deadline" name="application_deadline" value="{{ job.application_deadline|date:'Y-m-d' }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="contact_email">Contact Email</label>
+            <input type="email" id="contact_email" name="contact_email" value="{{ job.contact_email }}" required>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="save-btn">Save Changes</button>
+            <a href="{% url 'admin_job_detail' job_id=job.id %}" class="cancel-btn">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .edit-job-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .back-link {
+        margin-bottom: 20px;
+    }
+    
+    .back-link a {
+        color: #4a6cf7;
+        text-decoration: none;
+    }
+    
+    h1 {
+        margin-bottom: 30px;
+    }
+    
+    .job-form {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 5px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    input[type="text"],
+    input[type="email"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 16px;
+    }
+    
+    textarea {
+        resize: vertical;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .save-btn {
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    
+    .cancel-btn {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        text-align: center;
+        font-weight: bold;
+    }
+</style>
+{% endblock %} 
