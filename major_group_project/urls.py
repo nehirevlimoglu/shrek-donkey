@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from tutorials.views.views import log_in, log_out, sign_up  
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile, applicants_analytics, apply_for_job, job_detail, applicants_application
-from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications, review_job, update_job_status
+from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications, review_job, update_job_status,  admin_applications_view, admin_job_detail
 from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, change_password, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_calendar, employer_candidates, get_interviews, edit_company_profile, delete_account, employer_notifications, get_employer_events, review_application, mark_notification_as_read, applicant_profile, schedule_interview, accept_candidate, reject_candidate
 
 from tutorials.views.employer_views import job_detail_view
@@ -28,6 +28,9 @@ urlpatterns = [
     path('admin-job-listings/', admin_job_listings, name='admin_job_listings'),
     path('admin_settings/', admin_settings, name='admin_settings'),
     path('update-job-status/', update_job_status, name='update_job_status'),
+    path('admin_applications/', admin_applications_view, name='admin_applications_view'),
+    path('admin/job/<int:job_id>/', admin_job_detail, name='admin_job_detail'),
+
 
     path('employer_home_page/', employer_home_page, name='employer_home_page'),
     path('employer_job_listings/', employer_job_listings, name='employer_job_listings'),
