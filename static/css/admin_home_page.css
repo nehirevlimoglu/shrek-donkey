@@ -17,7 +17,7 @@ body {
 
 /* Sidebar */
 .sidebar {
-    width: 250px;
+    width: 240px;
     background: #FFFFFF;
     padding: 20px;
     height: 100vh;
@@ -81,11 +81,10 @@ body {
     flex: 1;
     padding: 30px;
     background: #FFFFFF;
-    margin-left: 250px;
+    margin-left: 260px;
     min-height: 100vh;
-    width: calc(100vw - 250px);
+    width: calc(100vw - 260px);
     overflow-x: hidden;
-    padding-left: 25px;
 }
 
 /* Header */
