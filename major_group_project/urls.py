@@ -18,14 +18,19 @@ from tutorials.views.applicant_views import applicants_home_page, applicants_acc
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications, admin_applications_view, admin_notifications_count, generate_admin_notification, mark_notification_as_read, mark_all_notifications_as_read, delete_notification, delete_all_notifications
 from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings,change_password, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view,  employer_candidates, get_interviews, edit_company_profile, delete_account
 from tutorials.models.applicants_models import Applicant
-
+from tutorials.views.views import sign_up, applicant_profile_setup, employer_profile_setup
 from tutorials.views.employer_views import job_detail_view
+
+from tutorials import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', log_in, name='home'),
     path('log_in/', log_in, name='log-in'),  
     path('logout/', log_out, name='log-out'),
+    path('sign_up/', sign_up, name='sign-up'),
+    path('applicant-profile/', applicant_profile_setup, name='applicant_profile_setup'),
+    path('employer-profile/', employer_profile_setup, name='employer_profile_setup'),
 
     path('applicants_home_page/', applicants_home_page, name='applicants-home-page'),
     path('applicants_favourites/', applicants_favourites, name='applicants-favourites'),
@@ -48,7 +53,6 @@ urlpatterns = [
     path('jobs/<int:pk>/', job_detail_view, name='employer_job_detail'),
     path('jobs/<int:pk>/edit/', edit_job_view, name='job_edit'),
     path('change-password/', change_password, name='change_password'),
-    path('sign_up/', sign_up, name='sign-up'),
     path('employer_settings/', employer_settings, name='employer_settings'),
     path('create-job/', create_job_listings, name='employer_create_job_listing'),
     path('candidates/', employer_candidates, name='employer_candidates'),
@@ -85,7 +89,6 @@ urlpatterns = [
     path('interview/<int:pk>/reschedule/', reschedule_interview, name='reschedule_interview'),
     path('api/get_interviews/', get_interviews, name='get_interviews'),
     
-    # Add new API endpoint for active users data
     path('api/get_active_users_data/', get_active_users_data, name='get_active_users_data'),
 
     path("settings/edit_profile/", edit_company_profile, name="edit_company_profile"),

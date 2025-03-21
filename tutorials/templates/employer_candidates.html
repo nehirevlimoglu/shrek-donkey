@@ -5,6 +5,20 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/employer_candidates.css' }">
+    <style>
+        /* Ensure the entire page can scroll */
+        html, body {
+            min-height: 100vh;
+            overflow-y: auto;
+            background: #F8F9FA;
+        }
+        /* Allow the candidates section to expand naturally */
+        .candidates-section {
+            max-height: none;
+            overflow-y: visible;
+            padding: 20px;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}

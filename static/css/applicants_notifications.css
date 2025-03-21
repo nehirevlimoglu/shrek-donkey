@@ -1,32 +1,41 @@
-/* General Layout Fix */
-.main-container {
-    display: flex;
-    width: 100%;
-    min-height: 100vh; /* Full height */
+/* Ensure the HTML and body take up the full height of the viewport */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
 }
 
-/* Sidebar Fix */
+/* Container for the entire page (dashboard) */
+.dashboard-container {
+    display: flex;
+    width: 100%;
+    height: 100vh; /* Full viewport height */
+    overflow: hidden; /* We will scroll inside the .content instead */
+}
+
+/* Sidebar */
 .sidebar {
     width: 250px;
-    position: fixed;
+    position: fixed;  /* Fixes sidebar on the left */
     left: 0;
     top: 0;
     bottom: 0;
     background: #f5f5f5;
     padding-top: 20px;
+    overflow-y: auto; /* If the sidebar has more items than fit vertically, it can scroll too */
 }
 
-/* Main Content Styling */
+/* Main Content */
 .content {
-    flex-grow: 1; /* Allow it to take full space */
+    margin-left: 250px;   /* Leave space for the sidebar */
+    flex-grow: 1;         /* Fill remaining width */
+    height: 100vh;        /* Match the parent's height */
+    overflow-y: auto;     /* Make this area scrollable */
     padding: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
-    min-height: 100vh; /* Ensure full height */
-    overflow: hidden;
-    margin-left: 250px; /* Keep space for sidebar */
+    box-sizing: border-box; 
 }
 
 /* Notification List */
@@ -78,15 +87,20 @@
 }
 
 @media (max-width: 768px) {
+    /* Sidebar becomes unfixed and takes full width on mobile */
     .sidebar {
         position: relative;
         width: 100%;
+        height: auto;
     }
 
+    /* Content then can take full width and auto height on mobile */
     .content {
         margin-left: 0;
-        padding: 1rem;
         width: 100%;
+        height: auto;
+        overflow-y: visible; /* or auto, depending on how you want it to behave */
+        padding: 1rem;
     }
 
     .notification-item {

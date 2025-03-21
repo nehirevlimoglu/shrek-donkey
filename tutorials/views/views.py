@@ -1,14 +1,15 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from tutorials.helpers import login_prohibited
-from tutorials.forms.forms import SignUpForm
 from django.http import HttpResponseRedirect, Http404
-from django.urls import reverse
-from tutorials.models.employer_models import Job
-from django.shortcuts import render, redirect, get_object_or_404
-from tutorials.utils import match_candidates_to_job  # ✅ correct
-
+from django.urls import reverse  # Used for redirection
+from django.contrib.auth.decorators import login_required
+from tutorials.helpers import login_prohibited  # If used elsewhere
+from tutorials.forms.forms import SignUpForm  # Form for signing up
+from tutorials.forms.applicants_forms import ApplicantForm  # Applicant profile completion form
+from tutorials.forms.employer_forms import EmployerProfileForm  # Employer profile completion form
+from tutorials.models.applicants_models import Applicant  # Applicant model
+from tutorials.models.employer_models import Employer  # Employer model
 
 
 def log_in(request):
@@ -46,20 +47,67 @@ def sign_up(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
-            user = form.save()  # Save the user
-            login(request, user)  # Log in the user
+            user = form.save()
+            login(request, user)
 
-            # Redirect with URL parameter
-            if request.user.role == 'Admin':
-                return redirect('admin_home_page')
-            elif request.user.role == 'Employer':
-                return HttpResponseRedirect(f"{reverse('employer_home_page')}?newUser=true")
-            elif request.user.role == 'Applicant':
-                return HttpResponseRedirect(f"{reverse('applicants-home-page')}?newUser=true")
+            # ✅ Ensure employer or applicant profile is created immediately
+            if user.role == 'Employer':
+                Employer.objects.create(user=user, username=user.username, email=user.email)  # ✅ Auto-create profile
+                return redirect('employer_profile_setup')
+
+            elif user.role == 'Applicant':
+                Applicant.objects.create(user=user)  # ✅ Auto-create profile
+                return redirect('applicant_profile_setup')
+
+            return redirect('home')
+
     else:
         form = SignUpForm()
 
     return render(request, 'sign_up.html', {'form': form})
+
+
+@login_required
+def applicant_profile_setup(request):
+    try:
+        applicant = request.user.applicant
+    except Applicant.DoesNotExist:
+        applicant = None
+
+    if request.method == 'POST':
+        form = ApplicantForm(request.POST, request.FILES, user=request.user, instance=applicant)
+        if form.is_valid():
+            applicant = form.save(commit=False)
+            applicant.user = request.user
+            applicant.save()
+            return redirect('applicants-home-page')  # ✅ Redirect AFTER profile completion
+
+    else:
+        form = ApplicantForm(user=request.user, instance=applicant)
+
+    return render(request, 'applicant_profile_setup.html', {'form': form})
+
+@login_required
+def employer_profile_setup(request):
+    try:
+        employer = request.user.employer
+    except Employer.DoesNotExist:
+        employer = None
+
+    if request.method == 'POST':
+        form = EmployerProfileForm(request.POST, request.FILES, instance=employer)
+        if form.is_valid():
+            employer = form.save(commit=False)
+            employer.user = request.user
+            employer.save()
+            return redirect('employer_home_page')  # ✅ Redirect AFTER profile completion
+
+    else:
+        form = EmployerProfileForm(instance=employer)
+
+    return render(request, 'employer_profile_setup.html', {'form': form})
+
+
 
 def log_out(request):
 
@@ -81,3 +129,4 @@ def job_matching_view(request, job_id):
         "job": job,
         "matched_candidates": matched_candidates
     })
+    return redirect('log-in')

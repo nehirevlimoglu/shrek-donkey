@@ -1,66 +1,42 @@
-let actionType = '';
-let candidateName = '';
-let jobTitle = '';
+document.addEventListener("DOMContentLoaded", function () {
+    let searchInput = document.getElementById("job-search");
+    let dropdownResults = document.querySelector(".dropdown-results");
+    let selectElement = document.getElementById("id_job_preferences");
 
-function confirmAction(action, name, job) {
-    actionType = action;
-    candidateName = name;
-    jobTitle = job;
+    searchInput.addEventListener("input", function () {
+        let searchTerm = searchInput.value.toLowerCase();
+        dropdownResults.innerHTML = "";
+        if (searchTerm.length > 0) {
+            let options = Array.from(selectElement.options);
+            let filteredOptions = options.filter(option =>
+                option.text.toLowerCase().includes(searchTerm)
+            );
 
-    const title = action === 'accept' ? 'Confirm Hiring' : 'Confirm Rejection';
-    const message = action === 'accept' 
-        ? `Are you sure you want to hire ${name} for the job "${job}"?`
-        : `Are you sure you want to reject ${name} for the job "${job}"?`;
+            filteredOptions.forEach(option => {
+                let div = document.createElement("div");
+                div.textContent = option.text;
+                div.setAttribute("data-value", option.value);
+                div.addEventListener("click", function () {
+                    let selectedOption = document.createElement("option");
+                    selectedOption.value = option.value;
+                    selectedOption.textContent = option.text;
+                    selectedOption.selected = true;
+                    selectElement.appendChild(selectedOption);
+                    searchInput.value = "";
+                    dropdownResults.innerHTML = "";
+                });
+                dropdownResults.appendChild(div);
+            });
 
-    document.getElementById('confirmation-title').innerText = title;
-    document.getElementById('confirmation-message').innerText = message;
-    document.getElementById('confirmation-modal').style.display = 'block';
-}
-
-function closeModal() {
-    document.getElementById('confirmation-modal').style.display = 'none';
-}
-
-window.confirmActionFinal = function () {
-    let candidateId = document.getElementById("candidate-id").value;  // Get actual value from HTML
-
-    let url = actionType === 'accept' 
-        ? `/candidates/${candidateId}/accept/`  
-        : `/candidates/${candidateId}/reject/`; 
-
-    fetch(url, {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": getCSRFToken(),  
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({})  // Empty body needed for Django to accept POST request
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.json();
+            dropdownResults.style.display = "block";
+        } else {
+            dropdownResults.style.display = "none";
         }
-        throw new Error("Failed to update status.");
-    })
-    .then(data => {
-        console.log("✅ Status Updated:", data);
-        location.reload();  // Refresh page after update
-    })
-    .catch(error => {
-        console.error("❌ Error updating status:", error);
     });
-}
 
-// Function to get CSRF token
-function getCSRFToken() {
-    let cookieValue = null;
-    let cookies = document.cookie.split(';');
-    for (let i = 0; i < cookies.length; i++) {
-        let cookie = cookies[i].trim();
-        if (cookie.startsWith("csrftoken=")) {
-            cookieValue = cookie.substring("csrftoken=".length, cookie.length);
-            break;
+    document.addEventListener("click", function (event) {
+        if (!searchInput.contains(event.target) && !dropdownResults.contains(event.target)) {
+            dropdownResults.style.display = "none";
         }
-    }
-    return cookieValue;
-}
+    });
+});
