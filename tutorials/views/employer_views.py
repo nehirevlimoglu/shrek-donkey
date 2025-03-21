@@ -22,6 +22,7 @@ from django.db.models import Count, Q
 from django.core.serializers.json import DjangoJSONEncoder
 
 
+
 logger = logging.getLogger(__name__)
 
 def is_employer(user):
@@ -166,18 +167,15 @@ def create_job_listings(request):
 
         if form.is_valid():
             job = form.save(commit=False)
-            job.employer = employer  # ✅ Associate job with employer
-            
-            # ✅ Ensure job location and company name are correctly set
+            job.employer = employer
+
+            # Handle location + company name defaults
             form_location = form.cleaned_data.get('location')
-            employer_location = employer.company_location
-            job.location = form_location if form_location else employer_location if employer_location else "Unknown Location"
+            job.location = form_location or employer.company_location or "Unknown Location"
+            job.company_name = employer.company_name or "Unknown Company"
+            job.contact_email = employer.email or "no-email@company.com"
 
-            job.company_name = employer.company_name if employer.company_name else "Unknown Company"
-            job.contact_email = employer.email if employer.email else "no-email@company.com"
-            job.save()
-
-            logger.info(f"✅ Job created successfully: {job.title} - {job.location}")
+            job.save()  # ✅ This will call form.save(), which triggers skill extraction
 
             messages.success(request, "🎉 Job listing created successfully!")
             return redirect('employer_job_listings')
@@ -190,10 +188,10 @@ def create_job_listings(request):
     return render(request, 'employer_create_job_listing.html', {'form': form})
 
 
-
 def job_detail_view(request, job_id):
     job = get_object_or_404(Job, id=job_id)
     return render(request, 'job_detail.html', {'job': job})
+
 
 def edit_job_view(request, pk):
     job = get_object_or_404(Job, pk=pk)

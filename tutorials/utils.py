@@ -1,19 +1,5 @@
-# jobs/utils.py
-
-import nltk
+import re
 from keybert import KeyBERT
-from nltk import word_tokenize, pos_tag
-
-# Auto-download
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt', quiet=True)
-
-try:
-    nltk.data.find('taggers/averaged_perceptron_tagger')
-except LookupError:
-    nltk.download('averaged_perceptron_tagger')
 
 kw_model = KeyBERT()
 
@@ -21,11 +7,19 @@ def extract_skills_nlp(text, top_n=20):
     if not text:
         return []
 
-    keywords = kw_model.extract_keywords(
+    # Step 1: Extract KeyBERT phrases
+    keybert_phrases = kw_model.extract_keywords(
         text,
-        keyphrase_ngram_range=(1, 3),  # (1, 3) includes 1-word, 2-word, and 3-word phrases
+        keyphrase_ngram_range=(1, 3),
         stop_words='english',
         top_n=top_n
     )
+    keybert_results = [kw[0].lower() for kw in keybert_phrases]
 
-    return [kw[0] for kw in keywords]
+    # Step 2: Use regex to filter meaningful words (no NLTK needed)
+    words = re.findall(r'\b[a-zA-Z]{3,}\b', text)  # Words with 3+ letters
+
+    # Combine KeyBERT + regex results, remove duplicates
+    combined = list(set(keybert_results + words))
+
+    return combined

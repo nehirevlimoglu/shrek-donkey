@@ -123,6 +123,15 @@ class ApplicationForm(forms.ModelForm):
     linkedin_profile = forms.URLField(required=False, widget=forms.URLInput(attrs={"class": "form-control"}))
     portfolio_website = forms.URLField(required=False, widget=forms.URLInput(attrs={"class": "form-control"}))
 
+    skills = forms.CharField(
+        max_length=500, 
+        required=False, 
+        widget=forms.TextInput(attrs={
+            "class": "form-control", 
+            "placeholder": "Enter skills separated by commas (e.g., Python, Django, Machine Learning)"
+        })
+    )
+
     how_did_you_hear = forms.ChoiceField(
         choices=[("linkedin", "LinkedIn"), ("website", "Company Website"), ("referral", "Referral"), ("other", "Other")],
         required=True, widget=forms.Select(attrs={"class": "form-control"})
@@ -136,6 +145,7 @@ class ApplicationForm(forms.ModelForm):
         model = Application
         fields = [
             "first_name", "last_name", "email", "phone", "address", "resume", "cover_letter",
+            "skills",
             "school", "degree", "discipline", "start_date", "end_date",  # ✅ Education is now optional
             "current_job_title", "current_employer", "linkedin_profile", "portfolio_website",
             "how_did_you_hear", "sponsorship_needed", "confirm_information",

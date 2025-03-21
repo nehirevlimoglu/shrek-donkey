@@ -132,6 +132,8 @@ class Candidate(models.Model):
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
 
+    skills = models.TextField(blank=True, null=True, default="[]")
+
     current_job_title = models.CharField(max_length=255, blank=True, null=True)
     current_employer = models.CharField(max_length=255, blank=True, null=True)
     linkedin_profile = models.URLField(blank=True, null=True)

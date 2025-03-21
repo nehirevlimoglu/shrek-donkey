@@ -11,6 +11,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from tutorials.utils import extract_skills_nlp
 from random import randint
 import json
 
@@ -178,7 +179,6 @@ def apply_for_job(request, job_id):
 
     print(f"🛠 Request method: {request.method}")
 
-
     if request.method == "POST":
         print("📥 Form submission detected.")
         form = ApplicationForm(request.POST, request.FILES)
@@ -188,6 +188,22 @@ def apply_for_job(request, job_id):
 
         if form.is_valid():
             print("✅ Form is valid. Processing application...")
+
+            raw_skill_text = form.cleaned_data.get("skills", "").strip()  # Ensure it's a string and trimmed
+            print(f"🧠 Raw Skill Input: '{raw_skill_text}'")  
+
+            # Ensure KeyBERT is extracting skills properly
+            try:
+                extracted_skills = extract_skills_nlp(raw_skill_text)
+                if not extracted_skills:  # If KeyBERT returns empty, log it
+                    print("⚠️ KeyBERT did not extract any skills.")
+                    extracted_skills = raw_skill_text.split(", ")  # Fallback: Use input directly
+            except Exception as e:
+                print(f"❌ Error in KeyBERT extraction: {e}")
+                extracted_skills = raw_skill_text.split(", ")  # Fallback in case of an error
+
+            print(f"🔍 Extracted Skills: {extracted_skills}")  
+
             
             # Create and save the application
             application = form.save(commit=False)
@@ -226,6 +242,8 @@ def apply_for_job(request, job_id):
             candidate.how_did_you_hear = form.cleaned_data.get("how_did_you_hear")
             candidate.current_job_title = form.cleaned_data.get("current_job_title")
             candidate.current_employer = form.cleaned_data.get("current_employer")
+            candidate.skills = ", ".join(extracted_skills)  # ✅ Add this line
+            print("🔍 Extracted Skills Before Saving:", extracted_skills)
             candidate.application_status = "Pending"
             candidate.save()
 
