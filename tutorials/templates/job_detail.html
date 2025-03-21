@@ -4,27 +4,24 @@
 {% block title %}Job Details | Swamp Hiring{% endblock %}
 
 {% block content %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/job_detail.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/job_detail.css' %}">
 
-    <div class="job-detail-container">
-        <h1>{{ job.title }}</h1>
-        <p><strong>Company:</strong> {{ job.company_name }}</p>
-        <p><strong>Location:</strong> {{ job.location }}</p>
-        <p><strong>Salary:</strong> ${{ job.salary }}</p>
-        <p><strong>Job Type:</strong> {{ job.job_type }}</p>
-        <p><strong>Description:</strong> {{ job.description }}</p>
+<div class="job-detail-container">
+    <h1>{{ job.title }}</h1>
+    <p><strong>Company:</strong> {{ job.company_name }}</p>
+    <p><strong>Location:</strong> {{ job.location }}</p>
+    <p><strong>Salary:</strong> ${{ job.salary }}</p>
+    <p><strong>Job Type:</strong> {{ job.job_type }}</p>
+    <p><strong>Description:</strong> {{ job.description }}</p>
 
-        <!-- Button container for alignment -->
-        <div class="button-container">
-            <a href="{% url 'applicants-home-page' %}" class="btn-primary">Back to Jobs</a>
+    <div class="button-container">
+        <a href="{% url 'applicants-home-page' %}" class="btn-primary">Back to Jobs</a>
         
-            {% if existing_application %}
-                <p class="already-applied-message">✅ You have already applied for this job.</p>
-            {% else %}
-                <button id="apply-btn" class="btn-primary" data-job-id="{{ job.id }}">Apply Now</button>
-            {% endif %}
-        </div>
-               
+        {% if existing_application %}
+            <p class="already-applied-msg">You have already applied for this job.</p>
+        {% else %}
+            <a href="{% url 'applicants_application' job.id %}" class="btn-primary">Apply Now</a>
+        {% endif %}
     </div>
-    <script src="{% static 'js/job_application.js' %}?v={{ request.timestamp }}"></script>
+</div>
 {% endblock %}

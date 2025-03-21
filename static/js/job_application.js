@@ -2,58 +2,73 @@ console.log("✅ job_application.js loaded!");
 
 document.addEventListener("DOMContentLoaded", function () {
   const applyBtn = document.getElementById("apply-btn");
-  const alreadyAppliedMsg = document.getElementById("already-applied-msg");
+  let appliedMsg = document.getElementById("applied-msg");
 
-  if (applyBtn) {
-    console.log("✅ Apply button found:", applyBtn);
-    
+  // Check if URL indicates that the user already applied
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get("applied") === "true") {
+    if (applyBtn) {
+      applyBtn.style.display = "none";
+    }
+    if (!appliedMsg) {
+      appliedMsg = document.createElement("p");
+      appliedMsg.id = "applied-msg";
+      appliedMsg.classList.add("already-applied-msg");
+      appliedMsg.innerText = "You have already applied for this job.";
+      document.querySelector(".button-container").appendChild(appliedMsg);
+    } else {
+      appliedMsg.style.display = "block";
+    }
+  }
+
+  // Only add event listener if the button is visible and URL doesn't have applied=true
+  if (applyBtn && urlParams.get("applied") !== "true") {
     applyBtn.addEventListener("click", function (event) {
-      event.preventDefault(); // Prevent the default form submission
-      console.log("🟢 Apply button clicked! Submitting form...");
+      event.preventDefault(); // Prevent any default action
+      const jobId = applyBtn.getAttribute("data-job-id");
+      console.log("🟢 Apply button clicked for job id:", jobId);
 
-      // Add delay before showing the "Already Applied" message
-      setTimeout(() => {
-        console.log("⏳ Waiting before showing 'Already Applied' message...");
-
-        // Hide the "Apply Now" button
-        applyBtn.style.display = "none";
-        console.log("✅ 'Apply Now' button hidden");
-
-        // Check if the message element exists before trying to show it
-        if (alreadyAppliedMsg) {
-          alreadyAppliedMsg.style.display = "block";  // Show the "Already Applied" message
-          console.log("✅ Showing 'Already Applied' message");
+      // Send AJAX request to apply for the job
+      fetch(`/job/${jobId}/apply/`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({}) // Send extra data if needed
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          console.log("✅ Application submitted successfully via AJAX");
+          // Hide the Apply button
+          applyBtn.style.display = "none";
+          // Create or show the message element
+          if (!appliedMsg) {
+            appliedMsg = document.createElement("p");
+            appliedMsg.id = "applied-msg";
+            appliedMsg.classList.add("already-applied-msg");
+            appliedMsg.innerText = "You have already applied for this job.";
+            applyBtn.parentNode.appendChild(appliedMsg);
+          } else {
+            appliedMsg.style.display = "block";
+          }
+          // Update URL so that a refresh shows the message
+          window.history.replaceState(null, "", window.location.pathname + "?applied=true");
         } else {
-          console.log("❌ 'Already Applied' message element not found");
-          
-          // Create the message if it doesn't exist
-          const newMsg = document.createElement("p");
-          newMsg.id = "already-applied-msg";
-          newMsg.textContent = "You have already applied for this job";
-          newMsg.style.fontStyle = "italic";
-          
-          // Insert the message after the form
-          const form = applyBtn.closest("form");
-          form.parentNode.insertBefore(newMsg, form.nextSibling);
-          console.log("✅ Created new 'Already Applied' message");
+          console.error("❌ Error applying:", data.error);
+          alert("Error: " + (data.error || "Could not submit application."));
         }
-
-        // Keep the "Already Applied" message visible for 3 seconds (3000ms)
-        setTimeout(() => {
-          console.log("⏳ Hiding 'Already Applied' message after delay...");
-          // Hide the "Already Applied" message after the delay
-          alreadyAppliedMsg.style.display = "none";  // or newMsg.style.display = "none"; if it's a new element
-          console.log("✅ Hiding 'Already Applied' message after delay");
-        }, 3000); // Adjust time as needed (3 seconds)
-
-      }, 500); // Delay before showing the "Already Applied" message (500ms)
+      })
+      .catch(error => console.error("🔴 Fetch Error:", error));
     });
   } else {
-    console.log("❌ Apply button NOT found");
+    console.log("❌ Apply button NOT found or application already submitted.");
   }
 });
 
-// Helper function to get CSRF token - keeping your original implementation
+// Helper function to get CSRF token from cookies
 function getCookie(name) {
   let cookieValue = null;
   if (document.cookie && document.cookie !== "") {

@@ -136,14 +136,16 @@ def applicants_account(request):
 def job_detail(request, job_id):
     """Display job details and check if the user has applied"""
     job = get_object_or_404(Job, id=job_id)
-
-    # ✅ Fix: Check if candidate entry exists instead of Application
-    existing_application = Candidate.objects.filter(user=request.user, job=job).exists()
+    
+    # Check if an Application exists for this user and job.
+    existing_application = Application.objects.filter(
+        applicant__user=request.user, job=job
+    ).exists()
 
     return render(request, "job_detail.html", {
         "job": job,
         "existing_application": existing_application,
-        "random": randint(1, 10000)  # Forces browser to reload JavaScript
+        "random": randint(1, 10000)
     })
 
     
@@ -175,6 +177,7 @@ def apply_for_job(request, job_id):
         return redirect("job_detail", job_id=job.id)
 
     print(f"🛠 Request method: {request.method}")
+
 
     if request.method == "POST":
         print("📥 Form submission detected.")
@@ -275,27 +278,58 @@ def applicants_notifications(request):
 @applicant_only
 @login_required
 def applicants_application(request, job_id):
-    """Displays the job application form"""
+    """
+    Displays the job application form and processes the submission.
+    """
     job = get_object_or_404(Job, id=job_id)
     applicant = get_object_or_404(Applicant, user=request.user)
-
-    existing_application = Application.objects.filter(applicant=applicant, job=job).first()
+    
+    # If an application already exists, redirect to the job detail page.
+    if Application.objects.filter(applicant=applicant, job=job).exists():
+        messages.warning(request, "You have already applied for this job.")
+        return redirect('job_detail', job_id=job.id)
 
     if request.method == "POST":
-        form = ApplicationForm(request.POST, request.FILES, instance=existing_application)
+        form = ApplicationForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Your application has been submitted successfully.")
+            # Save form with commit=False so we can attach job and applicant
+            application = form.save(commit=False)
+            application.job = job
+            application.applicant = applicant
+            application.save()
+
+            # Optionally, update or create candidate record here...
+            candidate, created = Candidate.objects.get_or_create(
+                user=applicant.user, job=job
+            )
+            candidate.resume = form.cleaned_data.get("resume")
+            candidate.cover_letter = form.cleaned_data.get("cover_letter")
+            candidate.application_status = "Pending"
+            candidate.save()
+
+            # Notifications
+            if job.employer:
+                EmployerNotification.objects.create(
+                    employer=job.employer,
+                    title="New Job Application",
+                    message=f"New application for {job.title} by {applicant.user.username}"
+                )
+            ApplicantNotification.objects.create(
+                applicant=applicant,
+                title="Application Submitted",
+                message=f"Your application for '{job.title}' has been submitted successfully!"
+            )
+
+            messages.success(request, "Your application has been submitted successfully!")
             return redirect('job_detail', job_id=job.id)
         else:
             messages.error(request, "Please fix the errors in your application form.")
     else:
-        form = ApplicationForm(instance=existing_application)
+        form = ApplicationForm()
 
     return render(request, 'applicants_application.html', {
         'form': form,
         'job': job,
-        'existing_application': existing_application
     })
 
 @applicant_only
