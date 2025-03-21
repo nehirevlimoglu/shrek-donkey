@@ -24,11 +24,8 @@ user_fixtures = [
 ]
 
 class Command(BaseCommand):
-<<<<<<< HEAD
+
     """Automatically seeds Employers, Admins, and Applicants into the database."""
-=======
-    help = 'Seeds the database with sample Employers, Admins, and Applicants'
->>>>>>> admin_backend_functionality
 
     USER_COUNT = 25
     EMPLOYER_COUNT = 5
@@ -47,6 +44,7 @@ class Command(BaseCommand):
 
         self.create_jobs()
         self.create_candidates()
+        self.create_interviews()
 
         print("Seeding complete.")
 
@@ -92,21 +90,16 @@ class Command(BaseCommand):
             last_name = self.faker.last_name()
             email = self.create_email(first_name, last_name)
 
-<<<<<<< HEAD
+
         username = self.create_username(first_name, last_name)
 
         self.try_create_user({
-=======
-        username = create_username(first_name, last_name)
-        data = {
->>>>>>> admin_backend_functionality
             'username': username,
             'email': email,
             'first_name': first_name,
             'last_name': last_name,
             'role': role,
-        }
-        self.try_create_user(data)
+        })
 
     def try_create_user(self, data):
         try:
@@ -134,9 +127,11 @@ class Command(BaseCommand):
 
         if user.role == 'Employer':
             self.create_employer_profile(user)
+        elif user.role == 'Applicant':
+            self.create_applicant_profile(user)
 
     def create_employer_profile(self, user):
-    # Check if an Employer record already exists for this user
+        # Check if an Employer record already exists for this user
         if not Employer.objects.filter(user=user).exists():
             Employer.objects.create(
                 user=user,
@@ -151,6 +146,19 @@ class Command(BaseCommand):
                 is_verified=True
             )
             print(f"Created Employer profile for {user.username}")
+            
+    def create_applicant_profile(self, user):
+        # Check if an Applicant record already exists for this user
+        if not Applicant.objects.filter(user=user).exists():
+            Applicant.objects.create(
+                user=user,
+                degree="Computer Science",
+                salary_preferences="$50,000-$70,000",
+                job_preferences="Software Development",
+                location_preferences="Remote"
+            )
+            print(f"Created Applicant profile for {user.username}")
+
     # ---------------------------
     # Create Jobs, Candidates, Interviews
     # ---------------------------
@@ -171,24 +179,6 @@ class Command(BaseCommand):
                     benefits="Some benefits",
                     contact_email=employer.user.email,  # Use the linked User's email
                 )
-<<<<<<< HEAD
-                if emp_created:
-                    print(f"✅ Employer profile created for {user.username}")
-
-            # Create Applicant profile
-            elif data['role'] == 'Applicant':
-                applicant, app_created = Applicant.objects.get_or_create(
-                    user=user,
-                    defaults={
-                        "degree": "Computer Science",
-                        "salary_preferences": "$50,000-$70,000",
-                        "job_preferences": "Software Development",
-                        "location_preferences": "Remote"
-                    }
-                )
-                if app_created:
-                    print(f"✅ Applicant profile created for {user.username}")
-=======
                 print(f"Created Job '{job.title}' for employer {employer.user.username}")
 
     def create_candidates(self):
@@ -205,7 +195,20 @@ class Command(BaseCommand):
                 cover_letter="Looking forward to joining your company!",
             )
             print(f"Created Candidate for user {user.username} on job {job.title}")
->>>>>>> admin_backend_functionality
+
+    def create_interviews(self):
+        interview_date = date.today() + timedelta(days=1)
+        interview_time = time(10, 0)
+        for cand in Candidate.objects.all():
+            Interview.objects.create(
+                candidate=cand,
+                job=cand.job,
+                date=interview_date,
+                time=interview_time,
+                interview_link="https://zoom.us/fake-interview",
+                notes="Initial screening"
+            )
+            print(f"Created Interview for {cand.user.username} - {cand.job.title}")
 
     def list_all_users(self):
         print("\n🔹 **Employers (OneToOne)**:")
@@ -231,12 +234,7 @@ class Command(BaseCommand):
         """Creates a username in the format '@firstname_lastname'"""
         return f"@{first_name.lower()}{last_name.lower()}"
 
-<<<<<<< HEAD
     @staticmethod
     def create_email(first_name, last_name):
-        """Generates a unique email"""
-        return f"{first_name.lower()}@example.org"
-=======
-def create_email(first_name, last_name):
-    return f"{first_name.lower()}@example.org"
->>>>>>> admin_backend_functionality
+        """Creates an email in the format 'firstname.lastname@example.com'"""
+        return f"{first_name.lower()}.{last_name.lower()}@example.com"

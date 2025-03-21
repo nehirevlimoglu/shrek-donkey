@@ -227,12 +227,16 @@ def apply_for_job(request, job_id):
             print(f"👤 Candidate {'created' if created else 'updated'}: {candidate}")
 
             # Create Employer Notification
-            EmployerNotification.objects.create(
-                employer=job.employer,
-                title="New Job Application",  
-                message=f"📩 New application received for {job.title} by {applicant.user.first_name} {applicant.user.last_name}!"
-            )
-            print("📢 Employer notification sent.")
+            if job.employer:
+                EmployerNotification.objects.create(
+                    employer=job.employer,
+                    title="New Job Application",  
+                    message=f"📩 New application received for {job.title} by {applicant.user.first_name} {applicant.user.last_name}!"
+                )
+                print("📢 Employer notification sent.")
+            else:
+                print("❌ No employer associated with this job.")
+
 
             # Create Applicant Notification
             ApplicantNotification.objects.create(
