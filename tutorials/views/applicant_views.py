@@ -15,7 +15,6 @@ from tutorials.utils import extract_skills_nlp
 from random import randint
 import json
 
-
 @applicant_only
 @login_required
 def applicants_home_page(request):

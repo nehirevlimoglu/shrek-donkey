@@ -1,0 +1,61 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile</title>
+    <link rel="stylesheet" href="{% static 'css/applicants_profile_set_up.css' %}">
+</head>
+<body>
+
+    <div class="container">
+        <h2>Complete Your Profile</h2>
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="id_degree">Degree:</label>
+                {{ form.degree }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_cv">Upload CV:</label>
+                {{ form.cv }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_salary_preferences">Salary Preferences:</label>
+                {{ form.salary_preferences }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_job_preferences">Job Preferences:</label>
+                <select id="id_job_preferences" name="job_preferences" multiple>
+                    {% for job in form.job_preferences.field.queryset %}
+                        <option value="{{ job.id }}">{{ job.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="id_location_preferences">Location Preferences:</label>
+                {{ form.location_preferences }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_first_name">First Name:</label>
+                {{ form.first_name }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_last_name">Last Name:</label>
+                {{ form.last_name }}
+            </div>
+
+            <button type="submit">Save & Continue</button>
+        </form>
+    </div>
+
+</body>
+</html>

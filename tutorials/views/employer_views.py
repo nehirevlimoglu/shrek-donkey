@@ -20,6 +20,8 @@ from django.utils.dateparse import parse_date, parse_time
 from django.utils.timezone import now
 from django.db.models import Count, Q
 from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 
 
@@ -27,6 +29,27 @@ logger = logging.getLogger(__name__)
 
 def is_employer(user):
     return hasattr(user, 'role') and user.role == 'Employer'
+
+
+@login_required
+def employer_profile_setup(request):
+    try:
+        employer = request.user.employer  # Ensure the user is an employer
+    except Employer.DoesNotExist:
+        employer = None
+
+    if request.method == 'POST':
+        form = EmployerProfileForm(request.POST, request.FILES, instance=employer)
+        if form.is_valid():
+            employer = form.save(commit=False)
+            employer.user = request.user
+            employer.save()
+            return HttpResponseRedirect(reverse('employer_home_page'))  # Redirect to employer's dashboard
+
+    else:
+        form = EmployerProfileForm(instance=employer)
+
+    return render(request, 'employer_form.html', {'form': form})
 
 @login_required
 def employer_home_page(request):

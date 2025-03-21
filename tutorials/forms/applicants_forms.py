@@ -22,7 +22,7 @@ class ApplicantForm(forms.ModelForm):
     )
     job_preferences = forms.ModelMultipleChoiceField(
         queryset=JobTitle.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'}),
         required=False
     )
 

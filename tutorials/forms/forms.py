@@ -9,7 +9,6 @@ class SignUpForm(forms.ModelForm):
     ROLE_CHOICES = [
         ('Employer', 'Employer'),
         ('Applicant', 'Applicant'),
-        ('Admin', 'Admin')
     ]
 
     first_name = forms.CharField(
@@ -112,3 +111,4 @@ class CustomPasswordChangeForm(PasswordChangeForm):
     class Meta:
         model = User
         fields = ['old_password', 'new_password1', 'new_password2']
+

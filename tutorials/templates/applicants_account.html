@@ -19,7 +19,12 @@
         <p><strong>Email:</strong> {{ user.email }}</p>
         <p><strong>Degree:</strong> {{ applicant.degree }}</p>
         <p><strong>Salary Preferences:</strong> {{ applicant.salary_preferences }}</p>
-        <p><strong>Job Preferences:</strong> {{ applicant.job_preferences }}</p>
+        <label for="id_job_preferences">Job Preferences:</label>
+        <ul>
+            {% for job in applicant.job_preferences.all %}
+                <li>{{ job.title }}</li>
+            {% endfor %}
+        </ul>
         <p><strong>Location Preferences:</strong> {{ applicant.location_preferences }}</p>
         {% if applicant.cv %}
             <p><strong>CV:</strong> 
