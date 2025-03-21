@@ -35,9 +35,9 @@ def populate_job_titles(sender, **kwargs):
             added_titles += 1
 
     print(f"✅ {added_titles} new job titles loaded from {json_path}")
-    print(f"✅ {added_jobs} new job titles loaded from {json_path}")
 
 # Create notifications for admin users when important events occur
+
 
 @receiver(post_save, sender=Job)
 def job_creation_notification(sender, instance, created, **kwargs):
