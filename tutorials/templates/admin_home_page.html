@@ -103,7 +103,7 @@
 
         // Fetch data from backend
         function fetchData(period) {
-            fetch(`/api/get_active_users_data/?period=${period}`⁠)
+            fetch(`/api/get_active_users_data/?period=${period}`)
                 .then(response => response.json())
                 .then(data => {
                     if (activeUserChart) {
