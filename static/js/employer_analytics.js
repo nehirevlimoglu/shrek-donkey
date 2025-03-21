@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
     try {
-        // ✅ Ensure script elements exist before parsing
+        // Ensure script elements exist before parsing
         const jobTitlesElement = document.getElementById("job_titles_json");
         const jobApplicantsElement = document.getElementById("job_applicants_json");
         const jobInterviewsElement = document.getElementById("job_interviews_json");
@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // ✅ Parse JSON safely
+        // Parse JSON safely
         const jobTitles = JSON.parse(jobTitlesElement.textContent);
         const jobApplicants = JSON.parse(jobApplicantsElement.textContent);
         const jobInterviews = JSON.parse(jobInterviewsElement.textContent);
@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // ✅ Initialize Applicants Chart (Bar Chart)
+        // Applicants Chart (Bar Chart)
         const ctx1 = document.getElementById("applicantsChart").getContext("2d");
         new Chart(ctx1, {
             type: "bar",
@@ -39,7 +39,8 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false,
+                maintainAspectRatio: true,
+                aspectRatio: 2, // Set a custom aspect ratio (width:height = 2:1)
                 plugins: {
                     legend: { display: true },
                     tooltip: { enabled: true }
@@ -50,7 +51,11 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // ✅ Initialize Interviews Chart (Pie Chart)
+        // Log canvas size after rendering
+        const canvas1 = document.getElementById("applicantsChart");
+        console.log("Canvas (Applicants) size after rendering:", canvas1.getBoundingClientRect());
+
+        // Interviews Chart (Pie Chart)
         const ctx2 = document.getElementById("interviewsChart").getContext("2d");
         new Chart(ctx2, {
             type: "pie",
@@ -64,12 +69,18 @@ document.addEventListener("DOMContentLoaded", function () {
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 2, // Set a custom aspect ratio (width:height = 2:1)
                 plugins: {
                     legend: { position: "top" },
                     tooltip: { enabled: true }
                 }
             }
         });
+
+        // Log canvas size after rendering
+        const canvas2 = document.getElementById("interviewsChart");
+        console.log("Canvas (Interviews) size after rendering:", canvas2.getBoundingClientRect());
 
     } catch (error) {
         console.error("❌ JSON Parsing Error:", error);
