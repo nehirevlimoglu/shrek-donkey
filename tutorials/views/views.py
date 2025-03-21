@@ -5,6 +5,11 @@ from tutorials.helpers import login_prohibited
 from tutorials.forms.forms import SignUpForm
 from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse
+from tutorials.models.employer_models import Job
+from django.shortcuts import render, redirect, get_object_or_404
+from tutorials.utils import match_candidates_to_job  # ✅ correct
+
+
 
 def log_in(request):
     if request.method == 'POST':
@@ -65,3 +70,14 @@ def log_out(request):
     logout(request)  
     print("User after logout:", request.user)  
     return redirect('log-in')
+
+
+def job_matching_view(request, job_id):
+    """View to match candidates to a job based on extracted skills"""
+    job = get_object_or_404(Job, id=job_id)
+    matched_candidates = match_candidates_to_job(job.title, top_n=5)
+
+    return render(request, "candidate_matches.html", {
+        "job": job,
+        "matched_candidates": matched_candidates
+    })

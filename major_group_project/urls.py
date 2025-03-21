@@ -10,7 +10,7 @@ from tutorials.views.employer_views import employer_home_page, view_employer_ana
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
-from tutorials.views.views import log_in, log_out, sign_up  
+from tutorials.views.views import log_in, log_out, sign_up, job_matching_view
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile, applicants_analytics, apply_for_job, job_detail, applicants_application
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications,  update_job_status
 from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, change_password, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_calendar, employer_candidates, get_interviews, edit_company_profile, delete_account, employer_notifications, get_employer_events, review_application, mark_notification_as_read, applicant_profile, schedule_interview, accept_candidate, reject_candidate
@@ -107,6 +107,8 @@ urlpatterns = [
     path('job/<int:job_id>/', job_detail, name='job_detail'),
     path('job/<int:job_id>/apply/', apply_for_job, name='apply_for_job'),
     path('applicants_application/<int:job_id>/', applicants_application, name='applicants_application'),
+
+    path('match-candidates/<int:job_id>/', job_matching_view, name='match_candidates'),
 
 
 
