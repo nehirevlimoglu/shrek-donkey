@@ -3,10 +3,38 @@
 
 {% block title %}Admin Settings | Swamp Hiring{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_settings.css' %}">
+<style>
+    /* Ensure the entire page can scroll */
+    html, body {
+        min-height: 100vh;
+        overflow-y: auto;
+        background: #F8F9FA; /* Adjust as needed */
+    }
+    
+    /* If your base template has a pinned sidebar or a main content container,
+       adjust it accordingly. For example, if your base defines a .content container:
+    */
+    .content {
+        margin-left: 270px; /* Adjust if you have a sidebar */
+        width: calc(100vw - 270px);
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+    
+    /* Remove any height restrictions on the settings container so that its content expands naturally */
+    .settings-container {
+        max-height: none;
+        overflow-y: visible;
+        padding: 20px; /* Ensure some padding if needed */
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <link rel="stylesheet" href="{% static 'css/admin_settings.css' %}">
-
 
 <div class="settings-container">
     <div class="page-header mb-4">

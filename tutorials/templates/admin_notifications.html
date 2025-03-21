@@ -6,24 +6,27 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/admin_notifications.css' %}">
 <style>
-    /* Ensure the whole page is scrollable */
+    /* Global styles to ensure the full page scrolls */
     body {
         min-height: 100vh;
         overflow-y: auto;
-        background: #F8F9FA;  /* Adjust or remove as needed */
+        background: #F8F9FA;
     }
 
-    /* If you have a sidebar (as in your employer example),
-       adjust the main content container accordingly */
+    /* If you have a sidebar, adjust the main content container accordingly */
     .content {
-        margin-left: 270px; /* Only if you have a pinned sidebar */
+        margin-left: 270px; /* adjust if needed */
         width: calc(100vw - 270px);
         min-height: 100vh;
         overflow-x: hidden;
     }
 
-    /* Remove any fixed height from the notifications list 
-       so that it expands and pushes the page height */
+    /* Let the notifications container expand naturally without fixed height */
+    .notifications-container {
+        padding: 20px;
+    }
+
+    /* Remove any fixed height on the notifications list so that it pushes page height */
     .notifications-list {
         max-height: none;
         overflow-y: visible;
