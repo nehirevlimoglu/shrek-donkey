@@ -85,7 +85,7 @@ class Application(models.Model):
 class ApplicantNotification(models.Model):
     applicant = models.ForeignKey(Applicant, on_delete=models.CASCADE, related_name='notifications')
     title = models.CharField(max_length=200)
-    message = models.TextField()
+    message = models.TextField(default="No message provided")
     timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 

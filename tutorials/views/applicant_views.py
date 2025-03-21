@@ -132,39 +132,18 @@ def applicants_account(request):
     })
 
 
+@login_required
 def job_detail(request, job_id):
+    """Display job details and check if the user has applied"""
     job = get_object_or_404(Job, id=job_id)
 
-    # Get the applicant associated with the current user
-    try:
-        applicant = Applicant.objects.get(user=request.user)
-    except Applicant.DoesNotExist:
-        applicant = None
+    # ✅ Fix: Check if candidate entry exists instead of Application
+    existing_application = Candidate.objects.filter(user=request.user, job=job).exists()
 
-    # Check for existing application only if applicant exists
-    existing_application = False
-    if applicant:
-        existing_application = Application.objects.filter(applicant=applicant, job=job).exists()
-
-    # Handle form submission
-    if request.method == "POST":
-        if existing_application:
-            # If already applied, redirect with the message
-            return render(request, "job_detail.html", {
-                "job": job,
-                "existing_application": True,  # Already applied
-                "random": randint(1, 10000)
-            })
-        else:
-            # Create a new application
-            Application.objects.create(applicant=applicant, job=job)
-            return redirect("job_detail", job_id=job.id)  # Redirect back to the same page
-
-    # Render job details with the proper existing_application context
     return render(request, "job_detail.html", {
         "job": job,
         "existing_application": existing_application,
-        "random": randint(1, 10000)  # Random value for cache busting of JS
+        "random": randint(1, 10000)  # Forces browser to reload JavaScript
     })
 
     

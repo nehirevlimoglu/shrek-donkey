@@ -12,7 +12,7 @@ class JobPosition(models.Model):
     minimum_criteria = models.TextField()
     desirable_criteria = models.TextField()
     location = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.title

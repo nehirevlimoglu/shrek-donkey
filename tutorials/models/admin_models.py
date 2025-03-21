@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from libgravatar import Gravatar
 from tutorials.models.user_model import User
+from django.utils import timezone
 
 class Admin(User):
     phone_validator = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
@@ -38,12 +39,12 @@ class Notification(models.Model):
         (PRIORITY_HIGH, 'High'),
     ]
 
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
     title = models.CharField(max_length=200)
-    message = models.TextField()
+    message = models.TextField(default="No message provided")
     notification_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default=TYPE_GENERAL)
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default=PRIORITY_MEDIUM)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     is_read = models.BooleanField(default=False)
     related_object_id = models.PositiveIntegerField(null=True, blank=True)
     related_object_type = models.CharField(max_length=50, null=True, blank=True)

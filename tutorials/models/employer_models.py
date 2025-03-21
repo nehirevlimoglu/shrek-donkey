@@ -3,6 +3,9 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from libgravatar import Gravatar
 from tutorials.models.user_model import User
+from django.utils import timezone
+import json
+
 
 
 
@@ -54,6 +57,7 @@ class JobTitle(models.Model):
         return f"{self.company_name} ({self.user.username})"
 
 
+
 class Job(models.Model):
     employer = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name='jobs', null=True, blank=True)
     title = models.CharField(max_length=255)  # ✅ Changed to CharField for free-text job titles
@@ -76,7 +80,9 @@ class Job(models.Model):
     benefits = models.TextField(blank=True, null=True)
     application_deadline = models.DateField(null=True, blank=True)
     contact_email = models.EmailField(default="default@email.com")
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    extracted_skills = models.TextField(blank=True, default="[]")
 
     STATUS_CHOICES = [
         ('pending', 'Pending Review'),
@@ -91,6 +97,12 @@ class Job(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.get_status_display()})"
+
+    def get_extracted_skills(self):
+        return json.loads(self.extracted_skills or "[]")
+
+    def set_extracted_skills(self, skill_list):
+        self.extracted_skills = json.dumps(skill_list)
 
         
 
@@ -147,8 +159,8 @@ class Interview(models.Model):
 class EmployerNotification(models.Model):
     employer = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name="notifications")
     title = models.CharField(max_length=200)
-    message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    message = models.TextField(default="No message provided")
+    created_at = models.DateTimeField(default=timezone.now)
     is_read = models.BooleanField(default=False)
 
     class Meta:

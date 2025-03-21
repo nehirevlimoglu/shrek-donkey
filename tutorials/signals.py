@@ -10,7 +10,6 @@ from .models.admin_models import Notification, Admin
 from .models.user_model import User
 from .views.admin_views import create_admin_notification
 
-
 @receiver(post_migrate)
 def populate_job_titles(sender, **kwargs):
     """Populate selectable job titles from JSON after migrations."""
@@ -35,7 +34,6 @@ def populate_job_titles(sender, **kwargs):
             added_titles += 1
 
     print(f"✅ {added_titles} new job titles loaded from {json_path}")
-    print(f"✅ {added_jobs} new job titles loaded from {json_path}")
 
 # Create notifications for admin users when important events occur
 

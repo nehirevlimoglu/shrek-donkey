@@ -1,47 +1,44 @@
-function toggleDropdown(id) {
-    document.getElementById(id).classList.toggle("show");
-}
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("✅ job_application.js loaded");
 
-window.onclick = function(event) {
-    if (!event.target.matches('.review-btn')) {
-        var dropdowns = document.getElementsByClassName("dropdown-content");
-        for (var i = 0; i < dropdowns.length; i++) {
-            var openDropdown = dropdowns[i];
-            if (openDropdown.classList.contains('show')) {
-                openDropdown.classList.remove('show');
-            }
-        }
+    const applyBtn = document.getElementById("apply-btn");
+
+    if (applyBtn) {
+        console.log("✅ Apply button found:", applyBtn);
+
+        applyBtn.addEventListener("click", function () {
+            console.log("🟢 Apply button clicked!");
+
+            const jobId = applyBtn.getAttribute("data-job-id");
+            console.log("🔵 Job ID:", jobId);
+
+            fetch(`/job/${jobId}/apply/`, {  
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("🔵 Server Response:", data);
+                
+                if (data.success) {
+                    console.log("✅ Application submitted successfully!");
+                    applyBtn.style.display = "none"; 
+                    const message = document.createElement("p");
+                    message.classList.add("already-applied-message");
+                    message.textContent = "✅ You have already applied for this job.";
+                    applyBtn.parentNode.appendChild(message);
+                } else {
+                    console.log("❌ Error applying: ", data.error);
+                    alert("❌ Error: " + data.error);
+                }
+            })
+            .catch(error => console.error("🔴 Fetch Error:", error));
+        });
+    } else {
+        console.log("❌ Apply button NOT found");
     }
-};
-
-function updateStatus(jobId, status) {
-    console.log("Updating status for job:", jobId, "to", status); // Debugging
-    fetch('/update-job-status/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),  // Ensure CSRF protection
-        },
-        body: JSON.stringify({
-            job_id: jobId,
-            status: status
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('status-' + jobId).innerText = status;
-            document.getElementById('status-' + jobId).className = 'status-label ' + (status === 'Approved' ? 'status-approved' : 'status-rejected');
-            document.getElementById('dropdown-' + jobId).classList.remove('show');
-            document.getElementById('action-buttons-' + jobId).style.display = 'none';
-        } else {
-            alert("Error updating status. Please try again.");
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
-
-// Function to get CSRF token (required for Django POST requests)
-function getCSRFToken() {
-    return document.querySelector('[name=csrfmiddlewaretoken]').value;
-}
+});
