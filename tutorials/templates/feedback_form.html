@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Submit Feedback | Swamp Hiring{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Submit Feedback</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">Your feedback helps us improve our platform. Please let us know your thoughts, suggestions or report any issues you've encountered.</p>
+                    
+                    {% if success_message %}
+                    <div class="alert alert-success" role="alert">
+                        {{ success_message }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if error_message %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error_message }}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" action="{% url 'submit_feedback' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="feedback_type" class="form-label">Feedback Type</label>
+                            <select class="form-select" id="feedback_type" name="feedback_type" required>
+                                <option value="" selected disabled>Select feedback type</option>
+                                <option value="suggestion">Suggestion</option>
+                                <option value="bug_report">Bug Report</option>
+                                <option value="compliment">Compliment</option>
+                                <option value="complaint">Complaint</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="subject" name="subject" required placeholder="Brief description of your feedback">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message</label>
+                            <textarea class="form-control" id="message" name="message" rows="5" required placeholder="Please provide details about your feedback..."></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="priority" class="form-label">Priority</label>
+                            <select class="form-select" id="priority" name="priority">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .card-header {
+        background-color: #4a6cf7 !important;
+    }
+    
+    .btn-primary {
+        background-color: #4a6cf7;
+        border-color: #4a6cf7;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        background-color: #3a5ce5;
+        border-color: #3a5ce5;
+        transform: translateY(-2px);
+    }
+    
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 10px 15px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #4a6cf7;
+        box-shadow: 0 0 0 0.25rem rgba(74, 108, 247, 0.25);
+    }
+</style>
+{% endblock %} 

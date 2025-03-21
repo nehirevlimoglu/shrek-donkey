@@ -19,6 +19,7 @@ class Notification(models.Model):
     TYPE_APPLICATION = 'application'
     TYPE_USER = 'user'
     TYPE_SYSTEM = 'system'
+    TYPE_FEEDBACK = 'feedback'
     
     TYPE_CHOICES = [
         (TYPE_GENERAL, 'General'),
@@ -26,6 +27,7 @@ class Notification(models.Model):
         (TYPE_APPLICATION, 'Application'),
         (TYPE_USER, 'User'),
         (TYPE_SYSTEM, 'System'),
+        (TYPE_FEEDBACK, 'Feedback'),
     ]
     
     # Priority choices
@@ -38,8 +40,24 @@ class Notification(models.Model):
         (PRIORITY_MEDIUM, 'Medium'),
         (PRIORITY_HIGH, 'High'),
     ]
+    
+    # Feedback type choices
+    FEEDBACK_SUGGESTION = 'suggestion'
+    FEEDBACK_BUG_REPORT = 'bug_report'
+    FEEDBACK_COMPLIMENT = 'compliment'
+    FEEDBACK_COMPLAINT = 'complaint'
+    FEEDBACK_OTHER = 'other'
+    
+    FEEDBACK_TYPE_CHOICES = [
+        (FEEDBACK_SUGGESTION, 'Suggestion'),
+        (FEEDBACK_BUG_REPORT, 'Bug Report'),
+        (FEEDBACK_COMPLIMENT, 'Compliment'),
+        (FEEDBACK_COMPLAINT, 'Complaint'),
+        (FEEDBACK_OTHER, 'Other'),
+    ]
 
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
+    sender = models.ForeignKey(User, on_delete=models.SET_NULL, related_name='sent_notifications', null=True, blank=True)
     title = models.CharField(max_length=200)
     message = models.TextField(default="No message provided")
     notification_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default=TYPE_GENERAL)
@@ -50,12 +68,18 @@ class Notification(models.Model):
     related_object_type = models.CharField(max_length=50, null=True, blank=True)
     action_url = models.CharField(max_length=255, blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
+    
+    # Feedback related fields
+    feedback_type = models.CharField(max_length=20, choices=FEEDBACK_TYPE_CHOICES, null=True, blank=True)
+    sender_type = models.CharField(max_length=20, null=True, blank=True)  # 'applicant' or 'employer'
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.title} - {self.recipient.username}"
+        if self.recipient:
+            return f"{self.title} - {self.recipient.username}"
+        return self.title
         
     def mark_as_read(self):
         self.is_read = True

@@ -193,31 +193,49 @@ table td {
     height: 30px;
     margin-right: 20px;
     cursor: pointer;
-    background-image: url('/static/images/notification_icon.png');
-    background-size: cover;
-    background-position: center;
-    text-indent: -9999px;
-    overflow: hidden;
+    font-size: 24px;
+    text-indent: 0;
     position: relative;  
 }
 
 .notifications-count {
     position: absolute;
-    top: -4px;          
-    right: -4px;
-    background: red;
+    top: -8px;          
+    right: -8px;
+    background: #ff3e3e;
     color: white;
-    font-size: 0.7rem;   
+    font-size: 0.75rem;   
     font-weight: bold;
-    width: 18px;
+    min-width: 18px;
     height: 18px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3); 
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+    padding: 0 4px;
 }
 
+.notifications-count.has-notifications {
+    background-color: #ff3e3e;
+    color: white;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 62, 62, 0.7);
+    }
+    70% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 6px rgba(255, 62, 62, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 62, 62, 0);
+    }
+}
 
 .dropdown-menu {
     display: none;

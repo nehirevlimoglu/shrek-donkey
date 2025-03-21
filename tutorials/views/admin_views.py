@@ -127,99 +127,91 @@ def admin_settings(request):
 
 @user_passes_test(is_admin)
 def admin_notifications(request):
-    # Get filter parameters
+    # Get query parameters
     notification_type = request.GET.get('type', 'all')
     priority = request.GET.get('priority', 'all')
     is_read = request.GET.get('is_read', 'all')
     search_query = request.GET.get('search', '')
+    page = request.GET.get('page', 1)
     
-    # Base query - exclude soft-deleted notifications
-    notifications_query = Notification.objects.filter(
-        recipient=request.user,
-        is_deleted=False
-    )
+    # Base queryset
+    notifications = Notification.objects.filter(is_deleted=False)
     
-    # Apply type filter
+    # Apply filters
     if notification_type != 'all':
-        notifications_query = notifications_query.filter(notification_type=notification_type)
+        notifications = notifications.filter(notification_type=notification_type)
     
-    # Apply priority filter
     if priority != 'all':
-        notifications_query = notifications_query.filter(priority=priority)
+        notifications = notifications.filter(priority=priority)
     
-    # Apply read status filter
-    if is_read == 'read':
-        notifications_query = notifications_query.filter(is_read=True)
-    elif is_read == 'unread':
-        notifications_query = notifications_query.filter(is_read=False)
+    if is_read == 'unread':
+        notifications = notifications.filter(is_read=False)
+    elif is_read == 'read':
+        notifications = notifications.filter(is_read=True)
     
-    # Apply search filter
     if search_query:
-        notifications_query = notifications_query.filter(
+        notifications = notifications.filter(
             Q(title__icontains=search_query) | 
             Q(message__icontains=search_query)
         )
     
-    # Get notification statistics
-    total_count = Notification.objects.filter(recipient=request.user, is_deleted=False).count()
-    unread_count = Notification.objects.filter(recipient=request.user, is_read=False, is_deleted=False).count()
+    # Count totals for statistics
+    total_count = notifications.count()
+    unread_count = notifications.filter(is_read=False).count()
+    feedback_count = notifications.filter(notification_type='feedback').count()
     
-    # Get notification type counts for filtering UI
+    # Get counts by type and priority for filter display
     type_counts = {
-        'job': Notification.objects.filter(recipient=request.user, notification_type='job', is_deleted=False).count(),
-        'application': Notification.objects.filter(recipient=request.user, notification_type='application', is_deleted=False).count(),
-        'user': Notification.objects.filter(recipient=request.user, notification_type='user', is_deleted=False).count(),
-        'system': Notification.objects.filter(recipient=request.user, notification_type='system', is_deleted=False).count(),
-        'general': Notification.objects.filter(recipient=request.user, notification_type='general', is_deleted=False).count(),
+        'general': notifications.filter(notification_type='general').count(),
+        'job': notifications.filter(notification_type='job').count(),
+        'application': notifications.filter(notification_type='application').count(),
+        'user': notifications.filter(notification_type='user').count(),
+        'system': notifications.filter(notification_type='system').count(),
+        'feedback': notifications.filter(notification_type='feedback').count(),
     }
     
-    # Get priority counts
     priority_counts = {
-        'high': Notification.objects.filter(recipient=request.user, priority='high', is_deleted=False).count(),
-        'medium': Notification.objects.filter(recipient=request.user, priority='medium', is_deleted=False).count(),
-        'low': Notification.objects.filter(recipient=request.user, priority='low', is_deleted=False).count(),
+        'high': notifications.filter(priority='high').count(),
+        'medium': notifications.filter(priority='medium').count(),
+        'low': notifications.filter(priority='low').count(),
     }
     
-    # Order by creation date (newest first)
-    notifications_query = notifications_query.order_by('-created_at')
-    
-    # Pagination
-    page = request.GET.get('page', 1)
-    paginator = Paginator(notifications_query, 10)
-    
+    # Paginate notifications
+    paginator = Paginator(notifications, 10)  # Show 10 notifications per page
     try:
-        notifications_page = paginator.page(page)
+        notifications = paginator.page(page)
     except PageNotAnInteger:
-        notifications_page = paginator.page(1)
+        notifications = paginator.page(1)
     except EmptyPage:
-        notifications_page = paginator.page(paginator.num_pages)
+        notifications = paginator.page(paginator.num_pages)
     
-    # Don't mark as read automatically - let user manually mark them
-    # This was the previous behavior: notifications_query.update(is_read=True)
-    
-    return render(request, 'admin_notifications.html', {
-        'notifications': notifications_page,
-        'total_count': total_count,
-        'unread_count': unread_count,
-        'type_counts': type_counts,
-        'priority_counts': priority_counts,
+    context = {
+        'notifications': notifications,
         'notification_type': notification_type,
         'priority': priority,
         'is_read': is_read,
         'search_query': search_query,
-    })
+        'total_count': total_count,
+        'unread_count': unread_count,
+        'feedback_count': feedback_count,
+        'type_counts': type_counts,
+        'priority_counts': priority_counts,
+    }
+    
+    return render(request, 'admin_notifications.html', context)
 
 @user_passes_test(is_admin)
 def admin_notifications_count(request):
-    """Return the count of unread notifications for the admin user"""
-    unread_count = Notification.objects.filter(recipient=request.user, is_read=False, is_deleted=False).count()
+    """Return the count of all unread notifications for admin dashboard"""
+    # Count all unread and not deleted notifications, not just the current user's
+    unread_count = Notification.objects.filter(is_read=False, is_deleted=False).count()
     return JsonResponse({'count': unread_count})
 
 @user_passes_test(is_admin)
 @require_POST
 def mark_notification_as_read(request, notification_id):
     """Mark a single notification as read"""
-    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+    notification = get_object_or_404(Notification, id=notification_id)
     notification.is_read = True
     notification.save()
     return JsonResponse({'status': 'success'})
@@ -227,15 +219,15 @@ def mark_notification_as_read(request, notification_id):
 @user_passes_test(is_admin)
 @require_POST
 def mark_all_notifications_as_read(request):
-    """Mark all notifications as read for the current user"""
-    Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+    """Mark all notifications as read"""
+    Notification.objects.filter(is_read=False).update(is_read=True)
     return JsonResponse({'status': 'success'})
 
 @user_passes_test(is_admin)
 @require_POST
 def delete_notification(request, notification_id):
     """Soft delete a notification (mark as deleted)"""
-    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+    notification = get_object_or_404(Notification, id=notification_id)
     notification.is_deleted = True
     notification.save()
     return JsonResponse({'status': 'success'})
@@ -243,8 +235,8 @@ def delete_notification(request, notification_id):
 @user_passes_test(is_admin)
 @require_POST
 def delete_all_notifications(request):
-    """Soft delete all notifications for the current user"""
-    Notification.objects.filter(recipient=request.user).update(is_deleted=True)
+    """Soft delete all notifications"""
+    Notification.objects.all().update(is_deleted=True)
     return JsonResponse({'status': 'success'})
 
 @user_passes_test(is_admin)
@@ -254,8 +246,45 @@ def generate_admin_notification(request):
         recipient=request.user,
         title="Test Notification",
         message="This is a test notification for admin users.",
+        notification_type='general',
+        priority='medium',
         is_read=False
     )
+    return redirect('admin_notifications')
+
+@user_passes_test(is_admin)
+def generate_test_notifications(request):
+    """Generate multiple test notifications for demonstration purposes"""
+    # Create different types of notifications with different priorities
+    notification_types = ['general', 'job', 'application', 'user', 'system', 'feedback']
+    priorities = ['high', 'medium', 'low']
+    
+    # Create one of each type
+    for notification_type in notification_types:
+        for priority in priorities:
+            Notification.objects.create(
+                recipient=request.user,
+                title=f"Test {notification_type.title()} Notification",
+                message=f"This is a test {notification_type} notification with {priority} priority.",
+                notification_type=notification_type,
+                priority=priority,
+                is_read=False
+            )
+    
+    # Add specific feedback notifications with different feedback types
+    feedback_types = ['suggestion', 'bug_report', 'compliment', 'complaint', 'other']
+    for feedback_type in feedback_types:
+        Notification.objects.create(
+            recipient=request.user,
+            title=f"Test Feedback: {feedback_type.replace('_', ' ').title()}",
+            message=f"This is a test feedback of type {feedback_type.replace('_', ' ')}.",
+            notification_type='feedback',
+            priority='medium',
+            is_read=False,
+            feedback_type=feedback_type,
+            sender_type='applicant'
+        )
+    
     return redirect('admin_notifications')
 
 def create_admin_notification(user, title, message, notification_type='general', priority='medium', related_object_id=None, related_object_type=None, action_url=None):
@@ -557,3 +586,23 @@ def update_job_status(request):
 
     logger.error("Invalid request method")  # Log if request method is not POST
     return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
+
+@csrf_exempt
+@user_passes_test(is_admin)
+def resolve_feedback(request, feedback_id):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Only POST method is allowed'}, status=405)
+    
+    try:
+        notification = Notification.objects.get(id=feedback_id, notification_type='feedback')
+        
+        # Mark notification as read and change priority
+        notification.is_read = True
+        notification.priority = 'low'  # Lower priority
+        notification.save()
+        
+        return JsonResponse({'status': 'success'})
+    except Notification.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Feedback not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

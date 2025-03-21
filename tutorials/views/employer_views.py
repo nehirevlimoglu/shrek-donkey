@@ -22,6 +22,7 @@ from django.db.models import Count, Q
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+from tutorials.helpers import clear_feedback_messages
 
 
 
@@ -72,7 +73,7 @@ def employer_home_page(request):
             employer=employer, 
             application_deadline__gte=now()  # ✅ Only count jobs with valid deadlines
         ).count()
-        total_applicants = Candidate.objects.filter(job__employer=employer).count()  # ✅ Fix: Count applicants for employer’s jobs
+        total_applicants = Candidate.objects.filter(job__employer=employer).count()  # ✅ Fix: Count applicants for employer's jobs
 
     except Employer.DoesNotExist:
         return JsonResponse({"success": False, "error": "Employer profile not found"}, status=403)
@@ -233,16 +234,22 @@ def edit_job_view(request, pk):
     
 def employer_login(request):
     if request.method == 'POST':
-        form = LogInForm(request, data=request.POST)
+        form = LogInForm(request.POST)
         if form.is_valid():
-            user = form.get_user()
-            if user and is_employer(user):
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None and user.role == 'Employer':
                 login(request, user)
                 return redirect('employer_home_page')
             else:
                 form.add_error(None, "Only employers can log in here.")
     else:
         form = LogInForm()
+    
+    # Clear any feedback messages before rendering login page
+    clear_feedback_messages(request)
+    
     return render(request, 'log_in.html', {'form': form})
 
 

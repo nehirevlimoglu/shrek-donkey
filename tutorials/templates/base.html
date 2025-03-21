@@ -24,6 +24,7 @@
                             <li><a href="{% url 'employer_calendar' %}">Interviews</a></li>
                             <li><a href="{% url 'employer_analytics' %}">Analytics</a></li>
                             <li><a href="{% url 'employer_settings' %}">Settings</a></li>
+                            <li><a href="{% url 'submit_feedback' %}">Submit Feedback</a></li>
                         {% elif user.role == "Admin" %}
                         <li><a href="{% url 'admin_home_page' %}">Dashboard</a></li>
                         <li><a href="{% url 'admin_job_listings' %}">Manage Job Listings</a></li>
@@ -39,6 +40,7 @@
                             <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
                             <li><a href="{% url 'applicants-notifications' %}">Notifications</a></li>
                             <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
+                            <li><a href="{% url 'submit_feedback' %}">Submit Feedback</a></li>
                         {% else %}
                             <li><a href="/">Home</a></li>  <!-- Uses the root URL instead -->
                         {% endif %}

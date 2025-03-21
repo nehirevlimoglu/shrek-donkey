@@ -4,11 +4,12 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse  # Used for redirection
 from django.contrib.auth.decorators import login_required
-from tutorials.helpers import login_prohibited  # If used elsewhere
+from tutorials.helpers import login_prohibited, clear_feedback_messages  # If used elsewhere
 from tutorials.forms.applicants_forms import ApplicantForm  # Applicant profile form
 from tutorials.forms.employer_forms import EmployerProfileForm  # Employer profile form
 from tutorials.models.applicants_models import Applicant  # Applicant model
 from tutorials.models.employer_models import Employer  # Employer model
+from tutorials.models.user_model import User
 
 from django import forms
 from django.contrib.auth import get_user_model
@@ -42,6 +43,10 @@ def log_in(request):
         else:
             print("Authentication failed")
             # Optionally add a message or redirect back with an error.
+    
+    # Clear any feedback messages before rendering login page
+    clear_feedback_messages(request)
+    
     return render(request, 'log_in.html')
 
 

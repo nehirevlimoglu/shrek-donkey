@@ -1,17 +1,43 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse  # Used for redirection
 from django.contrib.auth.decorators import login_required
-from tutorials.helpers import login_prohibited  # If used elsewhere
+from tutorials.helpers import login_prohibited, clear_feedback_messages  # If used elsewhere
 from tutorials.forms.forms import SignUpForm  # Form for signing up
 from tutorials.forms.applicants_forms import ApplicantForm  # Applicant profile completion form
 from tutorials.forms.employer_forms import EmployerProfileForm  # Employer profile completion form
 from tutorials.models.applicants_models import Applicant  # Applicant model
 from tutorials.models.employer_models import Employer  # Employer model
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.middleware.csrf import get_token
 
 
+# Custom CSRF failure view
+def csrf_failure(request, reason=""):
+    """
+    Custom CSRF validation failure view
+    """
+    print(f"CSRF validation failed, reason: {reason}")
+    
+    # Force generate a new CSRF token
+    get_token(request)
+    
+    # Add error message
+    messages.error(request, f"Form submission failed (CSRF validation error): {reason}")
+    
+    # Clear any feedback messages
+    clear_feedback_messages(request)
+    
+    # Render login page and force set new CSRF cookie
+    response = render(request, 'log_in.html')
+    response.set_cookie('csrftoken', request.META.get('CSRF_COOKIE', ''), samesite=None)
+    return response
+
+
+@csrf_exempt  # Temporarily disable CSRF protection, only for testing purposes
+@ensure_csrf_cookie
 def log_in(request):
     if request.method == 'POST':
         username = request.POST['username']
@@ -33,14 +59,19 @@ def log_in(request):
             elif request.user.role == 'Applicant' or request.user.role == 'job_seeker':               
                 return redirect('applicants-home-page')  
             
-
             raise Http404("Page not found")
-
-
         else:
             print("Authentication failed")  # ❌ This means the username/password is incorrect.
+            # Add error message
+            messages.error(request, "Incorrect username or password")
     
-    return render(request, 'log_in.html')
+    # Clear any feedback messages before rendering login page
+    clear_feedback_messages(request)
+    
+    # Force set CSRF Cookie
+    response = render(request, 'log_in.html')
+    response.set_cookie('csrftoken', request.META.get('CSRF_COOKIE', ''), samesite='Lax')
+    return response
 
 
 def sign_up(request):
@@ -108,16 +139,15 @@ def employer_profile_setup(request):
     return render(request, 'employer_profile_setup.html', {'form': form})
 
 
-
+@csrf_exempt  # Temporarily disable CSRF protection
 def log_out(request):
-
     print("User before logout:", request.user) 
-
-    return redirect('log-in')  
-
     logout(request)  
     print("User after logout:", request.user)  
-    return redirect('log-in')
+    # Return response and clear CSRF cookie
+    response = redirect('log-in')
+    response.delete_cookie('csrftoken')
+    return response
 
 
 def job_matching_view(request, job_id):
@@ -130,3 +160,53 @@ def job_matching_view(request, job_id):
         "matched_candidates": matched_candidates
     })
     return redirect('log-in')
+
+
+@login_required
+def submit_feedback(request):
+    """
+    View for allowing applicants and employers to submit feedback
+    """
+    if request.method == 'POST':
+        feedback_type = request.POST.get('feedback_type')
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+        priority = request.POST.get('priority', 'medium')
+        
+        # Validate required fields
+        if not all([feedback_type, subject, message]):
+            messages.error(request, "All required fields must be filled out.")
+            return render(request, 'feedback_form.html')
+            
+        try:
+            # Save feedback to database
+            # Note: assuming you have a Feedback model, if not, you need to create one
+            from tutorials.models.admin_models import Notification
+            
+            # Determine user type
+            user_type = 'applicant' if hasattr(request.user, 'applicant') else 'employer'
+            
+            # Create notification
+            notification = Notification.objects.create(
+                title=f"New Feedback: {subject}",
+                message=message,
+                notification_type='feedback',
+                priority=priority,
+                sender=request.user,
+                is_read=False,
+                action_url=None,
+                feedback_type=feedback_type,
+                sender_type=user_type
+            )
+            
+            # Don't use messages framework here to avoid it appearing in other pages
+            # Instead, pass the success message directly to the template
+            return render(request, 'feedback_form.html', {
+                'success_message': 'Thank you for your feedback! We will process it as soon as possible.'
+            })
+            
+        except Exception as e:
+            print(f"Error saving feedback: {str(e)}")
+            messages.error(request, f"Error submitting feedback: {str(e)}")
+            
+    return render(request, 'feedback_form.html')

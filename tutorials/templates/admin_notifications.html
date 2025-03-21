@@ -31,6 +31,85 @@
         max-height: none;
         overflow-y: visible;
     }
+    
+    /* Feedback specific styles */
+    .feedback-card {
+        border-left: 4px solid #4a6cf7;
+        background-color: #f8f9ff;
+    }
+    
+    .feedback-type {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-right: 8px;
+    }
+    
+    .feedback-type-suggestion {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+    
+    .feedback-type-bug_report {
+        background-color: #fee2e2;
+        color: #b91c1c;
+    }
+    
+    .feedback-type-compliment {
+        background-color: #dbeafe;
+        color: #1e40af;
+    }
+    
+    .feedback-type-complaint {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+    
+    .feedback-type-other {
+        background-color: #e5e7eb;
+        color: #374151;
+    }
+    
+    .feedback-user-info {
+        font-size: 0.85rem;
+        color: #6b7280;
+        margin-top: 5px;
+    }
+    
+    .feedback-actions {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+    }
+    
+    .feedback-actions button {
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .resolve-btn {
+        background-color: #4a6cf7;
+        color: white;
+    }
+    
+    .resolve-btn:hover {
+        background-color: #3a5ce5;
+    }
+    
+    .contact-btn {
+        background-color: #e5e7eb;
+        color: #374151;
+    }
+    
+    .contact-btn:hover {
+        background-color: #d1d5db;
+    }
 </style>
 {% endblock %}
 
@@ -43,6 +122,7 @@
             <button id="markAllReadBtn" class="btn btn-secondary">Mark All as Read</button>
             {% endif %}
             <button id="deleteAllBtn" class="btn btn-danger">Clear All</button>
+            <a href="{% url 'admin_notifications_generate_test' %}" class="btn btn-primary">Generate Test Notifications</a>
         </div>
     </div>
     
@@ -56,6 +136,7 @@
                         <option value="job" {% if notification_type == 'job' %}selected{% endif %}>Job Listings ({{ type_counts.job }})</option>
                         <option value="application" {% if notification_type == 'application' %}selected{% endif %}>Applications ({{ type_counts.application }})</option>
                         <option value="user" {% if notification_type == 'user' %}selected{% endif %}>Users ({{ type_counts.user }})</option>
+                        <option value="feedback" {% if notification_type == 'feedback' %}selected{% endif %}>Feedback ({{ type_counts.feedback|default:0 }})</option>
                         <option value="system" {% if notification_type == 'system' %}selected{% endif %}>System ({{ type_counts.system }})</option>
                         <option value="general" {% if notification_type == 'general' %}selected{% endif %}>General ({{ type_counts.general }})</option>
                     </select>
@@ -96,12 +177,13 @@
     <div class="notifications-stats">
         <span class="stats-item">Total: <strong>{{ total_count }}</strong></span>
         <span class="stats-item">Unread: <strong>{{ unread_count }}</strong></span>
+        <span class="stats-item">Feedback: <strong>{{ feedback_count|default:0 }}</strong></span>
     </div>
     
     <div class="notifications-list">
         {% if notifications %}
             {% for notification in notifications %}
-            <div class="notification-card {% if not notification.is_read %}unread{% endif %}" data-id="{{ notification.id }}">
+            <div class="notification-card {% if not notification.is_read %}unread{% endif %} {% if notification.notification_type == 'feedback' %}feedback-card{% endif %}" data-id="{{ notification.id }}">
                 <div class="notification-indicators">
                     {% if notification.priority == 'high' %}
                     <span class="priority-indicator high" title="High Priority">!</span>
@@ -115,6 +197,7 @@
                         {% if notification.notification_type == 'job' %}📄
                         {% elif notification.notification_type == 'application' %}📝
                         {% elif notification.notification_type == 'user' %}👤
+                        {% elif notification.notification_type == 'feedback' %}💬
                         {% elif notification.notification_type == 'system' %}⚙️
                         {% else %}📢
                         {% endif %}
@@ -123,7 +206,36 @@
                 
                 <div class="notification-content">
                     <h3>{{ notification.title }}</h3>
-                    <p>{{ notification.message }}</p>
+                    
+                    {% if notification.notification_type == 'feedback' %}
+                        <!-- Feedback type badge -->
+                        <span class="feedback-type feedback-type-{{ notification.feedback_type }}">
+                            {{ notification.feedback_type|title|default:"Feedback" }}
+                        </span>
+                        
+                        <!-- Feedback message -->
+                        <p>{{ notification.message }}</p>
+                        
+                        <!-- Feedback user info -->
+                        <div class="feedback-user-info">
+                            Submitted by: <strong>{{ notification.sender.first_name }} {{ notification.sender.last_name }}</strong> 
+                            ({{ notification.sender.email }}) - 
+                            {% if notification.sender_type == 'applicant' %}Applicant{% else %}Employer{% endif %}
+                        </div>
+                        
+                        <!-- Feedback actions -->
+                        <div class="feedback-actions">
+                            <button class="resolve-btn" data-id="{{ notification.id }}" data-feedback-id="{{ notification.feedback_id }}">
+                                Mark as Resolved
+                            </button>
+                            <button class="contact-btn" data-email="{{ notification.sender.email }}">
+                                Contact User
+                            </button>
+                        </div>
+                    {% else %}
+                        <p>{{ notification.message }}</p>
+                    {% endif %}
+                    
                     <div class="notification-meta">
                         <span class="timestamp">{{ notification.created_at|date:"M d, Y H:i" }}</span>
                         {% if notification.action_url %}
@@ -171,6 +283,28 @@
 
 {% block extra_js %}
 <script>
+    // Function to update global notification count in header
+    function updateGlobalNotificationCount() {
+        // Call the same API endpoint that updates the header count
+        fetch('/admin_notifications/count/')
+            .then(response => response.json())
+            .then(data => {
+                const countBadge = document.getElementById('notificationCountBadge');
+                if (countBadge) {
+                    countBadge.textContent = data.count;
+                    
+                    if (data.count > 0) {
+                        countBadge.classList.add('has-notifications');
+                        countBadge.style.display = 'flex';
+                    } else {
+                        countBadge.classList.remove('has-notifications');
+                        countBadge.style.display = 'none';
+                    }
+                }
+            })
+            .catch(error => console.error('Error updating notification count:', error));
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Filter form auto-submit on select change
         const filterSelects = document.querySelectorAll('.filter-select');
@@ -202,7 +336,16 @@
                         this.remove();
                         
                         // Update notification count
-                        updateNotificationCount();
+                        updateGlobalNotificationCount();
+                        
+                        // Update stats on page
+                        const unreadCountEl = document.querySelector('.stats-item:nth-child(2) strong');
+                        if (unreadCountEl) {
+                            const currentCount = parseInt(unreadCountEl.textContent);
+                            if (currentCount > 0) {
+                                unreadCountEl.textContent = currentCount - 1;
+                            }
+                        }
                     }
                 })
                 .catch(error => console.error('Error marking notification as read:', error));
@@ -240,7 +383,7 @@
                                 unreadCountEl.textContent = parseInt(unreadCountEl.textContent) - 1;
                                 
                                 // Update notification count
-                                updateNotificationCount();
+                                updateGlobalNotificationCount();
                             }
                             
                             // Show "no notifications" message if all notifications are deleted
@@ -257,49 +400,45 @@
             });
         });
         
-        // Mark all as read button
+        // Mark all notifications as read
         const markAllReadBtn = document.getElementById('markAllReadBtn');
         if (markAllReadBtn) {
             markAllReadBtn.addEventListener('click', function() {
-                fetch('/admin_notifications/mark_all_read/', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        // Update UI - remove unread class from all cards
-                        document.querySelectorAll('.notification-card.unread').forEach(card => {
-                            card.classList.remove('unread');
-                        });
-                        
-                        // Remove all mark read buttons
-                        document.querySelectorAll('.mark-read-btn').forEach(btn => {
-                            btn.remove();
-                        });
-                        
-                        // Update unread count in stats
-                        document.querySelector('.stats-item:last-child strong').textContent = '0';
-                        
-                        // Hide mark all read button
-                        this.style.display = 'none';
-                        
-                        // Update notification count
-                        updateNotificationCount();
-                    }
-                })
-                .catch(error => console.error('Error marking all notifications as read:', error));
+                if (confirm('Are you sure you want to mark all notifications as read?')) {
+                    fetch('/admin_notifications/mark_all_read/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Update UI
+                            document.querySelectorAll('.notification-card.unread').forEach(card => {
+                                card.classList.remove('unread');
+                                card.querySelector('.mark-read-btn')?.remove();
+                            });
+                            
+                            // Update notification count
+                            document.querySelector('.stats-item:nth-child(2) strong').textContent = '0';
+                            updateGlobalNotificationCount();
+                            
+                            // Hide the button
+                            this.style.display = 'none';
+                        }
+                    })
+                    .catch(error => console.error('Error marking all notifications as read:', error));
+                }
             });
         }
         
-        // Delete all notifications button
+        // Delete all notifications
         const deleteAllBtn = document.getElementById('deleteAllBtn');
         if (deleteAllBtn) {
             deleteAllBtn.addEventListener('click', function() {
-                if (confirm('Are you sure you want to delete all notifications? This cannot be undone.')) {
+                if (confirm('Are you sure you want to delete all notifications? This action cannot be undone.')) {
                     fetch('/admin_notifications/delete_all/', {
                         method: 'POST',
                         headers: {
@@ -310,15 +449,18 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.status === 'success') {
-                            // Remove all notifications from DOM
+                            // Update UI
                             document.querySelectorAll('.notification-card').forEach(card => {
                                 card.remove();
                             });
                             
                             // Update stats
-                            document.querySelectorAll('.stats-item strong').forEach(el => {
-                                el.textContent = '0';
-                            });
+                            document.querySelector('.stats-item:first-child strong').textContent = '0';
+                            document.querySelector('.stats-item:nth-child(2) strong').textContent = '0';
+                            document.querySelector('.stats-item:nth-child(3) strong').textContent = '0';
+                            
+                            // Update notification count
+                            updateGlobalNotificationCount();
                             
                             // Show "no notifications" message
                             const noNotifications = document.createElement('p');
@@ -326,13 +468,10 @@
                             noNotifications.textContent = 'No notifications available';
                             document.querySelector('.notifications-list').appendChild(noNotifications);
                             
-                            // Hide mark all read button
+                            // Hide the mark all read button
                             if (markAllReadBtn) {
                                 markAllReadBtn.style.display = 'none';
                             }
-                            
-                            // Update notification count
-                            updateNotificationCount();
                         }
                     })
                     .catch(error => console.error('Error deleting all notifications:', error));
@@ -340,7 +479,7 @@
             });
         }
         
-        // Helper function to get CSRF token from cookies
+        // Get CSRF token from cookies
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -355,6 +494,74 @@
             }
             return cookieValue;
         }
+        
+        // Feedback specific functionality
+        // Mark feedback as resolved
+        const resolveBtns = document.querySelectorAll('.resolve-btn');
+        resolveBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const notificationId = this.getAttribute('data-id');
+                const feedbackId = this.getAttribute('data-feedback-id');
+                
+                fetch(`/admin_feedback/resolve/${feedbackId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Update UI
+                        const card = document.querySelector(`.notification-card[data-id="${notificationId}"]`);
+                        const resolveBtn = card.querySelector('.resolve-btn');
+                        
+                        // Change button text and disable it
+                        resolveBtn.textContent = 'Resolved';
+                        resolveBtn.disabled = true;
+                        resolveBtn.style.backgroundColor = '#9ca3af';
+                        
+                        // Update feedback count if needed
+                        const feedbackCountEl = document.querySelector('.stats-item:nth-child(3) strong');
+                        if (feedbackCountEl) {
+                            const currentCount = parseInt(feedbackCountEl.textContent);
+                            if (!isNaN(currentCount)) {
+                                feedbackCountEl.textContent = currentCount - 1;
+                            }
+                        }
+                        
+                        // Update global notification count
+                        updateGlobalNotificationCount();
+                        
+                        // Show success message
+                        const message = document.createElement('div');
+                        message.className = 'alert alert-success mt-2';
+                        message.style.fontSize = '0.8rem';
+                        message.textContent = 'Feedback marked as resolved';
+                        card.querySelector('.feedback-actions').appendChild(message);
+                        
+                        // Remove message after 3 seconds
+                        setTimeout(() => {
+                            message.remove();
+                        }, 3000);
+                    }
+                })
+                .catch(error => console.error('Error resolving feedback:', error));
+            });
+        });
+        
+        // Contact user via email
+        const contactBtns = document.querySelectorAll('.contact-btn');
+        contactBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const email = this.getAttribute('data-email');
+                const subject = encodeURIComponent('Response to your feedback - Swamp Hiring');
+                
+                // Open email client with pre-filled information
+                window.location.href = `mailto:${email}?subject=${subject}`;
+            });
+        });
     });
 </script>
 {% endblock %}
