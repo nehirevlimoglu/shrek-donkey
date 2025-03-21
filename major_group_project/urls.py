@@ -21,6 +21,8 @@ from tutorials.models.applicants_models import Applicant
 from tutorials.views.views import sign_up, applicant_profile_setup, employer_profile_setup
 from tutorials.views.employer_views import job_detail_view
 
+from tutorials import views
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', log_in, name='home'),

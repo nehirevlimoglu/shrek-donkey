@@ -492,20 +492,21 @@ def review_application(request, application_id):
 @csrf_exempt
 @login_required
 def mark_notification_as_read(request, notification_id):
-    """Marks an employer's notification as read"""
+    """Marks an employer's notification as read."""
     try:
-        employer = Employer.objects.get(username=request.user.username)  # Ensure we fetch the employer
-        notification = EmployerNotification.objects.get(id=notification_id, employer=employer)  # Use 'employer'
+        # Ensure the notification actually belongs to this employer
+        employer = Employer.objects.get(username=request.user.username)
+        notification = EmployerNotification.objects.get(id=notification_id, employer=employer)
 
         notification.is_read = True
         notification.save()
-
         return JsonResponse({"success": True})
-    except EmployerNotification.DoesNotExist:
-        return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
+
     except Employer.DoesNotExist:
         return JsonResponse({"success": False, "error": "Employer profile not found"}, status=403)
-
+    except EmployerNotification.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
+    
 
 @login_required
 def applicant_profile(request, applicant_id):
@@ -593,20 +594,35 @@ def schedule_interview(request, applicant_id):
 
 @csrf_exempt
 def accept_candidate(request, candidate_id):
-    """Marks a candidate as Hired, but prevents changing the status once set."""
     candidate = get_object_or_404(Candidate, id=candidate_id)
 
-    # 🚨 Prevent changing status if already Hired or Rejected
+    # Prevent changing status if already Hired or Rejected
     if candidate.application_status in ["Hired", "Rejected"]:
         return JsonResponse({"error": "Status cannot be changed once set."}, status=400)
 
     candidate.application_status = "Hired"
     candidate.save()
 
-    print(f"✅ Candidate {candidate_id} is now: {candidate.application_status}")
+    # Create a notification for the applicant
+    try:
+        # Get the Applicant instance corresponding to the candidate's user
+        applicant_obj = Applicant.objects.get(user=candidate.user)
+        # Retrieve employer's contact email from the job
+        employer_email = candidate.job.employer.email if candidate.job.employer and candidate.job.employer.email else "contact@example.com"
+
+        ApplicantNotification.objects.create(
+            applicant=applicant_obj,
+            title="Congratulations, You're Hired!",
+            message=(
+                f"You have been hired for the {candidate.job.title} position. "
+                f"Please contact {employer_email} for further details."
+            )
+        )
+    except Applicant.DoesNotExist:
+        # Optionally, log a warning if no matching Applicant is found
+        logger.warning(f"No Applicant profile found for user {candidate.user.username}")
+
     return JsonResponse({"message": "Candidate accepted successfully!", "status": "Hired"})
-
-
 
 @csrf_exempt
 def reject_candidate(request, candidate_id):

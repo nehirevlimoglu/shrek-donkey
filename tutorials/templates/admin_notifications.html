@@ -5,6 +5,30 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/admin_notifications.css' %}">
+<style>
+    /* Ensure the whole page is scrollable */
+    body {
+        min-height: 100vh;
+        overflow-y: auto;
+        background: #F8F9FA;  /* Adjust or remove as needed */
+    }
+
+    /* If you have a sidebar (as in your employer example),
+       adjust the main content container accordingly */
+    .content {
+        margin-left: 270px; /* Only if you have a pinned sidebar */
+        width: calc(100vw - 270px);
+        min-height: 100vh;
+        overflow-x: hidden;
+    }
+
+    /* Remove any fixed height from the notifications list 
+       so that it expands and pushes the page height */
+    .notifications-list {
+        max-height: none;
+        overflow-y: visible;
+    }
+</style>
 {% endblock %}
 
 {% block content %}

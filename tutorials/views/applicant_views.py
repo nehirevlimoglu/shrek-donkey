@@ -158,14 +158,9 @@ def apply_for_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
     print(f"✅ Job found: {job.title}")
 
-    # Get the applicant or return early with error message
-    try:
-        applicant = get_object_or_404(Applicant, user=request.user)
-        print(f"✅ Applicant found: {applicant.user.username}")
-    except Exception as e:
-        print(f"❌ Error retrieving applicant: {e}")
-        messages.error(request, "Applicant profile not found.")
-        return redirect("job_detail", job_id=job.id)
+    # Get the applicant or return early with an error message
+    applicant = get_object_or_404(Applicant, user=request.user)
+    print(f"✅ Applicant found: {applicant.user.username}")
 
     # Check for existing application
     existing_application = Application.objects.filter(applicant=applicant, job=job).exists()
@@ -269,19 +264,29 @@ def apply_for_job(request, job_id):
             messages.success(request, "✅ Your application has been submitted successfully!")
             print("🎉 Application process completed. Redirecting...")
             
-            # Force the browser to recognize the change by adding a query parameter
-            return redirect(f"/job/{job.id}/?applied=true")
+            # If the request is AJAX, return JSON so that the JS can hide the apply button.
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': True})
+            else:
+                # Force the browser to recognize the change by adding a query parameter
+                return redirect(f"/job/{job.id}/?applied=true")
 
         else:
             print("❌ Form is invalid.")
             print(f"⚠️ Form errors: {form.errors}")
-
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': form.errors.as_json()})
+            else:
+                messages.error(request, "Please fix the errors below.")
     else:
         print("📝 Rendering application form.")
         form = ApplicationForm()
 
-    return render(request, "applicants_application.html", {"form": form, "job": job, "existing_application": existing_application})
-
+    return render(request, "applicants_application.html", {
+        "form": form,
+        "job": job,
+        "existing_application": Application.objects.filter(applicant=applicant, job=job).exists()
+    })
 
 @applicant_only
 @login_required
