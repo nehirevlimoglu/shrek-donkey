@@ -20,13 +20,12 @@
 
             <!-- Conditionally show a disabled button if already applied -->
             {% if existing_application %}
-                <button id="apply-btn" class="btn-disabled" disabled>Already Applied</button>
+                <p id="already-applied-msg" style="font-style: italic;">You have already applied for this job</p>
             {% else %}
-            <form method="POST" action="{% url 'apply_for_job' job.id %}" enctype="multipart/form-data">
-                {% csrf_token %}
-                <button type="submit" class="btn-primary">Apply Now</button>
-            </form>
-            
+                <form method="POST" action="{% url 'apply_for_job' job.id %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary" id="apply-btn">Apply Now</button>
+                </form>
             {% endif %}
         </div>
     </div>

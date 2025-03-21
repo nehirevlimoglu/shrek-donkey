@@ -131,24 +131,42 @@ def applicants_account(request):
         'user': request.user,
     })
 
-@applicant_only
-def applicants_analytics(request):
-    return render(request, 'applicants_analytics.html')
-
-
 
 def job_detail(request, job_id):
-    """Display job details and check if the user has applied"""
     job = get_object_or_404(Job, id=job_id)
-    applicant = Applicant.objects.filter(user=request.user).first()
 
-    existing_application = Application.objects.filter(applicant=applicant, job=job).exists() if applicant else False
+    # Get the applicant associated with the current user
+    try:
+        applicant = Applicant.objects.get(user=request.user)
+    except Applicant.DoesNotExist:
+        applicant = None
 
+    # Check for existing application only if applicant exists
+    existing_application = False
+    if applicant:
+        existing_application = Application.objects.filter(applicant=applicant, job=job).exists()
+
+    # Handle form submission
+    if request.method == "POST":
+        if existing_application:
+            # If already applied, redirect with the message
+            return render(request, "job_detail.html", {
+                "job": job,
+                "existing_application": True,  # Already applied
+                "random": randint(1, 10000)
+            })
+        else:
+            # Create a new application
+            Application.objects.create(applicant=applicant, job=job)
+            return redirect("job_detail", job_id=job.id)  # Redirect back to the same page
+
+    # Render job details with the proper existing_application context
     return render(request, "job_detail.html", {
         "job": job,
         "existing_application": existing_application,
-        "random": randint(1, 10000)  # Forces browser to reload JavaScript
+        "random": randint(1, 10000)  # Random value for cache busting of JS
     })
+
     
 @login_required
 def apply_for_job(request, job_id):
@@ -159,6 +177,7 @@ def apply_for_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
     print(f"✅ Job found: {job.title}")
 
+    # Get the applicant or return early with error message
     try:
         applicant = get_object_or_404(Applicant, user=request.user)
         print(f"✅ Applicant found: {applicant.user.username}")
@@ -167,6 +186,7 @@ def apply_for_job(request, job_id):
         messages.error(request, "Applicant profile not found.")
         return redirect("job_detail", job_id=job.id)
 
+    # Check for existing application
     existing_application = Application.objects.filter(applicant=applicant, job=job).exists()
     print(f"🔄 Checking if applicant already applied: {existing_application}")
 
@@ -186,22 +206,25 @@ def apply_for_job(request, job_id):
 
         if form.is_valid():
             print("✅ Form is valid. Processing application...")
+            
+            # Create and save the application
             application = form.save(commit=False)
             application.job = job
             application.applicant = applicant
             application.save()
             print("📌 Application saved.")
 
-            # Ensure resume file is saved before assigning to Candidate
+            # Get resume and cover letter files from form
             resume_file = form.cleaned_data.get("resume")
             cover_letter_file = form.cleaned_data.get("cover_letter")
 
-            # Save or update Candidate entry
+            # Create or update candidate record
             candidate, created = Candidate.objects.get_or_create(
                 user=applicant.user,
                 job=job
             )
 
+            # Update candidate fields
             if resume_file:
                 candidate.resume = resume_file
             if cover_letter_file:
@@ -226,7 +249,7 @@ def apply_for_job(request, job_id):
 
             print(f"👤 Candidate {'created' if created else 'updated'}: {candidate}")
 
-            # Create Employer Notification
+            # Create notifications
             if job.employer:
                 EmployerNotification.objects.create(
                     employer=job.employer,
@@ -237,8 +260,6 @@ def apply_for_job(request, job_id):
             else:
                 print("❌ No employer associated with this job.")
 
-
-            # Create Applicant Notification
             ApplicantNotification.objects.create(
                 applicant=applicant,
                 title="Application Submitted",
@@ -248,7 +269,9 @@ def apply_for_job(request, job_id):
 
             messages.success(request, "✅ Your application has been submitted successfully!")
             print("🎉 Application process completed. Redirecting...")
-            return redirect("job_detail", job_id=job.id)
+            
+            # Force the browser to recognize the change by adding a query parameter
+            return redirect(f"/job/{job.id}/?applied=true")
 
         else:
             print("❌ Form is invalid.")
@@ -259,6 +282,7 @@ def apply_for_job(request, job_id):
         form = ApplicationForm()
 
     return render(request, "applicants_application.html", {"form": form, "job": job, "existing_application": existing_application})
+
 
 @applicant_only
 @login_required
