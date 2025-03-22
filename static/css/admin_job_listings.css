@@ -12,6 +12,28 @@ html, body {
     font-family: 'Poppins', sans-serif;
 }
 
+/* Override styles to prevent conflicts */
+.dashboard-container .logout-container .logout-btn {
+    padding: 10px 20px;
+    background: #1A73E8;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.dashboard-container .logout-container .logout-btn:hover {
+    background: #1558B5;
+}
+
+/* Override body styles from admin_home_page.css */
+.dashboard-container .content {
+    background: #FFFFFF;
+    padding: 20px 30px;
+    overflow-y: auto;
+}
+
 body {
     background: #F8F9FA;
     color: #1A202C;
@@ -39,10 +61,19 @@ h1 {
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-
+    margin: 0 auto;
+    
     /* Ensure it doesn't grow infinitely */
-    height: 80vh;  /* Set fixed height */
+    max-height: 90vh;  /* Set max-height instead of fixed height */
     overflow-y: auto;  /* Enable scrolling inside */
+}
+
+/* Heading styles */
+.job-listings-container h2 {
+    color: #1A202C;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 20px;
 }
 
 /* Listings - Scrollable Grid Layout */
@@ -98,8 +129,8 @@ h1 {
 /* Wrapper to limit table height */
 .table-wrapper {
     width: 100%;
-    max-width: 900px;
-    height: 60vh; /* Restrict overall height */
+    max-width: 1200px;
+    max-height: 60vh; /* Restrict overall height */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -107,6 +138,7 @@ h1 {
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     padding: 15px;
+    margin: 0 auto 20px auto;
 }
 
 /* Scrollable Table Container */
@@ -155,19 +187,59 @@ th, td {
     word-wrap: break-word; /* Ensures content doesn't overflow */
 }
 
+/* Status Badge Styling */
+.badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.badge-open {
+    background-color: #D1FAE5;
+    color: #065F46;
+}
+
+.badge-closed {
+    background-color: #FEE2E2;
+    color: #B91C1C;
+}
+
 /* Action Buttons */
+.view-btn {
+    background: #1A73E8;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.view-btn:hover {
+    background: #1558B5;
+}
+
 .approve-btn {
     color: green;
     font-weight: bold;
     text-decoration: none;
+    background: #D1FAE5;
+    padding: 5px 10px;
+    border-radius: 5px;
 }
 
 .reject-btn {
-    color: red;
+    color: white;
     font-weight: bold;
     text-decoration: none;
+    background: red;
+    padding: 5px 10px;
+    border-radius: 5px;
 }
-
 
 .review-btn {
     background: #1A73E8;
@@ -208,21 +280,184 @@ th, td {
     font-weight: bold;
 }
 
-.approve-btn {
-    background: green;
-    color: white;
-    padding: 5px;
-    border-radius: 3px;
-}
-
-.reject-btn {
-    background: red;
-    color: white;
-    padding: 5px;
-    border-radius: 3px;
-}
-
 .show {
     display: block;
+}
+
+.job-listings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px;
+}
+
+.job-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    background-color: #f5f5f5;
+    padding: 8px 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+}
+
+.stat-label {
+    font-weight: bold;
+    margin-right: 5px;
+    color: #4A5568;
+}
+
+.stat-value {
+    font-weight: 600;
+    color: #1A73E8;
+}
+
+.filters-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    align-items: center;
+    padding: 10px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.tab {
+    padding: 8px 15px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.tab:hover {
+    background-color: #e5e5e5;
+    transform: translateY(-2px);
+}
+
+.tab.active {
+    background-color: #1A73E8;
+    color: white;
+}
+
+.search-container {
+    display: flex;
+    gap: 10px;
+}
+
+.search-container input {
+    padding: 8px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 250px;
+}
+
+.search-btn {
+    padding: 8px 15px;
+    background-color: #1A73E8;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.search-btn:hover {
+    background-color: #1558B5;
+}
+
+/* Pagination styles */
+.pagination-info {
+    text-align: center;
+    margin-top: 15px;
+    color: #666;
+    font-size: 14px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    gap: 5px;
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    flex-wrap: wrap;
+}
+
+.page-link {
+    padding: 8px 12px;
+    background-color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.page-link.active {
+    background-color: #1A73E8;
+    color: white;
+    border-color: #1A73E8;
+}
+
+.page-link.disabled {
+    color: #999;
+    pointer-events: none;
+}
+
+.no-jobs {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .job-listings-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .job-stats {
+        margin-top: 15px;
+        width: 100%;
+    }
+    
+    .filters-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .tabs {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    
+    .search-container {
+        width: 100%;
+    }
+    
+    .search-container input {
+        width: 100%;
+    }
 }
 
