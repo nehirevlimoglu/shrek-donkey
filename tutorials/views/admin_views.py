@@ -15,6 +15,7 @@ from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+from django.core.cache import cache
 
 def is_admin(user):
     return user.role == 'Admin'
@@ -532,22 +533,43 @@ def get_active_users_data(request):
 
 @user_passes_test(is_admin)
 def admin_job_detail(request, job_id):
-
     job = get_object_or_404(Job, id=job_id)
-    
-
     candidates = Candidate.objects.filter(job=job).select_related('user')
-
     employer = job.employer
     
-
+    # Debug information
+    logger.debug(f"[admin_job_detail] Job ID: {job.id}, Title: {job.title}")
+    logger.debug(f"[admin_job_detail] Application deadline: {job.application_deadline}")
+    logger.debug(f"[admin_job_detail] Current date: {timezone.now().date()}")
+    logger.debug(f"[admin_job_detail] Job status from DB: {job.status}")
+    
+    # 强制刷新作业对象，确保我们有最新数据
+    job.refresh_from_db()
+    
+    # Determine if job is open or closed based on deadline
+    # A job is considered closed if its deadline is today or in the past
+    today = timezone.now().date()
     if job.application_deadline:
-        if job.application_deadline < timezone.now().date():
-            job.status = "Closed"
+        # 使用<=比较，确保今天到期的作业被视为已关闭
+        if job.application_deadline <= today:
+            job.is_open = False
+            logger.debug("[admin_job_detail] Job marked as closed because deadline has passed or is today")
         else:
-            job.status = "Open"
+            job.is_open = True
+            logger.debug("[admin_job_detail] Job marked as open because deadline is in the future")
     else:
-        job.status = "Open"
+        # If no deadline is set, check if status is rejected
+        if job.status == 'rejected':
+            job.is_open = False
+            logger.debug("[admin_job_detail] Job marked as closed because status is rejected")
+        else:
+            # If no deadline and not rejected, assume job is open
+            job.is_open = True
+            logger.debug("[admin_job_detail] Job marked as open because no deadline and not rejected")
+    
+    # For the template's conditional display
+    job.display_status = "Open" if job.is_open else "Closed"
+    logger.debug(f"[admin_job_detail] Final display status: {job.display_status}")
     
     return render(request, 'admin_job_detail.html', {
         'job': job,
@@ -604,16 +626,20 @@ def admin_toggle_job_status(request, job_id):
     data = json.loads(request.body)
     status = data.get('status')
     
+    logger.debug(f"Toggle job status: job_id={job_id}, status={status}")
+    
     if status == 'Closed':
-        # Set deadline to current date to indicate job is closed
-        job.application_deadline = timezone.now().date()
+        # Set deadline to yesterday to ensure it's definitely closed
+        job.application_deadline = timezone.now().date() - timedelta(days=1)
+        logger.debug(f"Closing job: setting deadline to {job.application_deadline}")
     elif status == 'Open':
         # Set deadline to a future date to indicate job is open
         job.application_deadline = timezone.now().date() + timedelta(days=30)
+        logger.debug(f"Opening job: setting deadline to {job.application_deadline}")
     
     job.save()
     
-    return JsonResponse({'status': 'success'})
+    return JsonResponse({'success': True})
 
 @user_passes_test(is_admin)
 def admin_applications_view(request):
@@ -683,22 +709,62 @@ def update_job_status(request):
             job_id = data.get("job_id")
             new_status = data.get("status")
 
-            logger.debug(f"Received job_id: {job_id}, new_status: {new_status}")  # Log received data
+            logger.debug(f"[update_job_status] Received job_id: {job_id}, new_status: {new_status}")  # Log received data
 
             if not job_id or not new_status:
-                logger.error("Missing job_id or status")  # Log error if job_id or status is missing
+                logger.error("[update_job_status] Missing job_id or status")  # Log error if job_id or status is missing
                 return JsonResponse({"success": False, "error": "Missing job ID or status"}, status=400)
 
             try:
                 job = Job.objects.get(id=job_id)
-                logger.debug(f"Found job: {job.title} with current status: {job.status}")  # Log job details
+                logger.debug(f"[update_job_status] Found job: {job.title} with current status: {job.status}")  # Log job details
+                logger.debug(f"[update_job_status] Current application deadline: {job.application_deadline}")
             except Job.DoesNotExist:
-                logger.error(f"Job with id {job_id} does not exist.")
+                logger.error(f"[update_job_status] Job with id {job_id} does not exist.")
                 return JsonResponse({"success": False, "error": "Job not found"}, status=404)
 
-            job.status = new_status
+            # 记录当前状态，用于比较更改后
+            original_status = job.status
+            original_deadline = job.application_deadline
+            
+            # Handle special cases for Open/Closed (which affect the deadline)
+            if new_status == 'Open':
+                # Set deadline to a future date to indicate job is open
+                job.application_deadline = timezone.now().date() + timedelta(days=30)
+                logger.debug(f"[update_job_status] Setting deadline to future: {job.application_deadline}")
+                
+                if job.status == 'pending':
+                    # Keep the pending status if it was pending
+                    pass
+                elif job.status == 'rejected':
+                    # If rejected, move back to pending
+                    job.status = 'pending'
+                # The 'approved' status should be preserved if it was already approved
+            elif new_status == 'Closed':
+                # Set deadline to TWO DAYS AGO to ensure it's definitely closed
+                # This fixes the issue where today's date might be interpreted as still open
+                job.application_deadline = timezone.now().date() - timedelta(days=2)
+                logger.debug(f"[update_job_status] Setting deadline to 2 days ago: {job.application_deadline} to ensure closure")
+                # Don't change the actual status field
+            elif new_status.lower() == 'approved':
+                # Change the job's status to approved
+                job.status = 'approved'
+                # Ensure the deadline is in the future
+                if not job.application_deadline or job.application_deadline < timezone.now().date():
+                    job.application_deadline = timezone.now().date() + timedelta(days=30)
+                    logger.debug(f"[update_job_status] Approved job: setting deadline to {job.application_deadline}")
+            elif new_status.lower() == 'rejected':
+                job.status = 'rejected'
+                # Set the deadline to yesterday to close the job
+                job.application_deadline = timezone.now().date() - timedelta(days=2)
+                logger.debug(f"[update_job_status] Rejected job: setting deadline to {job.application_deadline}")
+            else:
+                # For any other status we don't recognize, just keep the changes minimal
+                logger.warning(f"[update_job_status] Unrecognized status: {new_status}")
+
             job.save()
-            logger.debug(f"Job status updated to: {job.status}")  # Log successful status update
+            logger.debug(f"[update_job_status] Job updated: status changed from {original_status} to {job.status}")
+            logger.debug(f"[update_job_status] Deadline changed from {original_deadline} to {job.application_deadline}")
 
             # If the job is approved, send a notification
             if new_status.lower() == "approved" and job.employer:
@@ -708,15 +774,21 @@ def update_job_status(request):
                     message=f"🎉 Your job listing '{job.title}' has been approved!",
                     is_read=False
                 )
+                logger.debug(f"[update_job_status] Sent approval notification to employer {job.employer.id}")
+
+            # 手动刷新缓存，确保admin_job_detail页面检索到最新状态
+            try:
+                cache.delete(f'job_{job_id}_status')
+                logger.debug(f"[update_job_status] Cleared cache for job_{job_id}_status")
+            except Exception as e:
+                logger.error(f"[update_job_status] Error clearing cache: {str(e)}")
 
             return JsonResponse({"success": True})
-
         except Exception as e:
-            logger.error(f"Unexpected error occurred: {str(e)}")  # Log any unexpected errors
-            return JsonResponse({"success": False, "error": f"An unexpected error occurred: {str(e)}"}, status=500)
-
-    logger.error("Invalid request method")  # Log if request method is not POST
-    return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
+            logger.error(f"[update_job_status] Unexpected error: {str(e)}")
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
+    
+    return JsonResponse({"success": False, "error": "Method not allowed"}, status=405)
 
 @csrf_exempt
 @user_passes_test(is_admin)

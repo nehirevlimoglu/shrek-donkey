@@ -15,7 +15,7 @@
     
     <div class="job-header">
         <h1>{{ job.title }}</h1>
-        <span class="badge {% if job.status == 'Open' %}open{% else %}closed{% endif %}">{{ job.status }}</span>
+        <span class="badge {% if job.display_status == 'Open' %}open{% else %}closed{% endif %}">{{ job.display_status }}</span>
     </div>
     
     <div class="job-info">
@@ -128,14 +128,14 @@
         <div class="action-buttons">
             <button class="action-btn edit-job" data-job-id="{{ job.id }}">Edit Job</button>
             <button class="action-btn delete-job" data-job-id="{{ job.id }}">Delete Job</button>
-            {% if job.status == 'Open' %}
+            {% if job.display_status == 'Open' %}
             <button class="action-btn close-job" data-job-id="{{ job.id }}">Close Job</button>
             {% else %}
             <button class="action-btn reopen-job" data-job-id="{{ job.id }}">Reopen Job</button>
             {% endif %}
             
             <!-- Approve Job Button -->
-            {% if job.status != 'Approved' %}
+            {% if job.status != 'approved' %}
             <button class="action-btn approve-job" data-job-id="{{ job.id }}">Approve Job</button>
             {% endif %}
         </div>
