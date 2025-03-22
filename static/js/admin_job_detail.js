@@ -49,7 +49,9 @@ function setupJobActions() {
     const closeJobBtn = document.querySelector('.close-job');
     if (closeJobBtn) {
         closeJobBtn.addEventListener('click', function() {
-            updateJobStatus(this.dataset.jobId, 'Closed');
+            if (confirm('Are you sure you want to close this job?')) {
+                updateJobStatus(this.dataset.jobId, 'Closed');
+            }
         });
     }
     
@@ -57,7 +59,9 @@ function setupJobActions() {
     const reopenJobBtn = document.querySelector('.reopen-job');
     if (reopenJobBtn) {
         reopenJobBtn.addEventListener('click', function() {
-            updateJobStatus(this.dataset.jobId, 'Open');
+            if (confirm('Are you sure you want to reopen this job?')) {
+                updateJobStatus(this.dataset.jobId, 'Open');
+            }
         });
     }
     
@@ -65,7 +69,9 @@ function setupJobActions() {
     const approveJobBtn = document.querySelector('.approve-job');
     if (approveJobBtn) {
         approveJobBtn.addEventListener('click', function() {
-            updateJobStatus(this.dataset.jobId, 'Approved');
+            if (confirm('Are you sure you want to approve this job?')) {
+                updateJobStatus(this.dataset.jobId, 'Approved');
+            }
         });
     }
 }
@@ -73,14 +79,13 @@ function setupJobActions() {
 function updateJobStatus(jobId, status) {
     console.log(`Sending request to update job ${jobId} to status: ${status}`);
     
-    fetch(`/update-job-status/`, {
+    fetch(`/admin_toggle_job_status/${jobId}/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCsrfToken(),
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({ 
-            job_id: jobId,
             status: status 
         })
     })
@@ -91,10 +96,10 @@ function updateJobStatus(jobId, status) {
     .then(data => {
         console.log('Response data:', data);
         if (data.success) {
-            // 直接更新UI而不是简单地刷新页面
+            // Update UI directly instead of just refreshing the page
             updateJobStatusUI(status);
             
-            // 延迟更长时间后刷新页面以获取完整的更新
+            // Schedule a page reload after a delay to get complete updates
             console.log('Scheduling page reload in 1.5 seconds...');
             setTimeout(() => {
                 console.log('Reloading page now...');

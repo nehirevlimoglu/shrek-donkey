@@ -636,6 +636,14 @@ def admin_toggle_job_status(request, job_id):
         # Set deadline to a future date to indicate job is open
         job.application_deadline = timezone.now().date() + timedelta(days=30)
         logger.debug(f"Opening job: setting deadline to {job.application_deadline}")
+    elif status == 'Approved':
+        # Update the job status to approved
+        job.status = 'approved'
+        logger.debug(f"Approving job: setting status to approved")
+        # Ensure the deadline is in the future for approved jobs
+        if not job.application_deadline or job.application_deadline < timezone.now().date():
+            job.application_deadline = timezone.now().date() + timedelta(days=30)
+            logger.debug(f"Approved job: setting deadline to {job.application_deadline}")
     
     job.save()
     
