@@ -114,7 +114,4 @@ class EmployerProfileForm(forms.ModelForm):
         fields = ['company_name', 'company_logo', 'company_website', 'industry', 'company_location']
 
 
-class InterviewForm(forms.ModelForm):
-    class Meta:
-        model = Interview
-        fields = ['date', 'time', 'interview_link', 'notes']
+
