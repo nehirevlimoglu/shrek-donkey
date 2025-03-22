@@ -678,9 +678,13 @@ document.addEventListener('DOMContentLoaded', function() {
     resolveBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const notificationId = this.getAttribute('data-id');
-            const feedbackId = this.getAttribute('data-feedback-id');
             
-            fetch(`/admin_feedback/resolve/${feedbackId}/`, {
+            // Add visual feedback for button click
+            this.textContent = 'Processing...';
+            this.disabled = true;
+            
+            // Directly delete the notification
+            fetch(`/admin_notifications/delete/${notificationId}/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken'),
@@ -690,14 +694,33 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    // Update UI
+                    // Successfully deleted, remove from UI
                     const card = document.querySelector(`.notification-card[data-id="${notificationId}"]`);
-                    const resolveBtn = card.querySelector('.resolve-btn');
-                    
-                    // Change button text and disable it
-                    resolveBtn.textContent = 'Resolved';
-                    resolveBtn.disabled = true;
-                    resolveBtn.style.backgroundColor = '#9ca3af';
+                    if (card) {
+                        card.style.transition = 'opacity 0.5s';
+                        card.style.opacity = '0';
+                        
+                        setTimeout(() => {
+                            card.remove();
+                            
+                            // Update statistics
+                            const totalCountEl = document.querySelector('.stats-item:first-child strong');
+                            if (totalCountEl) {
+                                const currentTotal = parseInt(totalCountEl.textContent);
+                                if (!isNaN(currentTotal) && currentTotal > 0) {
+                                    totalCountEl.textContent = currentTotal - 1;
+                                }
+                            }
+                            
+                            // If no notifications left, show empty message
+                            if (document.querySelectorAll('.notification-card').length === 0) {
+                                const noNotifications = document.createElement('p');
+                                noNotifications.className = 'no-notifications';
+                                noNotifications.textContent = 'No notifications available';
+                                document.querySelector('.notifications-list').appendChild(noNotifications);
+                            }
+                        }, 300);
+                    }
                     
                     // Update feedback count if needed
                     const feedbackCountEl = document.querySelector('.stats-item:nth-child(3) strong');
@@ -710,21 +733,47 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Update global notification count
                     updateGlobalNotificationCount();
+                } else {
+                    // Delete failed, restore button state
+                    this.textContent = 'Mark as Resolved';
+                    this.disabled = false;
                     
-                    // Show success message
+                    // Show error message
+                    const card = document.querySelector(`.notification-card[data-id="${notificationId}"]`);
+                    if (card) {
+                        const message = document.createElement('div');
+                        message.className = 'alert alert-danger mt-2';
+                        message.style.fontSize = '0.8rem';
+                        message.textContent = data.message || 'Failed to delete notification';
+                        card.querySelector('.feedback-actions').appendChild(message);
+                        
+                        setTimeout(() => {
+                            message.remove();
+                        }, 3000);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting notification:', error);
+                
+                // Restore button state
+                this.textContent = 'Mark as Resolved';
+                this.disabled = false;
+                
+                // Show error message
+                const card = document.querySelector(`.notification-card[data-id="${notificationId}"]`);
+                if (card) {
                     const message = document.createElement('div');
-                    message.className = 'alert alert-success mt-2';
+                    message.className = 'alert alert-danger mt-2';
                     message.style.fontSize = '0.8rem';
-                    message.textContent = 'Feedback marked as resolved';
+                    message.textContent = 'Error deleting notification. Please try again.';
                     card.querySelector('.feedback-actions').appendChild(message);
                     
-                    // Remove message after 3 seconds
                     setTimeout(() => {
                         message.remove();
                     }, 3000);
                 }
-            })
-            .catch(error => console.error('Error resolving feedback:', error));
+            });
         });
     });
     
