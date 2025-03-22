@@ -7,6 +7,13 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/applicant_profile.css' %}">
 {% endblock %}
 
+{% block extra_js %}
+    <script>
+        document.cookie = "csrftoken={{ csrf_token }}";
+    </script>
+    <script src="{% static 'js/applicant_profile.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 <div class="applicant-profile-container">
     <h1>Applicant Profile</h1>
@@ -149,6 +156,3 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-    <script src="{% static 'js/applicant_profile.js' %}"></script>
-{% endblock %}

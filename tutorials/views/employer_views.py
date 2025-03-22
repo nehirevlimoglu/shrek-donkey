@@ -550,7 +550,15 @@ def applicant_profile(request, applicant_id):
         "candidate": candidate,
         "application": application
     })
+    return redirect("applicant_profile", applicant_id=applicant.id)
 
+    # ✅ Pass job title to template
+    job_listing = applicant.job
+
+    return render(request, "applicant_profile.html", {
+        "applicant": applicant,
+        "job_listing": job_listing
+    })
 
 
 @login_required
