@@ -115,6 +115,7 @@ def applicants_applied_jobs(request):
 def applicants_favourites(request):
     return render(request, 'applicants_favourites.html')
 
+
 @applicant_only
 @login_required
 def applicants_notifications(request):
