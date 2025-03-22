@@ -172,10 +172,12 @@ class ApplicantProfileTests(TestCase):
         
         self.assertEqual(form.initial['degree'], self.applicant.degree)
         self.assertEqual(form.initial['salary_preferences'], self.applicant.salary_preferences)
-        self.assertEqual(
-            set(form.initial['job_preferences']), 
-            set(self.applicant.job_preferences.all().values_list('id', flat=True))
-        )
+        
+        # Convert JobTitle objects to IDs in form initial data
+        actual_ids = {obj.id for obj in form.initial['job_preferences']}
+        expected_ids = set(self.applicant.job_preferences.values_list('id', flat=True))
+        self.assertEqual(actual_ids, expected_ids)
+        
         self.assertEqual(form.initial['location_preferences'], self.applicant.location_preferences)
 
     def test_edit_profile_valid_cv_upload(self):
@@ -216,10 +218,10 @@ class ApplicantProfileTests(TestCase):
 
     def test_edit_profile_non_pdf_cv(self):
         """Test that non-PDF files are rejected"""
-        word_file = SimpleUploadedFile(
-            "test_cv.docx",
-            b"Word document content",
-            content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        invalid_file = SimpleUploadedFile(
+            "test_cv.txt",
+            b"invalid file content",
+            content_type="text/plain"
         )
         
         response = self.client.post(
@@ -228,17 +230,18 @@ class ApplicantProfileTests(TestCase):
                 'first_name': self.user.first_name,
                 'last_name': self.user.last_name,
                 'degree': self.applicant.degree,
-                'cv': word_file,
+                'cv': invalid_file,
                 'salary_preferences': self.applicant.salary_preferences,
-                'job_preferences': self.applicant.job_preferences,
+                'job_preferences': [str(self.job_title.id)],  # Convert ID to string
                 'location_preferences': self.applicant.location_preferences
             },
             format='multipart'
         )
         
         self.assertEqual(response.status_code, 200)
-        self.assertIn('cv', response.context['form'].errors)
-        self.assertIn('Only PDF files are allowed', str(response.context['form'].errors['cv']))
+        form_errors = response.context['form'].errors
+        self.assertIn('cv', form_errors)
+        self.assertIn('Only PDF and Word documents are allowed', str(form_errors['cv']))
 
     def test_edit_profile_missing_required_fields(self):
         """Test form validation when required fields are missing"""
@@ -309,16 +312,24 @@ class ApplicantProfileTests(TestCase):
                 'degree': self.applicant.degree,
                 'cv': doc_file,
                 'salary_preferences': self.applicant.salary_preferences,
-                'job_preferences': self.applicant.job_preferences,
+                'job_preferences': [str(self.job_title.id)],  # Convert ID to string
                 'location_preferences': self.applicant.location_preferences
             },
             format='multipart'
         )
         
+        # Should redirect on success (302)
+        self.assertEqual(response.status_code, 302)
+        
+        # Follow the redirect
+        response = self.client.get(response.url)
         self.assertEqual(response.status_code, 200)
+        
+        # Check success message
         messages = list(get_messages(response.wsgi_request))
         self.assertEqual(str(messages[0]), "Your changes have been saved.")
         
+        # Verify file was uploaded
         self.applicant.refresh_from_db()
         self.assertTrue(self.applicant.cv)
         self.assertTrue(self.applicant.cv.name.startswith('uploads/cv/'))
@@ -355,29 +366,3 @@ class ApplicantProfileTests(TestCase):
         self.assertTrue(self.applicant.cv)
         self.assertTrue(self.applicant.cv.name.startswith('uploads/cv/'))
         self.assertTrue(self.applicant.cv.name.endswith('.docx'))
-
-    def test_edit_profile_invalid_file_type(self):
-        """Test uploading invalid file type for CV"""
-        invalid_file = SimpleUploadedFile(
-            "test_cv.txt",
-            b"invalid file content",
-            content_type="text/plain"
-        )
-        
-        response = self.client.post(
-            reverse('applicants-edit-profile'),
-            {
-                'first_name': self.user.first_name,
-                'last_name': self.user.last_name,
-                'degree': self.applicant.degree,
-                'cv': invalid_file,
-                'salary_preferences': self.applicant.salary_preferences,
-                'job_preferences': [self.job_title.id],
-                'location_preferences': self.applicant.location_preferences
-            },
-            format='multipart'
-        )
-        
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('cv', response.context['form'].errors)
-        self.assertIn('Only PDF and Word documents are allowed', str(response.context['form'].errors['cv']))
