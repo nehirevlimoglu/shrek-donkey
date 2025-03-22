@@ -163,3 +163,4 @@ class ApplicationForm(forms.ModelForm):
             "current_job_title", "current_employer", "linkedin_profile", "portfolio_website",
             "how_did_you_hear", "sponsorship_needed", "confirm_information",
         ]
+        
