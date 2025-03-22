@@ -8,124 +8,145 @@
 {% endblock %}
 
 {% block content %}
-    <div class="applicant-profile-container">
-        <h1>Applicant Profile</h1>
+<div class="applicant-profile-container">
+    <h1>Applicant Profile</h1>
 
-        <!-- ✅ Personal Details -->
-        <section class="section">
-            <h2>Personal Details</h2>
-            <input type="hidden" id="candidate-id" value="{{ applicant.id }}">
-            <p><strong>Name:</strong> {{ applicant.user.get_full_name|default:"Not Provided" }}</p>
-            <p><strong>Email:</strong> {{ applicant.user.email|default:"Not Provided" }}</p>
-            <p><strong>Phone:</strong> {{ applicant.phone|default:"Not Provided" }}</p>
-            <p><strong>Address:</strong> {{ applicant.address|default:"Not Provided" }}</p>
-        </section>
+    <!-- Personal Details -->
+    <section class="section">
+        <h2>Personal Details</h2>
+        <input type="hidden" id="candidate-id" value="{{ candidate.id }}">
+        <p><strong>Name:</strong> {{ candidate.user.get_full_name|default:"Not Provided" }}</p>
+        <p><strong>Email:</strong> {{ application.email|default:"Not Provided" }}</p>
+        <p><strong>Phone:</strong> {{ application.phone|default:"Not Provided" }}</p>
+        <p><strong>Address:</strong> {{ application.address|default:"Not Provided" }}</p>
+    </section>
 
-        <!-- ✅ Resume & Cover Letter -->
-        <section class="section">
-            <h2>Resume & Cover Letter</h2>
-            <p><strong>Resume:</strong> 
-                {% if applicant.resume %}
-                    <a href="{{ applicant.resume.url }}" target="_blank" class="btn-view">View Resume</a>
-                {% else %}
-                    No Resume Uploaded
-                {% endif %}
-            </p>
-            <p><strong>Cover Letter:</strong></p>
-            <div class="cover-letter">{{ applicant.cover_letter|default:"Not Provided" }}</div>
-        </section>
-
-        <!-- ✅ Education Details -->
-        <section class="section">
-            <h2>Education</h2>
-            {% if applicant.school or applicant.degree or applicant.discipline %}
-                <p><strong>School:</strong> {{ applicant.school|default:"Not Provided" }}</p>
-                <p><strong>Degree:</strong> {{ applicant.degree|default:"Not Provided" }}</p>
-                <p><strong>Discipline:</strong> {{ applicant.discipline|default:"Not Provided" }}</p>
-
-                <p><strong>Duration:</strong> 
-                    {{ applicant.start_date|default:"Not Provided" }} - 
-                    {{ applicant.end_date|default:"Present" }}
-                </p>
+    <!-- Resume & Cover Letter -->
+    <section class="section">
+        <h2>Resume & Cover Letter</h2>
+        <p><strong>Resume:</strong>
+            {% if application.resume %}
+                <a href="{{ application.resume.url }}" target="_blank" class="btn-view">View Resume</a>
             {% else %}
-                <p>No education details provided.</p>
+                No Resume Uploaded
             {% endif %}
-        </section>
-
-
-
-        <!-- ✅ Work Experience -->
-        <section class="section">
-            <h2>Current Job</h2>
-            <p><strong>Job Title:</strong> {{ applicant.current_job_title|default:"Not Provided" }}</p>
-            <p><strong>Employer:</strong> {{ applicant.current_employer|default:"Not Provided" }}</p>
-            <p><strong>LinkedIn:</strong> 
-                {% if applicant.linkedin_profile %}
-                    <a href="{{ applicant.linkedin_profile }}" target="_blank">View LinkedIn</a>
-                {% else %}
-                    Not Provided
-                {% endif %}
-            </p>
-            <p><strong>Portfolio:</strong> 
-                {% if applicant.portfolio_website %}
-                    <a href="{{ applicant.portfolio_website }}" target="_blank">View Portfolio</a>
-                {% else %}
-                    Not Provided
-                {% endif %}
-            </p>
-        </section>
-
-        <!-- ✅ Additional Questions -->
-        <section class="section">
-            <h2>Additional Questions</h2>
-            <p><strong>How did you hear about us?</strong> {{ applicant.how_did_you_hear|default:"Not Provided" }}</p>
-            <p><strong>Need Sponsorship?</strong> {{ applicant.sponsorship_needed|yesno:"Yes,No" }}</p>
-        </section>
-
-        <!-- ✅ Actions -->
-        <section class="section actions">
-            <h2>Application Status</h2>
-            <div class="status-chip">
-                <span class="chip {% if applicant.application_status == 'Hired' %}chip-accepted{% elif applicant.application_status == 'Rejected' %}chip-rejected{% else %}chip-pending{% endif %}">
-                    {{ applicant.application_status|default:"Pending" }}
-                </span>
-            </div>
-
-            <!-- ✅ Show Accept/Reject buttons ONLY IF status is still Pending -->
-            {% if applicant.application_status == "Pending" %}
-                <div class="action-buttons">
-                    <button class="btn-accept"
-                        onclick="confirmAction('accept', '{{ applicant.user.get_full_name }}', '{{ job_listing.title }}')">
-                        Accept
-                    </button>
-
-                    <button class="btn-reject"
-                        onclick="confirmAction('reject', '{{ applicant.user.get_full_name }}', '{{ job_listing.title }}')">
-                        Reject
-                    </button>
-                </div>
-
-                <!-- ✅ Show Schedule Interview ONLY IF candidate is still Pending -->
-                <a href="{% url 'schedule_interview' applicant.id %}" class="btn-primary">Schedule Interview</a>
+        </p>
+        <p><strong>Cover Letter:</strong></p>
+        <div class="cover-letter">
+            {% if application.cover_letter %}
+                <a href="{{ application.cover_letter.url }}" target="_blank" class="btn-view">View Cover Letter</a>
+            {% else %}
+                Not Provided
             {% endif %}
-
-            <!-- ✅ Back to Candidates should always be visible -->
-            <a href="{% url 'employer_candidates' %}" class="btn-secondary">Back to Candidates</a>
-        </section>
-
-
-    </div>
-
-    <!-- Confirmation Modal -->
-    <div id="confirmation-modal" class="confirmation-modal">
-        <div class="confirmation-content">
-            <h2 id="confirmation-title"></h2>
-            <p id="confirmation-message"></p>
-            <button id="confirm-button" onclick="confirmActionFinal()">Yes, Proceed</button>
-            <button onclick="closeModal()">Cancel</button>
         </div>
-    </div>
+    </section>
 
+    <!-- Education Details -->
+    <section class="section">
+        <h2>Education</h2>
+        {% if application and application.education %}
+            {% for edu in application.education %}
+                <div class="education-block">
+                    <p><strong>School:</strong> {{ edu.school|default:"Not Provided" }}</p>
+                    <p><strong>Degree:</strong> {{ edu.degree|default:"Not Provided" }}</p>
+                    <p><strong>Discipline:</strong> {{ edu.discipline|default:"Not Provided" }}</p>
+                    <p>
+                        <strong>Duration:</strong>
+                        {{ edu.start_date|default:"Not Provided" }} - {{ edu.end_date|default:"Present" }}
+                    </p>
+                </div>
+                <hr>
+            {% endfor %}
+        {% else %}
+            <p>No education details provided.</p>
+        {% endif %}
+    </section>
+
+    <!-- Work Experience Details -->
+    <section class="section">
+        <h2>Previous Work Experience</h2>
+        {% if application and application.work_experience %}
+            {% for work in application.work_experience %}
+                <div class="work-block">
+                    <p><strong>Job Title:</strong> {{ work.work_job_title|default:"Not Provided" }}</p>
+                    <p><strong>Employer:</strong> {{ work.work_employer|default:"Not Provided" }}</p>
+                    <p>
+                        <strong>Duration:</strong>
+                        {{ work.work_start_date|default:"Not Provided" }} - {{ work.work_end_date|default:"Present" }}
+                    </p>
+                    <p><strong>Description:</strong> {{ work.job_description|default:"Not Provided" }}</p>
+                </div>
+                <hr>
+            {% endfor %}
+        {% else %}
+            <p>No work experience details provided.</p>
+        {% endif %}
+    </section>
+
+    <!-- Current Job Details -->
+    <section class="section">
+        <h2>Current Job</h2>
+        <p><strong>Job Title:</strong> {{ application.current_job_title|default:"Not Provided" }}</p>
+        <p><strong>Employer:</strong> {{ application.current_employer|default:"Not Provided" }}</p>
+        <p><strong>LinkedIn:</strong>
+            {% if application.linkedin_profile %}
+                <a href="{{ application.linkedin_profile }}" target="_blank">View LinkedIn</a>
+            {% else %}
+                Not Provided
+            {% endif %}
+        </p>
+        <p><strong>Portfolio:</strong>
+            {% if application.portfolio_website %}
+                <a href="{{ application.portfolio_website }}" target="_blank">View Portfolio</a>
+            {% else %}
+                Not Provided
+            {% endif %}
+        </p>
+    </section>
+
+    <!-- Additional Questions -->
+    <section class="section">
+        <h2>Additional Questions</h2>
+        <p><strong>How did you hear about us?</strong> {{ application.how_did_you_hear|default:"Not Provided" }}</p>
+        <p><strong>Need Sponsorship?</strong> {{ application.sponsorship_needed|yesno:"Yes,No" }}</p>
+    </section>
+
+    <!-- Application Status & Actions -->
+    <section class="section actions">
+        <h2>Application Status</h2>
+        <div class="status-chip">
+            <span class="chip {% if candidate.application_status == 'Hired' %}chip-accepted{% elif candidate.application_status == 'Rejected' %}chip-rejected{% else %}chip-pending{% endif %}">
+                {{ candidate.application_status|default:"Pending" }}
+            </span>
+        </div>
+
+        {% if candidate.application_status == "Pending" %}
+            <div class="action-buttons">
+                <button class="btn-accept"
+                    onclick="confirmAction('accept', '{{ candidate.user.get_full_name }}', '{{ candidate.job.title }}')">
+                    Accept
+                </button>
+                <button class="btn-reject"
+                    onclick="confirmAction('reject', '{{ candidate.user.get_full_name }}', '{{ candidate.job.title }}')">
+                    Reject
+                </button>
+            </div>
+            <a href="{% url 'schedule_interview' candidate.id %}" class="btn-primary">Schedule Interview</a>
+        {% endif %}
+
+        <a href="{% url 'employer_candidates' %}" class="btn-secondary">Back to Candidates</a>
+    </section>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmation-modal" class="confirmation-modal">
+    <div class="confirmation-content">
+        <h2 id="confirmation-title"></h2>
+        <p id="confirmation-message"></p>
+        <button id="confirm-button" onclick="confirmActionFinal()">Yes, Proceed</button>
+        <button onclick="closeModal()">Cancel</button>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
