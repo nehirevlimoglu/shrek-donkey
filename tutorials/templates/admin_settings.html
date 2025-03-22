@@ -5,37 +5,9 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/admin_settings.css' %}">
-<style>
-    /* Ensure the entire page can scroll */
-    html, body {
-        min-height: 100vh;
-        overflow-y: auto;
-        background: #F8F9FA; /* Adjust as needed */
-    }
-    
-    /* If your base template has a pinned sidebar or a main content container,
-       adjust it accordingly. For example, if your base defines a .content container:
-    */
-    .content {
-        margin-left: 270px; /* Adjust if you have a sidebar */
-        width: calc(100vw - 270px);
-        min-height: 100vh;
-        overflow-x: hidden;
-    }
-    
-    /* Remove any height restrictions on the settings container so that its content expands naturally */
-    .settings-container {
-        max-height: none;
-        overflow-y: visible;
-        padding: 20px; /* Ensure some padding if needed */
-    }
-</style>
 {% endblock %}
 
 {% block content %}
-
-<link rel="stylesheet" href="{% static 'css/admin_settings.css' %}">
-
 <div class="settings-container">
     <div class="page-header mb-4">
         <h2><i class="bi bi-gear-fill me-2"></i>Admin Settings</h2>
@@ -94,7 +66,7 @@
                     <h5 class="mb-0"><i class="bi bi-person-fill me-2"></i>Profile Settings</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{% url 'admin_settings' %}" method="post" class="p-3">
+                    <form action="{% url 'admin_settings' %}" method="post" class="p-3" name="update_profile">
                         {% csrf_token %}
                         <input type="hidden" name="update_profile" value="1">
                         
@@ -147,7 +119,7 @@
                     <h5 class="mb-0"><i class="bi bi-lock-fill me-2"></i>Change Password</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{% url 'admin_settings' %}" method="post" class="p-3">
+                    <form action="{% url 'admin_settings' %}" method="post" class="p-3" name="change_password">
                         {% csrf_token %}
                         <input type="hidden" name="change_password" value="1">
                         
@@ -181,7 +153,7 @@
                     <h5 class="mb-0"><i class="bi bi-bell-fill me-2"></i>Notification Preferences</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{% url 'admin_settings' %}" method="post" class="p-3">
+                    <form action="{% url 'admin_settings' %}" method="post" class="p-3" name="notification_preferences">
                         {% csrf_token %}
                         <input type="hidden" name="update_notification_prefs" value="1">
                         
@@ -193,7 +165,8 @@
                                         <p class="text-muted mb-0 small">Receive alerts when new job listings are posted</p>
                                     </div>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="job_notifications" name="job_notifications" checked>
+                                        <input class="form-check-input" type="checkbox" id="job_notifications" name="job_notifications" 
+                                               {% if notification_prefs.job_notifications %}checked{% endif %}>
                                     </div>
                                 </div>
                             </div>
@@ -205,7 +178,8 @@
                                         <p class="text-muted mb-0 small">Receive alerts when candidates apply for jobs</p>
                                     </div>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="application_notifications" name="application_notifications" checked>
+                                        <input class="form-check-input" type="checkbox" id="application_notifications" name="application_notifications" 
+                                               {% if notification_prefs.application_notifications %}checked{% endif %}>
                                     </div>
                                 </div>
                             </div>
@@ -217,7 +191,8 @@
                                         <p class="text-muted mb-0 small">Receive alerts when new users register</p>
                                     </div>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="user_notifications" name="user_notifications" checked>
+                                        <input class="form-check-input" type="checkbox" id="user_notifications" name="user_notifications" 
+                                               {% if notification_prefs.user_notifications %}checked{% endif %}>
                                     </div>
                                 </div>
                             </div>
@@ -229,7 +204,8 @@
                                         <p class="text-muted mb-0 small">Receive system updates and maintenance alerts</p>
                                     </div>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="system_notifications" name="system_notifications" checked>
+                                        <input class="form-check-input" type="checkbox" id="system_notifications" name="system_notifications" 
+                                               {% if notification_prefs.system_notifications %}checked{% endif %}>
                                     </div>
                                 </div>
                             </div>
@@ -238,13 +214,15 @@
                         <div class="mb-3">
                             <label class="form-label">Notification Delivery Method</label>
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="email_delivery" name="email_delivery" checked>
+                                <input class="form-check-input" type="checkbox" id="email_delivery" name="email_delivery" 
+                                       {% if notification_prefs.email_delivery %}checked{% endif %}>
                                 <label class="form-check-label" for="email_delivery">
                                     Email Notifications
                                 </label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="dashboard_delivery" name="dashboard_delivery" checked>
+                                <input class="form-check-input" type="checkbox" id="dashboard_delivery" name="dashboard_delivery" 
+                                       {% if notification_prefs.dashboard_delivery %}checked{% endif %}>
                                 <label class="form-check-label" for="dashboard_delivery">
                                     Dashboard Notifications
                                 </label>
@@ -262,17 +240,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const tabLinks = document.querySelectorAll('.list-group-item-action');
-        
-        tabLinks.forEach(link => {
-            link.addEventListener('click', function(e) {
-                // The default link behavior (URL parameter) will handle the tab switching
-                // This is just a hook for potential future enhancements
-            });
-        });
-    });
-</script>
+{% block extra_js %}
+<script src="{% static 'js/admin_settings.js' %}"></script>
 {% endblock %}

@@ -1,8 +1,8 @@
-
+/* Ensure the entire page can scroll */
 html, body {
-    height: 100%;
-    overflow-y: auto !important;
-    background-color: #FFFFFF;
+    min-height: 100vh;
+    overflow-y: auto;
+    background: #F8F9FA; /* Adjust as needed */
     margin: 0;
     padding: 0;
 }
@@ -21,9 +21,69 @@ html, body {
 .settings-container {
     max-height: none;
     overflow-y: visible;
-    padding: 20px; /* Ensure some padding if s */
+    padding: 20px; /* Ensure some padding if needed */
 }
 
+/* Admin Settings Page styles */
+.page-header {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
+}
+
+.settings-container {
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.list-group-item-action.active {
+    background-color: #4a6cf7 !important;
+    border-color: #4a6cf7 !important;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+.card-header {
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+    padding: 15px 20px;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #374151;
+}
+
+.btn-primary {
+    background-color: #4a6cf7;
+    border-color: #4a6cf7;
+}
+
+.btn-primary:hover {
+    background-color: #3a5ce5;
+    border-color: #3a5ce5;
+}
+
+.list-group-item {
+    padding: 15px;
+    border-color: #e5e7eb;
+}
+
+.form-switch .form-check-input {
+    width: 45px;
+    height: 24px;
+}
+
+.form-check-input:checked {
+    background-color: #4a6cf7;
+    border-color: #4a6cf7;
+}
 
 .dashboard-container {
     display: flex;

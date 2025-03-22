@@ -89,3 +89,18 @@ class Notification(models.Model):
         self.is_deleted = True
         self.save()
 
+class NotificationPreference(models.Model):
+    admin = models.OneToOneField(Admin, on_delete=models.CASCADE, related_name='notification_preferences')
+    job_notifications = models.BooleanField(default=True)
+    application_notifications = models.BooleanField(default=True)
+    user_notifications = models.BooleanField(default=True)
+    system_notifications = models.BooleanField(default=True)
+    
+    email_delivery = models.BooleanField(default=True)
+    dashboard_delivery = models.BooleanField(default=True)
+    
+    last_updated = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Notification Preferences for {self.admin.username}"
+

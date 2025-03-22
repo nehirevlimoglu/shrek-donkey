@@ -6,7 +6,7 @@ from django.conf import settings
 from tutorials.models.employer_models import JobTitle
 from tutorials.models.employer_models import Job, Candidate, Employer
 from django.utils.timezone import now
-from .models.admin_models import Notification, Admin
+from .models.admin_models import Notification, Admin, NotificationPreference
 from .models.user_model import User
 from .views.admin_views import create_admin_notification
 
@@ -129,3 +129,11 @@ def job_deletion_notification(sender, instance, **kwargs):
             notification_type='job',
             priority='high'
         )
+
+@receiver(post_save, sender=Admin)
+def create_admin_notification_preferences(sender, instance, created, **kwargs):
+    """
+    Create notification preferences for new admin users
+    """
+    if created:
+        NotificationPreference.objects.create(admin=instance)
