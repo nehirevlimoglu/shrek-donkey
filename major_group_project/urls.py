@@ -25,7 +25,7 @@ from tutorials import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', log_in, name='home'),
-    path('log_in/', log_in, name='log-in'),  
+    path('log_in/', log_in, name='log_in'),  
     path('logout/', log_out, name='log-out'),
     path('sign_up/', sign_up, name='sign-up'),
     path('applicant-profile/', applicant_profile_setup, name='applicant_profile_setup'),

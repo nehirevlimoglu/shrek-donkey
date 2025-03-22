@@ -37,7 +37,6 @@ def csrf_failure(request, reason=""):
     return response
 
 
-@csrf_exempt  # Temporarily disable CSRF protection, only for testing purposes
 @ensure_csrf_cookie
 def log_in(request):
     if request.method == 'POST':

@@ -33,26 +33,6 @@ def is_employer(user):
 
 
 @login_required
-def employer_profile_setup(request):
-    try:
-        employer = request.user.employer  # Ensure the user is an employer
-    except Employer.DoesNotExist:
-        employer = None
-
-    if request.method == 'POST':
-        form = EmployerProfileForm(request.POST, request.FILES, instance=employer)
-        if form.is_valid():
-            employer = form.save(commit=False)
-            employer.user = request.user
-            employer.save()
-            return HttpResponseRedirect(reverse('employer_home_page'))  # Redirect to employer's dashboard
-
-    else:
-        form = EmployerProfileForm(instance=employer)
-
-    return render(request, 'employer_form.html', {'form': form})
-
-@login_required
 def employer_home_page(request):
     """Employer dashboard with statistics, notifications & recent applicants"""
 
@@ -146,24 +126,7 @@ def view_employer_analytics(request):
 def employer_settings(request):
     return render(request, 'employer_settings.html')
 
-
-def employer_sign_up(request):
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            if user.role != 'Employer':
-                form.add_error(None, "Only employers can sign up.")
-                return render(request, 'sign_up.html', {'form': form})
-            user.save()
-            login(request, user)
-            return redirect('employer_profile_setup.html')
-    else:
-        form = SignUpForm()
-    return render(request, 'sign_up.html', {'form': form})
-
-
-
+@login_required
 def employer_job_listings(request):
     """ Display only the jobs posted by the logged-in employer """
     
