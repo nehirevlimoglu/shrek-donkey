@@ -718,6 +718,8 @@ def update_job_status(request):
     logger.error("Invalid request method")  # Log if request method is not POST
     return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
 
+
+
 @csrf_exempt
 @user_passes_test(is_admin)
 def resolve_feedback(request, feedback_id):
