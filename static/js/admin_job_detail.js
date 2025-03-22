@@ -181,13 +181,22 @@ function setupCandidateView() {
     viewCandidateBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const candidateId = this.dataset.candidateId;
-            fetch(`/admin/get-candidate-info/${candidateId}/`)
-                .then(response => response.json())
+            console.log(`Fetching candidate info for ID: ${candidateId}`);
+            
+            fetch(`/admin_get-candidate-info/${candidateId}/`)
+                .then(response => {
+                    console.log(`Response status: ${response.status}`);
+                    if (!response.ok) {
+                        throw new Error(`Server responded with status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Received candidate data:', data);
                     displayCandidateModal(data);
                 })
                 .catch(error => {
-                    console.error('Error:', error);
+                    console.error('Error fetching candidate info:', error);
                     alert('An error occurred while fetching candidate information.');
                 });
         });
@@ -241,11 +250,9 @@ function displayCandidateModal(candidateData) {
             <h3>Update Application Status</h3>
             <select id="applicationStatus">
                 <option value="Pending" ${candidateData.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                <option value="Reviewing" ${candidateData.status === 'Reviewing' ? 'selected' : ''}>Reviewing</option>
-                <option value="Interview" ${candidateData.status === 'Interview' ? 'selected' : ''}>Interview</option>
-                <option value="Offered" ${candidateData.status === 'Offered' ? 'selected' : ''}>Offered</option>
-                <option value="Rejected" ${candidateData.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                <option value="Interview" ${candidateData.status === 'Interview' ? 'selected' : ''}>Interview Scheduled</option>
                 <option value="Hired" ${candidateData.status === 'Hired' ? 'selected' : ''}>Hired</option>
+                <option value="Rejected" ${candidateData.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
             </select>
             <button class="update-btn" data-candidate-id="${candidateData.id}">Update Status</button>
         </div>
@@ -256,8 +263,9 @@ function displayCandidateModal(candidateData) {
     updateBtn.addEventListener('click', function() {
         const candidateId = this.dataset.candidateId;
         const newStatus = document.getElementById('applicationStatus').value;
+        console.log(`Updating candidate ${candidateId} status to: ${newStatus}`);
         
-        fetch(`/admin/update-candidate-status/${candidateId}/`, {
+        fetch(`/admin_update-candidate-status/${candidateId}/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCsrfToken(),
@@ -265,18 +273,25 @@ function displayCandidateModal(candidateData) {
             },
             body: JSON.stringify({ status: newStatus })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log(`Update status response: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`Server responded with status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Update status response data:', data);
             if (data.success) {
                 // Close modal and reload page to see updated status
                 modal.style.display = 'none';
                 window.location.reload();
             } else {
-                alert('Error updating status: ' + data.error);
+                alert('Error updating status: ' + (data.error || 'Unknown error'));
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Error updating candidate status:', error);
             alert('An error occurred while updating the candidate status.');
         });
     });

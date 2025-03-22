@@ -704,6 +704,95 @@ def admin_applications_view(request):
         'rejected_applications': rejected_applications,
     })
 
+@user_passes_test(is_admin)
+def get_candidate_info(request, candidate_id):
+    """
+    Get detailed information about a candidate for the modal view.
+    This endpoint is called by the view-candidate-btn in admin_job_detail.html.
+    """
+    logger.debug(f"[get_candidate_info] Request method: {request.method}, Candidate ID: {candidate_id}")
+    logger.debug(f"[get_candidate_info] Path: {request.path}, User: {request.user}")
+    
+    try:
+        logger.debug(f"[get_candidate_info] Fetching info for candidate ID: {candidate_id}")
+        candidate = Candidate.objects.get(id=candidate_id)
+        logger.debug(f"[get_candidate_info] Found candidate: {candidate}")
+        
+        # Get candidate data to return as JSON
+        candidate_data = {
+            'id': candidate.id,
+            'name': f"{candidate.user.first_name} {candidate.user.last_name}" if candidate.user.first_name else candidate.user.username,
+            'email': candidate.user.email,
+            'application_date': candidate.application_date.strftime('%Y-%m-%d') if candidate.application_date else '',
+            'status': candidate.application_status,
+            # Add more fields as needed
+            'phone': candidate.phone or 'Not provided',
+            'degree': candidate.degree or 'Not provided',
+            'school': candidate.school or 'Not provided',
+            'skills': candidate.skills or '[]'
+        }
+        
+        logger.debug(f"[get_candidate_info] Returning data: {candidate_data}")
+        response = JsonResponse(candidate_data)
+        
+        # Add CORS headers for development
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "X-Requested-With, Content-Type"
+        
+        return response
+    except Candidate.DoesNotExist:
+        logger.error(f"[get_candidate_info] Candidate with ID {candidate_id} not found")
+        return JsonResponse({'error': 'Candidate not found'}, status=404)
+    except Exception as e:
+        logger.error(f"[get_candidate_info] Error: {str(e)}")
+        import traceback
+        logger.error(f"[get_candidate_info] Traceback: {traceback.format_exc()}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+@user_passes_test(is_admin)
+@require_POST
+def update_candidate_status(request, candidate_id):
+    """
+    Update a candidate's application status.
+    This endpoint is called by the Update Status button in the candidate modal.
+    """
+    try:
+        logger.debug(f"[update_candidate_status] Updating status for candidate ID: {candidate_id}")
+        data = json.loads(request.body)
+        new_status = data.get('status')
+        logger.debug(f"[update_candidate_status] New status: {new_status}")
+        
+        if not new_status:
+            logger.error("[update_candidate_status] Missing status in request")
+            return JsonResponse({'error': 'Status is required'}, status=400)
+        
+        # Get the valid status choices
+        valid_statuses = [status[0] for status in Candidate.STATUS_CHOICES]
+        logger.debug(f"[update_candidate_status] Valid statuses: {valid_statuses}")
+        
+        if new_status not in valid_statuses:
+            logger.error(f"[update_candidate_status] Invalid status: {new_status}")
+            return JsonResponse({'error': f'Invalid status. Valid options are: {", ".join(valid_statuses)}'}, status=400)
+        
+        candidate = Candidate.objects.get(id=candidate_id)
+        logger.debug(f"[update_candidate_status] Found candidate: {candidate}")
+        
+        # Update the status
+        candidate.application_status = new_status
+        candidate.save()
+        logger.debug(f"[update_candidate_status] Status updated successfully to: {new_status}")
+        
+        return JsonResponse({'success': True})
+    except Candidate.DoesNotExist:
+        logger.error(f"[update_candidate_status] Candidate with ID {candidate_id} not found")
+        return JsonResponse({'error': 'Candidate not found'}, status=404)
+    except json.JSONDecodeError:
+        logger.error("[update_candidate_status] Invalid JSON in request body")
+        return JsonResponse({'error': 'Invalid JSON in request body'}, status=400)
+    except Exception as e:
+        logger.error(f"[update_candidate_status] Error: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 import logging
 logger = logging.getLogger(__name__)
