@@ -193,9 +193,12 @@ table td {
     height: 30px;
     margin-right: 20px;
     cursor: pointer;
-    font-size: 24px;
-    text-indent: 0;
-    position: relative;  
+    position: relative;
+    background-image: url('../images/notification_icon.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    text-indent: -9999px; /* 隐藏文本内容 */
 }
 
 .notifications-count {

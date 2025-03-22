@@ -339,7 +339,14 @@
 }
 
 .notifications-icon {
-    font-size: 1.5rem;
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+    background-image: url('../images/notification_icon.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    text-indent: -9999px; /* 隐藏文本内容 */
 }
 
 .notifications-count {
