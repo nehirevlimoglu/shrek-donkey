@@ -288,6 +288,7 @@ def apply_for_job(request, job_id):
         "existing_application": Application.objects.filter(applicant=applicant, job=job).exists()
     })
 
+
 @applicant_only
 @login_required
 def applicants_notifications(request):

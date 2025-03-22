@@ -88,23 +88,8 @@ def applicant_profile_setup(request):
     return render(request, 'applicant_profile_setup.html', {'form': form})
 
 
-@login_required
-def employer_profile_setup(request):
-    try:
-        employer = request.user.employer
-    except Employer.DoesNotExist:
-        employer = None
 
-    if request.method == 'POST':
-        form = EmployerProfileForm(request.POST, request.FILES, instance=employer)
-        if form.is_valid():
-            employer = form.save(commit=False)
-            employer.user = request.user
-            employer.save()
-            return redirect('employer_home_page')
-    else:
-        form = EmployerProfileForm(instance=employer)
-    return render(request, 'employer_profile_setup.html', {'form': form})
+
 
 
 def log_out(request):

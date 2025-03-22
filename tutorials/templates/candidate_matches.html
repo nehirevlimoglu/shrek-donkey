@@ -1,19 +1,23 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Matched Candidates for {{ job.title }}</h2>
+  <h2>Matched Candidates for {{ job.title }}</h2>
 
-{% if matched_candidates %}
+  {% if error %}
+    <div class="alert alert-danger">
+      {{ error }}
+    </div>
+  {% elif matched_candidates %}
     <ul>
-    {% for candidate, score in matched_candidates %}
+      {% for candidate, score in matched_candidates %}
         <li>
-            <strong>{{ candidate.user.username }}</strong> - Match Score: {{ score|floatformat:2 }}
+          <strong>{{ candidate.user.username }}</strong> — Match Score: {{ score|floatformat:2 }}
         </li>
-    {% endfor %}
+      {% endfor %}
     </ul>
-{% else %}
+  {% else %}
     <p>No suitable candidates found.</p>
-{% endif %}
+  {% endif %}
 
-<a href="{% url 'employer_job_listings' %}">Back to Job Listings</a>
+  <a href="{% url 'employer_job_listings' %}">← Back to Job Listings</a>
 {% endblock %}

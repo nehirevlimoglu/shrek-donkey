@@ -91,3 +91,4 @@ class ApplicantNotification(models.Model):
 
     def __str__(self):
         return f"{self.title} -> {self.applicant.user.username}"
+

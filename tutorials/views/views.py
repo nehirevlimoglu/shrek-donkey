@@ -152,19 +152,20 @@ def log_out(request):
 
 
 def job_matching_view(request, job_id):
-    """View to match candidates to a job based on extracted skills"""
     job = get_object_or_404(Job, id=job_id)
     matched_candidates = match_candidates_to_job(job.title, top_n=5)
 
-    if not request.user.is_authenticated:
-        return redirect('log-in')
+    # 🔥 Add this block to prevent the template crash
+    if isinstance(matched_candidates, str):  # If it's an error string
+        return render(request, "candidate_matches.html", {
+            "job": job,
+            "error": matched_candidates
+        })
 
-    # otherwise render
     return render(request, "candidate_matches.html", {
         "job": job,
         "matched_candidates": matched_candidates
     })
-
 
 
 @login_required
