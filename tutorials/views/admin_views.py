@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import user_passes_test
 from tutorials.models.admin_models import Admin
-from tutorials.models.admin_models import Notification
+from tutorials.models.admin_models import Notification, NotificationPreference
 from tutorials.models.employer_models import EmployerNotification
 from django.http import JsonResponse, HttpResponse
 from tutorials.models.user_model import User
@@ -14,6 +14,7 @@ from tutorials.models.employer_models import Job, Candidate, Employer
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
 
 def is_admin(user):
     return user.role == 'Admin'
@@ -121,8 +122,138 @@ def admin_job_listings(request):
         'closed_jobs': closed_jobs,
     })
 
+@user_passes_test(is_admin)
 def admin_settings(request):
-    return render(request, 'admin_settings.html')
+    # Get the currently logged in admin user
+    user = request.user
+    try:
+        admin = Admin.objects.get(id=user.id)
+    except Admin.DoesNotExist:
+        admin = None
+    
+    # Get the tab parameter, default to 'profile'
+    tab = request.GET.get('tab', 'profile')
+    
+    error = None
+    
+    # Handle profile update
+    if request.method == 'POST' and 'update_profile' in request.POST:
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        phone_number = request.POST.get('phone_number')
+        
+        # Check if the username already exists (excluding the current user)
+        if User.objects.filter(username=username).exclude(id=user.id).exists():
+            error = "Username already exists. Please choose a different one."
+        else:
+            # Update the user profile
+            user.username = username
+            user.email = email
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save()
+            
+            # Update admin-specific fields
+            if admin:
+                admin.phone_number = phone_number
+                admin.save()
+            
+            messages.success(request, "Profile updated successfully.")
+            return redirect('admin_settings')
+    
+    # Handle password change
+    elif request.method == 'POST' and 'change_password' in request.POST:
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        # Check if current password is correct
+        if not user.check_password(current_password):
+            error = "Current password is incorrect."
+            tab = 'password'
+        elif new_password != confirm_password:
+            error = "New passwords do not match."
+            tab = 'password'
+        elif len(new_password) < 8:
+            error = "Password must be at least 8 characters long."
+            tab = 'password'
+        else:
+            # Set the new password
+            user.set_password(new_password)
+            user.save()
+            
+            # Update the session to prevent the user from being logged out
+            update_session_auth_hash(request, user)
+            
+            messages.success(request, "Password changed successfully.")
+            return redirect('admin_settings')
+    
+    # Handle notification preferences update
+    elif request.method == 'POST' and 'update_notification_prefs' in request.POST:
+        # Get notification preferences
+        job_notifications = 'job_notifications' in request.POST
+        application_notifications = 'application_notifications' in request.POST
+        user_notifications = 'user_notifications' in request.POST
+        system_notifications = 'system_notifications' in request.POST
+        
+        # Get delivery methods
+        email_delivery = 'email_delivery' in request.POST
+        dashboard_delivery = 'dashboard_delivery' in request.POST
+        
+        # Save notification preferences to admin user
+        if admin:
+            # Get or create notification preferences
+            notification_prefs, created = NotificationPreference.objects.get_or_create(admin=admin)
+            
+            # Update the preferences
+            notification_prefs.job_notifications = job_notifications
+            notification_prefs.application_notifications = application_notifications
+            notification_prefs.user_notifications = user_notifications
+            notification_prefs.system_notifications = system_notifications
+            notification_prefs.email_delivery = email_delivery
+            notification_prefs.dashboard_delivery = dashboard_delivery
+            notification_prefs.save()
+            
+            messages.success(request, "Notification preferences updated successfully.")
+            return redirect('admin_settings')
+    
+    # Get notification preferences from database or use defaults
+    notification_prefs = None
+    if admin:
+        try:
+            notification_prefs = NotificationPreference.objects.get(admin=admin)
+        except NotificationPreference.DoesNotExist:
+            # Use default values
+            notification_prefs = {
+                'job_notifications': True,
+                'application_notifications': True,
+                'user_notifications': True,
+                'system_notifications': True,
+                'email_delivery': True,
+                'dashboard_delivery': True
+            }
+    else:
+        # Use default values
+        notification_prefs = {
+            'job_notifications': True,
+            'application_notifications': True,
+            'user_notifications': True,
+            'system_notifications': True,
+            'email_delivery': True,
+            'dashboard_delivery': True
+        }
+    
+    context = {
+        'tab': tab,
+        'admin': admin,
+        'user': user,
+        'error': error,
+        'notification_prefs': notification_prefs
+    }
+    
+    return render(request, 'admin_settings.html', context)
 
 
 @user_passes_test(is_admin)
