@@ -115,6 +115,7 @@ def applicants_applied_jobs(request):
 def applicants_favourites(request):
     return render(request, 'applicants_favourites.html')
 
+
 @applicant_only
 @login_required
 def applicants_notifications(request):
@@ -280,7 +281,24 @@ def apply_for_job(request, job_id):
                 messages.error(request, "Please fix the errors below.")
     else:
         print("📝 Rendering application form.")
-        form = ApplicationForm()
+        form = ApplicationForm(initial={
+            'first_name': applicant.user.first_name,
+            'last_name': applicant.user.last_name,
+            'email': applicant.user.email,
+            'phone': getattr(applicant, 'phone', ''),
+            'address': getattr(applicant, 'address', ''),
+            'school': getattr(applicant, 'school', ''),
+            'degree': getattr(applicant, 'degree', ''),
+            'discipline': getattr(applicant, 'discipline', ''),
+            'start_date': getattr(applicant, 'start_date', ''),
+            'end_date': getattr(applicant, 'end_date', ''),
+            'linkedin_profile': getattr(applicant, 'linkedin_profile', ''),
+            'portfolio_website': getattr(applicant, 'portfolio_website', ''),
+            'current_job_title': getattr(applicant, 'current_job_title', ''),
+            'current_employer': getattr(applicant, 'current_employer', ''),
+            'skills': getattr(applicant, 'skills', ''),
+        })
+    
 
     return render(request, "applicants_application.html", {
         "form": form,

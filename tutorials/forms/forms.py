@@ -17,91 +17,6 @@ from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 
 User = get_user_model()  # Using your custom User model
 
-# --------------------
-#       VIEWS
-# --------------------
-
-def log_in(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        
-        print(f"Attempting login: {username} | {password}")  # Debug output
-        
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            print(f"User authenticated: {user.username} | Role: {user.role}")  # Debug output
-            login(request, user)
-            # Redirect based on role
-            if request.user.role == 'Admin':
-                return redirect('admin_home_page')
-            elif request.user.role == 'Employer':
-                return redirect('employer_home_page')
-            elif request.user.role in ['Applicant', 'job_seeker']:
-                return redirect('applicants-home-page')
-            raise Http404("Page not found")
-        else:
-            print("Authentication failed")
-            # Optionally add a message or redirect back with an error.
-    
-    # Clear any feedback messages before rendering login page
-    clear_feedback_messages(request)
-    
-    return render(request, 'log_in.html')
-
-
-def sign_up(request):
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            # Immediately create profile based on role
-            if user.role == 'Employer':
-                Employer.objects.create(user=user, username=user.username, email=user.email)
-                return redirect('employer_profile_setup')
-            elif user.role == 'Applicant':
-                Applicant.objects.create(user=user)
-                return redirect('applicant_profile_setup')
-            return redirect('home')
-    else:
-        form = SignUpForm()
-    return render(request, 'sign_up.html', {'form': form})
-
-
-@login_required
-def applicant_profile_setup(request):
-    try:
-        applicant = request.user.applicant
-    except Applicant.DoesNotExist:
-        applicant = None
-
-    if request.method == 'POST':
-        form = ApplicantForm(request.POST, request.FILES, user=request.user, instance=applicant)
-        if form.is_valid():
-            applicant = form.save(commit=False)
-            applicant.user = request.user
-            applicant.save()
-            return redirect('applicants-home-page')
-    else:
-        form = ApplicantForm(user=request.user, instance=applicant)
-    return render(request, 'applicant_profile_setup.html', {'form': form})
-
-
-
-
-
-
-def log_out(request):
-    print("User before logout:", request.user)
-    logout(request)
-    print("User after logout:", request.user)
-    return redirect('log-in')
-
-
-# --------------------
-#       FORMS
-# --------------------
 
 class SignUpForm(forms.ModelForm):
     ROLE_CHOICES = [
@@ -176,6 +91,7 @@ class SignUpForm(forms.ModelForm):
         return user
 
 
+
 class LogInForm(AuthenticationForm):
     username = forms.CharField(
         label="Username",
@@ -185,6 +101,7 @@ class LogInForm(AuthenticationForm):
         label="Password",
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter your password'})
     )
+
 
 
 class CustomPasswordChangeForm(PasswordChangeForm):

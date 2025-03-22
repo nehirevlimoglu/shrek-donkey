@@ -1,13 +1,21 @@
 # tutorials/forms/applicants_forms.py
 
 from django import forms
-from tutorials.models.applicants_models import Applicant, Application
+from tutorials.models.applicants_models import Applicant, Application, JobTitle
 from tutorials.models.employer_models import JobTitle
 from django.core.exceptions import ValidationError
 
-
-
 class ApplicantForm(forms.ModelForm):
+    DEGREE_CHOICES = [
+        ('', 'Select Degree'),
+        ('bachelors', 'Bachelors'),
+        ('masters', 'Masters'),
+        ('phd', 'PhD'),
+        ('diploma', 'Diploma'),
+        ('associate', 'Associate Degree'),
+        ('certificate', 'Certificate'),
+    ]
+
     first_name = forms.CharField(
         label="First Name",
         max_length=150,
@@ -19,6 +27,11 @@ class ApplicantForm(forms.ModelForm):
         max_length=150,
         required=True,
         widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    degree = forms.ChoiceField(
+        choices=DEGREE_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={"class": "form-control"})
     )
     job_preferences = forms.ModelMultipleChoiceField(
         queryset=JobTitle.objects.all(),
@@ -33,11 +46,8 @@ class ApplicantForm(forms.ModelForm):
     def clean_cv(self):
         cv = self.cleaned_data.get('cv')
         if cv:
-            # Check file size
             if cv.size > self.MAX_FILE_SIZE:
                 raise forms.ValidationError('File size must be under 5MB')
-            
-            # Check file type
             if hasattr(cv, 'content_type') and cv.content_type not in self.ALLOWED_FILE_TYPES:
                 raise forms.ValidationError('Only PDF and Word documents are allowed')
         return cv
@@ -52,9 +62,7 @@ class ApplicantForm(forms.ModelForm):
             "location_preferences",
         ]
         widgets = {
-            "degree": forms.TextInput(attrs={"class": "form-control"}),
             "salary_preferences": forms.TextInput(attrs={"class": "form-control"}),
-            "job_preferences": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "location_preferences": forms.TextInput(attrs={"class": "form-control"}),
             "cv": forms.FileInput(attrs={"class": "form-control"}),
         }
@@ -63,25 +71,29 @@ class ApplicantForm(forms.ModelForm):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         if user:
-            # Prepopulate first_name and last_name from the User model
             self.fields["first_name"].initial = user.first_name
             self.fields["last_name"].initial = user.last_name
 
+            
+
     def save(self, commit=True):
         applicant = super().save(commit=False)
-        
-        # Ensure that the user is saved along with the applicant details
+
         if applicant.user:
             user = applicant.user
             user.first_name = self.cleaned_data["first_name"]
             user.last_name = self.cleaned_data["last_name"]
             if commit:
-                user.save()  # Save the updated User model
+                user.save()
 
         if commit:
-            applicant.save()  # Save the Applicant model
+            applicant.save()
+            self.save_m2m()  # ✅ This is what actually saves job_preferences
 
         return applicant
+
+
+
 
 
 # ✅ Custom validator to enforce PDF file uploads only

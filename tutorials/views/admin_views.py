@@ -790,6 +790,8 @@ def update_job_status(request):
     
     return JsonResponse({"success": False, "error": "Method not allowed"}, status=405)
 
+
+
 @csrf_exempt
 @user_passes_test(is_admin)
 def resolve_feedback(request, feedback_id):

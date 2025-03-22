@@ -146,6 +146,7 @@ def view_employer_analytics(request):
 def employer_settings(request):
     return render(request, 'employer_settings.html')
 
+
 def employer_sign_up(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)
@@ -156,7 +157,7 @@ def employer_sign_up(request):
                 return render(request, 'sign_up.html', {'form': form})
             user.save()
             login(request, user)
-            return redirect('employer_home_page')
+            return redirect('employer_profile_setup.html')
     else:
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
