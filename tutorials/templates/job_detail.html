@@ -20,7 +20,7 @@
         {% if existing_application %}
             <p class="already-applied-msg">You have already applied for this job.</p>
         {% else %}
-            <a id="apply-btn" data-job-id="{{ job.id }}" href="{% url 'applicants_application' job.id %}" class="btn-primary">Apply Now</a>
+        <a href="{% url 'apply_for_job' job.id %}">Apply Now</a>
         {% endif %}
     </div>
 </div>

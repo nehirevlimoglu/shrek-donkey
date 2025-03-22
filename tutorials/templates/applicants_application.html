@@ -40,7 +40,19 @@
                     <div class="form-grid">
                         <div><label>School</label><input type="text" name="school" required></div>
                         <div><label>Degree</label><input type="text" name="degree" required></div>
-                        <div><label>Discipline</label><input type="text" name="discipline" required></div>
+                        <div>
+                            <label for="discipline">Discipline</label>
+                            <select name="discipline" class="form-control">
+                              <option value="">Select a discipline</option>
+                              <option value="bachelors">Bachelors</option>
+                              <option value="masters">Masters</option>
+                              <option value="phd">PhD</option>
+                              <option value="diploma">Diploma</option>
+                              <option value="associate">Associate Degree</option>
+                              <option value="certificate">Certificate</option>
+                            </select>
+                          </div>
+                          
                         <div><label>Start Date</label><input type="date" name="start_date" required></div>
                         <div><label>End Date</label><input type="date" name="end_date"></div>
                         

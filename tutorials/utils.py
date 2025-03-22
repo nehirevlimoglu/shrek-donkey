@@ -28,7 +28,6 @@ def extract_skills_nlp(text, top_n=20):
 
     return combined
 
-
 def match_candidates_to_job(job_title, top_n=5):
     """Finds the best candidates for a given job based on extracted skills similarity."""
 
@@ -47,25 +46,35 @@ def match_candidates_to_job(job_title, top_n=5):
         return "❌ No candidates applied for this job."
 
     candidate_scores = []
-    
+
     for candidate in candidates:
         print(f"🔍 Checking candidate: {candidate.user.username}")
-        print(f"📌 Raw skills field: {repr(candidate.skills)}")  # Debugging print
+        print(f"📌 Raw skills field: {repr(candidate.skills)}")
 
-        candidate_skills = candidate.skills  # Get raw value
+        raw_skills = candidate.skills
 
-        if not candidate_skills or candidate_skills.strip() == "":
-            print("⚠️ Candidate skills are empty, setting to []")
-            candidate_skills = "[]"  # Force a valid empty list format
+        if not raw_skills or raw_skills.strip() == "":
+            print(f"⚠️ No skills found for {candidate.user.username}, skipping.")
+            continue
 
         try:
-            candidate_skills = json.loads(candidate_skills)  # Attempt JSON decoding
+            # Try decoding JSON first
+            skill_data = json.loads(raw_skills)
         except json.JSONDecodeError:
-            print(f"❌ Error decoding JSON for {candidate.user.username}, resetting skills.")
-            candidate_skills = []  # If error, set to empty list
+            print(f"❌ Invalid JSON for {candidate.user.username}, falling back to raw string.")
+            skill_data = raw_skills
+
+        # Convert JSON list to string if needed
+        if isinstance(skill_data, list):
+            raw_text = " ".join(skill_data)
+        else:
+            raw_text = skill_data
+
+        # 🔍 Run your KeyBERT + regex-based extractor
+        candidate_skills = extract_skills_nlp(raw_text)
 
         if not candidate_skills:
-            continue  # Skip if no skills extracted
+            continue  # Skip if still empty
 
         candidate_skills_text = " ".join(candidate_skills).lower()
 
@@ -74,7 +83,6 @@ def match_candidates_to_job(job_title, top_n=5):
         similarity = cosine_similarity(tfidf_matrix[0], tfidf_matrix[1])[0][0]
 
         candidate_scores.append((candidate, similarity))
-
 
     candidate_scores.sort(key=lambda x: x[1], reverse=True)
 

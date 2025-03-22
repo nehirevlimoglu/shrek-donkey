@@ -51,7 +51,16 @@
             <input type="text" name="degree" id="degree" placeholder="Enter Degree" value="{{ request.GET.degree|default:'' }}">
 
             <label for="discipline">Discipline:</label>
-            <input type="text" name="discipline" id="discipline" placeholder="Enter Discipline" value="{{ request.GET.discipline|default:'' }}">
+            <select name="discipline" id="discipline">
+                <option value="">All Disciplines</option>
+                <option value="bachelors" {% if request.GET.discipline == 'bachelors' %}selected{% endif %}>Bachelors</option>
+                <option value="masters" {% if request.GET.discipline == 'masters' %}selected{% endif %}>Masters</option>
+                <option value="phd" {% if request.GET.discipline == 'phd' %}selected{% endif %}>PhD</option>
+                <option value="diploma" {% if request.GET.discipline == 'diploma' %}selected{% endif %}>Diploma</option>
+                <option value="associate" {% if request.GET.discipline == 'associate' %}selected{% endif %}>Associate Degree</option>
+                <option value="certificate" {% if request.GET.discipline == 'certificate' %}selected{% endif %}>Certificate</option>
+            </select>
+
 
             <button type="submit" class="btn-filter">Apply Filters</button>
         </form>

@@ -12,7 +12,8 @@ from tutorials.models.applicants_models import Applicant  # Applicant model
 from tutorials.models.employer_models import Employer  # Employer model
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.middleware.csrf import get_token
-
+from tutorials.models.employer_models import Job
+from tutorials.utils import match_candidates_to_job
 
 # Custom CSRF failure view
 def csrf_failure(request, reason=""):
@@ -155,11 +156,15 @@ def job_matching_view(request, job_id):
     job = get_object_or_404(Job, id=job_id)
     matched_candidates = match_candidates_to_job(job.title, top_n=5)
 
+    if not request.user.is_authenticated:
+        return redirect('log-in')
+
+    # otherwise render
     return render(request, "candidate_matches.html", {
         "job": job,
         "matched_candidates": matched_candidates
     })
-    return redirect('log-in')
+
 
 
 @login_required

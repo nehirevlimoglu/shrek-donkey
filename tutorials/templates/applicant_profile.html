@@ -40,7 +40,9 @@
             <h2>Education</h2>
             {% if applicant.school or applicant.degree or applicant.discipline %}
                 <p><strong>School:</strong> {{ applicant.school|default:"Not Provided" }}</p>
-                <p><strong>Degree:</strong> {{ applicant.degree|default:"Not Provided" }} in {{ applicant.discipline|default:"Not Provided" }}</p>
+                <p><strong>Degree:</strong> {{ applicant.degree|default:"Not Provided" }}</p>
+                <p><strong>Discipline:</strong> {{ applicant.discipline|default:"Not Provided" }}</p>
+
                 <p><strong>Duration:</strong> 
                     {{ applicant.start_date|default:"Not Provided" }} - 
                     {{ applicant.end_date|default:"Present" }}
