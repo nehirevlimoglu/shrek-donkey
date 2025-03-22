@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from tutorials.utils import extract_skills_nlp
 from random import randint
 import json
+from tutorials.models.employer_models import Interview
 
 @applicant_only
 @login_required
@@ -169,7 +170,7 @@ def apply_for_job(request, job_id):
 
     if existing_application:
         print("⚠️ Applicant has already applied. Redirecting...")
-        messages.warning(request, "You have already applied for this job.")
+        messages.error(request, "You have already applied for this job.", extra_tags="application")
         return redirect("job_detail", job_id=job.id)
 
     print(f"🛠 Request method: {request.method}")
@@ -383,7 +384,15 @@ def applicants_analytics(request):
 
     # Fetch statistics
     total_applications = Application.objects.filter(applicant=applicant).count()
-    interviews_scheduled = Application.objects.filter(applicant=applicant, status="interviewed").count()
+    candidates = Candidate.objects.filter(user=request.user)
+    # Only count interviews if the user actually has applications
+    applications = Application.objects.filter(applicant=applicant)
+    if applications.exists():
+        applied_jobs = applications.values_list('job', flat=True)
+        candidates = Candidate.objects.filter(user=request.user, job__in=applied_jobs)
+        interviews_scheduled = Interview.objects.filter(candidate__in=candidates).count()
+    else:
+        interviews_scheduled = 0
     job_offers_received = Application.objects.filter(applicant=applicant, status="hired").count()
     
     # Calculate acceptance rate
@@ -405,6 +414,8 @@ def applicants_analytics(request):
 
     # Fetch applications list for table
     applications = Application.objects.filter(applicant=applicant).select_related("job")
+
+    interviews = Interview.objects.filter(candidate__user=request.user)
 
     return render(request, 'applicants_analytics.html', {
         "total_applications": total_applications,

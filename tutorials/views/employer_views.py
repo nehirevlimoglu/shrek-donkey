@@ -571,7 +571,7 @@ def schedule_interview(request, applicant_id):
             interview_link=interview_link,
             notes=notes,
         )
-        interview.save()
+        #interview.save()
 
         # 4 Create an ApplicantNotification for the actual applicant
         #    The Candidate model references user=User. We need to find the `Applicant` object that belongs to that user.
