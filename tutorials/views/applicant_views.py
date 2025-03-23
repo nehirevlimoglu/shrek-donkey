@@ -9,6 +9,7 @@ from tutorials.models.employer_models import Job, EmployerNotification, JobTitle
 from django.contrib.messages import get_messages
 from django.contrib import messages
 from django.http import JsonResponse
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from tutorials.utils import extract_skills_nlp
 from random import randint
@@ -70,6 +71,7 @@ def applicants_home_page(request):
     })
 
 
+
 @applicant_only
 @login_required
 def applicants_edit_profile(request):
@@ -96,12 +98,14 @@ def applicants_edit_profile(request):
         'applicant': applicant,
     })
 
-
 @login_required
 def applicants_applied_jobs(request):
     """ Display jobs that the logged-in applicant has applied to """
+
+    # ✅ Fetch applications for the logged-in user
     applicant = get_object_or_404(Applicant, user=request.user)
     applied_jobs = Application.objects.filter(applicant=applicant).select_related('job')
+
 
     return render(request, 'applicants_applied_jobs.html', {
         'applied_jobs': applied_jobs,
@@ -120,12 +124,12 @@ def applicants_notifications(request):
     notifications = ApplicantNotification.objects.filter(applicant=applicant).order_by('-timestamp')
     return render(request, 'applicants_notifications.html', {'notifications': notifications})
 
-
 @applicant_only
 def applicants_account(request):
     applicant = get_object_or_404(Applicant, user=request.user)
     return render(request, 'applicants_account.html', {
         'applicant': applicant,
+        # you can also pass user if you want {{ user.first_name }} in the template
         'user': request.user,
     })
 
@@ -146,108 +150,75 @@ def job_detail(request, job_id):
         "random": randint(1, 10000)
     })
 
-
-# ------------------------------------------------------------------------------
-# APPLY_FOR_JOB VIEW - MODIFIED TO SAVE EDUCATION DATA INTO Application.education
-# ------------------------------------------------------------------------------
+    
 @login_required
 def apply_for_job(request, job_id):
     """Handles job application submission, preventing duplicate applications"""
     
     print(f"🔍 Request received to apply for job ID: {job_id}")
+    
     job = get_object_or_404(Job, id=job_id)
     print(f"✅ Job found: {job.title}")
 
-    # Get the applicant
+    # Get the applicant or return early with an error message
     applicant = get_object_or_404(Applicant, user=request.user)
     print(f"✅ Applicant found: {applicant.user.username}")
 
-    # Check for an existing application
-    if Application.objects.filter(applicant=applicant, job=job).exists():
+    # Check for existing application
+    existing_application = Application.objects.filter(applicant=applicant, job=job).exists()
+    print(f"🔄 Checking if applicant already applied: {existing_application}")
+
+    if existing_application:
         print("⚠️ Applicant has already applied. Redirecting...")
         messages.error(request, "You have already applied for this job.", extra_tags="application")
         return redirect("job_detail", job_id=job.id)
 
+    print(f"🛠 Request method: {request.method}")
+
     if request.method == "POST":
         print("📥 Form submission detected.")
         form = ApplicationForm(request.POST, request.FILES)
+
         print(f"📌 Form Data Received: {request.POST}")
         print(f"📌 Files Received: {request.FILES}")
 
         if form.is_valid():
             print("✅ Form is valid. Processing application...")
 
-            # Extract skills (existing code)
-            raw_skill_text = form.cleaned_data.get("skills", "").strip()
-            print(f"🧠 Raw Skill Input: '{raw_skill_text}'")
+            raw_skill_text = form.cleaned_data.get("skills", "").strip()  # Ensure it's a string and trimmed
+            print(f"🧠 Raw Skill Input: '{raw_skill_text}'")  
+
+            # Ensure KeyBERT is extracting skills properly
             try:
                 extracted_skills = extract_skills_nlp(raw_skill_text)
-                if not extracted_skills:
+                if not extracted_skills:  # If KeyBERT returns empty, log it
                     print("⚠️ KeyBERT did not extract any skills.")
-                    extracted_skills = raw_skill_text.split(", ")
+                    extracted_skills = raw_skill_text.split(", ")  # Fallback: Use input directly
             except Exception as e:
                 print(f"❌ Error in KeyBERT extraction: {e}")
-                extracted_skills = raw_skill_text.split(", ")
-            print(f"🔍 Extracted Skills: {extracted_skills}")
+                extracted_skills = raw_skill_text.split(", ")  # Fallback in case of an error
 
-            # Create the Application object without saving yet
+            print(f"🔍 Extracted Skills: {extracted_skills}")  
+
+            
+            # Create and save the application
             application = form.save(commit=False)
             application.job = job
             application.applicant = applicant
+            application.save()
+            print("📌 Application saved.")
 
-            # -----------------------------
-            # Parse dynamic education fields
-            # -----------------------------
-            schools = request.POST.getlist('school[]')
-            degrees = request.POST.getlist('degree[]')
-            disciplines = request.POST.getlist('discipline[]')
-            start_dates = request.POST.getlist('start_date[]')
-            end_dates = request.POST.getlist('end_date[]')
+            # Get resume and cover letter files from form
+            resume_file = form.cleaned_data.get("resume")
+            cover_letter_file = form.cleaned_data.get("cover_letter")
 
-            education_data = []
-            for i in range(len(schools)):
-                education_data.append({
-                    "school": schools[i],
-                    "degree": degrees[i],
-                    "discipline": disciplines[i],
-                    "start_date": start_dates[i],
-                    "end_date": end_dates[i]
-                })
-            application.education = education_data
-            application.save()  # Save education data
-            print("📌 Application saved with dynamic education entries.")
-
-            # -----------------------------
-            # Parse dynamic work experience fields
-            # -----------------------------
-            work_job_titles = request.POST.getlist('work_job_title[]')
-            work_employers = request.POST.getlist('work_employer[]')
-            work_start_dates = request.POST.getlist('work_start_date[]')
-            work_end_dates = request.POST.getlist('work_end_date[]')
-            job_descriptions = request.POST.getlist('job_description[]')
-
-            work_experience_data = []
-            for i in range(len(work_job_titles)):
-                work_experience_data.append({
-                    "work_job_title": work_job_titles[i],
-                    "work_employer": work_employers[i],
-                    "work_start_date": work_start_dates[i],
-                    "work_end_date": work_end_dates[i],
-                    "job_description": job_descriptions[i],
-                })
-            application.work_experience = work_experience_data
-            application.save()  # Save work experience data
-            print("📌 Application saved with dynamic work experience entries.")
-
-            # -----------------------------
-            # Update or create candidate record
-            # -----------------------------
+            # Create or update candidate record
             candidate, created = Candidate.objects.get_or_create(
                 user=applicant.user,
                 job=job
             )
-            resume_file = form.cleaned_data.get("resume")
-            cover_letter_file = form.cleaned_data.get("cover_letter")
+
+            # Update candidate fields
             if resume_file:
                 candidate.resume = resume_file
             if cover_letter_file:
@@ -262,6 +233,9 @@ def apply_for_job(request, job_id):
             candidate.discipline = form.cleaned_data.get("discipline")
             candidate.start_date = form.cleaned_data.get("start_date")
             candidate.end_date = form.cleaned_data.get("end_date")
+            print("🎯 Candidate values BEFORE save:")   
+            print(candidate.school, candidate.degree, candidate.start_date, candidate.end_date)
+
             candidate.linkedin_profile = form.cleaned_data.get("linkedin_profile")
             candidate.work_job_title = form.cleaned_data.get("work_job_title")
             candidate.work_employer = form.cleaned_data.get("work_employer")
@@ -272,7 +246,8 @@ def apply_for_job(request, job_id):
             candidate.how_did_you_hear = form.cleaned_data.get("how_did_you_hear")
             candidate.current_job_title = form.cleaned_data.get("current_job_title")
             candidate.current_employer = form.cleaned_data.get("current_employer")
-            candidate.skills = ", ".join(extracted_skills)
+            candidate.skills = ", ".join(extracted_skills)  # ✅ Add this line
+            print("🔍 Extracted Skills Before Saving:", extracted_skills)
             candidate.application_status = "Pending"
             print("\n🧪 DEBUG: DATA MAPPING CHECK")
 
@@ -310,15 +285,14 @@ def apply_for_job(request, job_id):
 
 
             candidate.save()
+
             print(f"👤 Candidate {'created' if created else 'updated'}: {candidate}")
 
-            # -----------------------------
-            # Notifications
-            # -----------------------------
+            # Create notifications
             if job.employer:
                 EmployerNotification.objects.create(
                     employer=job.employer,
-                    title="New Job Application",
+                    title="New Job Application",  
                     message=f"📩 New application received for {job.title} by {applicant.user.first_name} {applicant.user.last_name}!"
                 )
                 print("📢 Employer notification sent.")
@@ -337,10 +311,13 @@ def apply_for_job(request, job_id):
             messages.success(request, "✅ Your application has been submitted successfully!")
             print("🎉 Application process completed. Redirecting...")
             
+            # If the request is AJAX, return JSON so that the JS can hide the apply button.
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({'success': True})
             else:
+                # Force the browser to recognize the change by adding a query parameter
                 return redirect(f"/job/{job.id}/?applied=true")
+
         else:
             print("❌ Form is invalid.")
             print(f"⚠️ Form errors: {form.errors}")
@@ -373,6 +350,7 @@ def apply_for_job(request, job_id):
             'skills': getattr(applicant, 'skills', ''),
         })
     
+
     return render(request, "applicants_application.html", {
         "form": form,
         "job": job,
@@ -386,6 +364,7 @@ def applicants_notifications(request):
     """Display real notifications for the logged-in applicant"""
     applicant = get_object_or_404(Applicant, user=request.user)
     notifications = ApplicantNotification.objects.filter(applicant=applicant).order_by('-timestamp')
+
     return render(request, 'applicants_notifications.html', {'notifications': notifications})
 
 
@@ -407,6 +386,7 @@ def applicants_application(request, job_id):
     if request.method == "POST":
         form = ApplicationForm(request.POST, request.FILES)
         if form.is_valid():
+            # Save form with commit=False so we can attach job and applicant
             application = form.save(commit=False)
             application.job = job
             application.applicant = applicant
@@ -459,19 +439,19 @@ def applicants_application(request, job_id):
             candidate.work_experience = work_experience_data  # ✅ Save work experience to Candidate too
             candidate.save()
 
-            work_experience_data = []
-            for i in range(len(work_job_titles)):
-                work_experience_data.append({
-                    "work_job_title": work_job_titles[i],
-                    "work_employer": work_employers[i],
-                    "work_start_date": work_start_dates[i],
-                    "work_end_date": work_end_dates[i],
-                    "job_description": job_descriptions[i],
-                })
-            application.work_experience = work_experience_data
-            application.save()
+            # Notifications
+            if job.employer:
+                EmployerNotification.objects.create(
+                    employer=job.employer,
+                    title="New Job Application",
+                    message=f"New application for {job.title} by {applicant.user.username}"
+                )
+            ApplicantNotification.objects.create(
+                applicant=applicant,
+                title="Application Submitted",
+                message=f"Your application for '{job.title}' has been submitted successfully!"
+            )
 
-            # (Optional) Create/update Candidate, send notifications, etc.
             messages.success(request, "Your application has been submitted successfully!")
             return redirect('job_detail', job_id=job.id)
         else:
@@ -489,8 +469,11 @@ def applicants_application(request, job_id):
 @login_required
 def applicants_analytics(request):
     """ Fetch and display real applicant analytics data """
+
+    # Get the logged-in applicant
     applicant = request.user.applicant
 
+    # Fetch statistics
     total_applications = Application.objects.filter(applicant=applicant).count()
     candidates = Candidate.objects.filter(user=request.user)
     # Only count interviews if the user actually has applications
@@ -502,21 +485,25 @@ def applicants_analytics(request):
     else:
         interviews_scheduled = 0
     job_offers_received = Application.objects.filter(applicant=applicant, status="hired").count()
-
+    
+    # Calculate acceptance rate
     accepted_offers = Application.objects.filter(applicant=applicant, status="hired", confirm_information=True).count()
     offer_acceptance_rate = (accepted_offers / job_offers_received * 100) if job_offers_received > 0 else 0
 
+    # Applications over time (grouping by month)
     applications_per_month = Application.objects.filter(applicant=applicant).values_list("applied_at", flat=True)
     
-    month_counts = {m: 0 for m in ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]}  # Adjust as needed
+    month_counts = {m: 0 for m in ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]}  # Adjust based on data range
     for date in applications_per_month:
         month_name = date.strftime("%b")
         if month_name in month_counts:
             month_counts[month_name] += 1
 
+    # Offer Acceptance Breakdown
     accepted_count = accepted_offers
     declined_count = job_offers_received - accepted_offers
 
+    # Fetch applications list for table
     applications = Application.objects.filter(applicant=applicant).select_related("job")
 
     interviews = Interview.objects.filter(candidate__user=request.user)
@@ -526,7 +513,7 @@ def applicants_analytics(request):
         "interviews_scheduled": interviews_scheduled,
         "job_offers_received": job_offers_received,
         "offer_acceptance_rate": round(offer_acceptance_rate, 2),
-        "applications": applications,
+        "applications": applications,  # Pass applications for the table
         "applications_over_time": json.dumps(list(month_counts.values())),
         "offer_acceptance_breakdown": json.dumps([accepted_count, declined_count]),
     })

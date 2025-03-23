@@ -100,8 +100,8 @@ class ApplicantForm(forms.ModelForm):
 def validate_pdf(value):
     if not value.name.endswith(".pdf"):
         raise ValidationError("❌ Only PDF files are allowed for resumes!")
-
         
+
 class ApplicationForm(forms.ModelForm):
     # Personal Information
     first_name = forms.CharField(max_length=50, required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
@@ -140,8 +140,9 @@ class ApplicationForm(forms.ModelForm):
         required=False,
         widget=forms.Select(attrs={"class": "form-control"})
     )
-    start_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
-    end_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
+
+    start_date = forms.DateField(required=False, widget=forms.SelectDateWidget(years=range(1980, 2030)))
+    end_date = forms.DateField(required=False, widget=forms.SelectDateWidget(years=range(1980, 2030)))
 
     # 🔥 Work Experience (INDIVIDUAL FIELDS)
     work_job_title = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))

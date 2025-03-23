@@ -154,6 +154,8 @@ class Candidate(models.Model):
 
 
 
+
+
 class Interview(models.Model):
     candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name="interviews")
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="job_interviews")
