@@ -14,9 +14,8 @@
 
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
-        
 
-            <!-- ✅ Personal Details Section -->
+            <!-- Personal Details Section -->
             <h2>Personal Details</h2>
             <div class="form-grid">
                 <div>{{ form.first_name.label_tag }} {{ form.first_name }}</div>
@@ -26,46 +25,61 @@
                 <div class="full-width">{{ form.address.label_tag }} {{ form.address }}</div>
             </div>
 
-            <!-- ✅ Resume & Cover Letter -->
+            <!-- Resume & Cover Letter -->
             <h2>Resume & Cover Letter</h2>
             <div class="form-grid">
                 <div>{{ form.resume.label_tag }} {{ form.resume }}</div>
                 <div>{{ form.cover_letter.label_tag }} {{ form.cover_letter }}</div>
             </div>
 
-            <!-- ✅ Dynamic Education Section -->
+            <!-- Dynamic Education Section -->
             <h2>Education</h2>
             <div id="education-section">
                 <div class="education-entry">
                     <div class="form-grid">
-                        <div><label>School</label><input type="text" name="school" required></div>
-                        <div><label>Degree</label><input type="text" name="degree" required></div>
                         <div>
-                            <label for="discipline">Discipline</label>
-                            <select name="discipline" class="form-control">
-                              <option value="">Select a discipline</option>
-                              <option value="bachelors">Bachelors</option>
-                              <option value="masters">Masters</option>
-                              <option value="phd">PhD</option>
-                              <option value="diploma">Diploma</option>
-                              <option value="associate">Associate Degree</option>
-                              <option value="certificate">Certificate</option>
+                            <label>School</label>
+                            <input type="text" name="school[]" required>
+                        </div>
+                        <div>
+                            <label>Degree</label>
+                            <input type="text" name="degree[]" required>
+                        </div>
+                        <div>
+                            <label>Discipline</label>
+                            <select name="discipline[]" class="form-control">
+                                <option value="">Select a discipline</option>
+                                <option value="bachelors">Bachelors</option>
+                                <option value="masters">Masters</option>
+                                <option value="phd">PhD</option>
+                                <option value="diploma">Diploma</option>
+                                <option value="associate">Associate Degree</option>
+                                <option value="certificate">Certificate</option>
                             </select>
-                          </div>
-                          
-                        <div><label>Start Date</label><input type="date" name="start_date" required></div>
-                        <div><label>End Date</label><input type="date" name="end_date"></div>
-                        
+                        </div>
+                        <div>
+                            <label>Start Date</label>
+                            <input type="date" name="start_date[]" required>
+                        </div>
+                        <div>
+                            <label>End Date</label>
+                            <input type="date" name="end_date[]">
+                        </div>
                     </div>
                 </div>
             </div>
             <button type="button" id="add-education-btn" class="btn-secondary">+ Add another education</button>
 
-            <!-- ✅ Current Job Section (Restored) -->
+            <!-- Current Job Section -->
             <h2>Current Job</h2>
             <div class="form-grid">
                 <div>{{ form.current_job_title.label_tag }} {{ form.current_job_title }}</div>
                 <div>{{ form.current_employer.label_tag }} {{ form.current_employer }}</div>
+            </div>
+
+            <!-- LinkedIn & Portfolio Section -->
+            <h2>LinkedIn & Portfolio</h2>
+            <div class="form-grid">
                 <div>{{ form.linkedin_profile.label_tag }} {{ form.linkedin_profile }}</div>
                 <div>{{ form.portfolio_website.label_tag }} {{ form.portfolio_website }}</div>
             </div>
@@ -109,16 +123,16 @@
             <h2>Skills</h2>
             <div class="form-grid">
                 <div>{{ form.skills.label_tag }} {{ form.skills }}</div>
-            </div>    
+            </div>
 
-            <!-- ✅ Additional Questions Section -->
+            <!-- Additional Questions Section -->
             <h2>Additional Questions</h2>
             <div class="form-grid">
                 <div>{{ form.how_did_you_hear.label_tag }} {{ form.how_did_you_hear }}</div>
                 <div>{{ form.sponsorship_needed.label_tag }} {{ form.sponsorship_needed }}</div>
             </div>
 
-            <!-- ✅ Confirmation Section (Restored) -->
+            <!-- Confirmation Section -->
             <h2>Confirm Application</h2>
             <div class="confirm-section">
                 {{ form.confirm_information.label_tag }} {{ form.confirm_information }}
@@ -130,9 +144,10 @@
         <a href="{% url 'job_detail' job.id %}" class="btn-secondary">Back to Job Details</a>
     </div>
 
-    <!-- ✅ JavaScript to Add Dynamic Education Fields -->
+    <!-- JavaScript to Add Dynamic Education and Work Experience Fields -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Education dynamic addition
             document.getElementById("add-education-btn").addEventListener("click", function() {
                 let educationSection = document.getElementById("education-section");
                 let newEducationEntry = document.createElement("div");
@@ -149,9 +164,33 @@
                 `;
                 educationSection.appendChild(newEducationEntry);
 
-                // Remove button event
                 newEducationEntry.querySelector(".remove-education-btn").addEventListener("click", function() {
                     newEducationEntry.remove();
+                });
+            });
+
+            // Work Experience dynamic addition
+            document.getElementById("add-work-experience-btn").addEventListener("click", function() {
+                let workSection = document.getElementById("work-experience-section");
+                let newWorkEntry = document.createElement("div");
+                newWorkEntry.classList.add("work-experience-entry");
+                newWorkEntry.innerHTML = `
+                    <div class="form-grid">
+                        <div><label>Job Title</label><input type="text" name="work_job_title[]" required></div>
+                        <div><label>Employer</label><input type="text" name="work_employer[]" required></div>
+                        <div><label>Start Date</label><input type="date" name="work_start_date[]" required></div>
+                        <div><label>End Date</label><input type="date" name="work_end_date[]"></div>
+                        <div class="full-width">
+                            <label>Description</label>
+                            <textarea name="job_description[]" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <button type="button" class="remove-work-experience-btn">Remove</button>
+                `;
+                workSection.appendChild(newWorkEntry);
+
+                newWorkEntry.querySelector(".remove-work-experience-btn").addEventListener("click", function() {
+                    newWorkEntry.remove();
                 });
             });
         });
