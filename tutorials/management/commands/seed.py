@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
-from tutorials.models.employer_models import Employer, Job, Candidate, Interview
+from tutorials.models.employer_models import Employer, Job, Candidate, Interview, JobTitle
 from datetime import date, time, timedelta
 from tutorials.models.user_model import User
 from tutorials.models.employer_models import Employer
@@ -148,15 +148,17 @@ class Command(BaseCommand):
             print(f"Created Employer profile for {user.username}")
             
     def create_applicant_profile(self, user):
-        # Check if an Applicant record already exists for this user
         if not Applicant.objects.filter(user=user).exists():
-            Applicant.objects.create(
+            applicant = Applicant.objects.create(
                 user=user,
                 degree="Computer Science",
                 salary_preferences="$50,000-$70,000",
-                job_preferences="Software Development",
                 location_preferences="Remote"
             )
+            # ✅ Only set ManyToMany after creation
+            # You can look up JobTitle objects and set them here
+            job_titles = JobTitle.objects.filter(title__icontains="Software")[:3]
+            applicant.job_preferences.set(job_titles)
             print(f"Created Applicant profile for {user.username}")
 
     # ---------------------------
