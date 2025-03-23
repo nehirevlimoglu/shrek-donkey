@@ -42,7 +42,8 @@ class EmployerProfileSetupViewTests(TestCase):
 
     def test_post_valid_form_creates_employer(self):
         """Submitting valid form data creates a new Employer profile."""
-        self.client.login(username='@employeruser', password='testpass')
+        # Use the correct username.
+        self.client.login(username='employeruser', password='testpass')
 
         valid_form_data = {
             'company_name': 'TestCorp',
@@ -60,17 +61,18 @@ class EmployerProfileSetupViewTests(TestCase):
 
     def test_post_valid_form_updates_existing_employer(self):
         """Submitting valid data updates existing Employer profile."""
-
-        # ✅ Login before performing the POST request
-        self.client.login(username='@employeruser', password='testpass')
+        # Use the correct username.
+        self.client.login(username='employeruser', password='testpass')
 
         existing_employer = Employer.objects.create(
             user=self.user,
+            username=self.user.username,  # Set the username to match the logged-in user.
             company_name='Old Company',
             company_website='https://oldwebsite.com',
             industry='Tech',
             company_location='Old City'
         )
+
 
         update_form_data = {
             'company_name': 'Updated Company',
@@ -81,20 +83,17 @@ class EmployerProfileSetupViewTests(TestCase):
 
         response = self.client.post(self.profile_url, update_form_data)
 
-        # ✅ Check redirection to the employer home page
+        # Check redirection to the employer home page.
         self.assertRedirects(response, reverse('employer_home_page'))
 
-        # ✅ Verify the employer object was updated
+        # Verify the employer object was updated.
         existing_employer.refresh_from_db()
         self.assertEqual(existing_employer.company_name, 'Updated Company')
         self.assertEqual(existing_employer.company_website, 'https://updatedwebsite.com')
         self.assertEqual(existing_employer.industry, 'Finance')
         self.assertEqual(existing_employer.company_location, 'New City')
 
-
-
     def test_redirect_if_not_logged_in(self):
         """Ensure user is redirected to login if not authenticated."""
         response = self.client.get(self.profile_url)
-
         self.assertRedirects(response, f'/log_in/?next={self.profile_url}')

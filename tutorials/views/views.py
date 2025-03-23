@@ -96,7 +96,6 @@ def applicant_profile_setup(request):
     return render(request, 'applicant_profile_setup.html', {'form': form})
 
 
-
 @login_required
 def employer_profile_setup(request):
     print("📥 [DEBUG] employer_profile_setup view hit.")
@@ -120,6 +119,8 @@ def employer_profile_setup(request):
 
             employer = form.save(commit=False)
             employer.user = request.user
+            # Ensure the Employer's username matches the logged-in user's username.
+            employer.username = request.user.username
             employer.save()
 
             print("📦 Employer saved. Redirecting to employer_home_page.")
@@ -129,10 +130,10 @@ def employer_profile_setup(request):
             print("🚨 Form errors:", form.errors)
     else:
         print("📄 GET request — rendering profile setup form.")
-
         form = EmployerProfileForm(instance=employer)
 
     return render(request, 'employer_profile_setup.html', {'form': form})
+
 
 
 
