@@ -70,6 +70,42 @@
                 <div>{{ form.portfolio_website.label_tag }} {{ form.portfolio_website }}</div>
             </div>
 
+            <!-- Dynamic Work Experience Section -->
+            <h2>Previous Work Experience</h2>
+            <div id="work-experience-section">
+                <div class="work-experience-entry">
+                    <div class="form-grid">
+                        <div>
+                            <label>Job Title</label>
+                            <input type="text" name="work_job_title" required>
+
+                        </div>
+                        <div>
+                            <label>Employer</label>
+                            <input type="text" name="work_employer" required>
+                        </div>
+                        <div>
+                            <label>Start Date</label>
+                            <input type="date" name="work_start_date" required>
+                        </div>
+                        <div>
+                            <label>End Date</label>
+                            <input type="date" name="work_end_date">
+                        </div>
+                        <div class="full-width">
+                            <label>Description</label>
+                            <textarea name="job_description" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="add-work-experience-btn" class="btn-secondary">+ Add another work experience</button>
+
+            <!-- ✅ Hidden input for JSONField -->
+            <input type="hidden" name="work_experience" id="work_experience">
+
+                
+
             <h2>Skills</h2>
             <div class="form-grid">
                 <div>{{ form.skills.label_tag }} {{ form.skills }}</div>

@@ -101,6 +101,7 @@ def validate_pdf(value):
     if not value.name.endswith(".pdf"):
         raise ValidationError("❌ Only PDF files are allowed for resumes!")
 
+        
 class ApplicationForm(forms.ModelForm):
     # Personal Information
     first_name = forms.CharField(max_length=50, required=True, widget=forms.TextInput(attrs={"class": "form-control"}))
@@ -113,27 +114,27 @@ class ApplicationForm(forms.ModelForm):
     resume = forms.FileField(
         required=True, 
         widget=forms.FileInput(attrs={"class": "form-control"}), 
-        validators=[validate_pdf]  # Enforce PDF validation
+        validators=[validate_pdf]
     )
     
     cover_letter = forms.FileField(
         required=False, 
         widget=forms.FileInput(attrs={"class": "form-control"}), 
-        validators=[validate_pdf]  
+        validators=[validate_pdf]
     )
 
-    DISCIPLINE_CHOICES = [
-    ('bachelors', 'Bachelors'),
-    ('masters', 'Masters'),
-    ('phd', 'PhD'),
-    ('diploma', 'Diploma'),
-    ('associate', 'Associate Degree'),
-    ('certificate', 'Certificate'),
-]
-
-    # ✅ Make Education Fields Optional (Fix for blocking issue)
+    # Education
     school = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     degree = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    
+    DISCIPLINE_CHOICES = [
+        ('bachelors', 'Bachelors'),
+        ('masters', 'Masters'),
+        ('phd', 'PhD'),
+        ('diploma', 'Diploma'),
+        ('associate', 'Associate Degree'),
+        ('certificate', 'Certificate'),
+    ]
     discipline = forms.ChoiceField(
         choices=DISCIPLINE_CHOICES,
         required=False,
@@ -142,12 +143,23 @@ class ApplicationForm(forms.ModelForm):
     start_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
     end_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
 
-    # ✅ Keep Other Fields the Same
+    # 🔥 Work Experience (INDIVIDUAL FIELDS)
+    work_job_title = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    work_employer = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    work_start_date = forms.DateField(required=False, widget=forms.SelectDateWidget(years=range(1980, 2030)))
+    work_end_date = forms.DateField(required=False, widget=forms.SelectDateWidget(years=range(1980, 2030)))
+    job_description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 4})
+    )
+
+    # Current Job
     current_job_title = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     current_employer = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     linkedin_profile = forms.URLField(required=False, widget=forms.URLInput(attrs={"class": "form-control"}))
     portfolio_website = forms.URLField(required=False, widget=forms.URLInput(attrs={"class": "form-control"}))
 
+    # Skills and Extra
     skills = forms.CharField(
         max_length=500, 
         required=False, 
@@ -162,17 +174,25 @@ class ApplicationForm(forms.ModelForm):
         required=True, widget=forms.Select(attrs={"class": "form-control"})
     )
 
-    sponsorship_needed = forms.ChoiceField(choices=[("yes", "Yes"), ("no", "No")], required=True, widget=forms.Select(attrs={"class": "form-control"}))
+    sponsorship_needed = forms.ChoiceField(
+        choices=[("yes", "Yes"), ("no", "No")], 
+        required=True, 
+        widget=forms.Select(attrs={"class": "form-control"})
+    )
 
-    confirm_information = forms.BooleanField(required=True, label="I confirm all information is accurate.", widget=forms.CheckboxInput())
+    confirm_information = forms.BooleanField(
+        required=True, 
+        label="I confirm all information is accurate.", 
+        widget=forms.CheckboxInput()
+    )
 
     class Meta:
         model = Application
         fields = [
             "first_name", "last_name", "email", "phone", "address", "resume", "cover_letter",
             "skills",
-            "school", "degree", "discipline", "start_date", "end_date",  # ✅ Education is now optional
+            "school", "degree", "discipline", "start_date", "end_date",
+            "work_job_title", "work_employer", "work_start_date", "work_end_date", "job_description",  # ✅ Added fields
             "current_job_title", "current_employer", "linkedin_profile", "portfolio_website",
             "how_did_you_hear", "sponsorship_needed", "confirm_information",
         ]
-        

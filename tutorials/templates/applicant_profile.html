@@ -75,6 +75,26 @@
             </p>
         </section>
 
+        <section class="section"></section>
+            <h2>Previous Work Experience</h2>
+            {% if applicant.work_job_title or applicant.work_employer or applicant.work_start_date or applicant.job_description %}
+                <div class="work-entry" style="margin-bottom: 1rem;">
+                    <p><strong>Job Title:</strong> {{ applicant.work_job_title|default:"Not Provided" }}</p>
+                    <p><strong>Employer:</strong> {{ applicant.work_employer|default:"Not Provided" }}</p>
+                    <p><strong>Duration:</strong> 
+                        {{ applicant.work_start_date|date:"M. d, Y"|default:"N/A" }} -
+                        {{ applicant.work_end_date|date:"M. d, Y"|default:"Present" }}
+                    </p>
+                    <p><strong>Description:</strong> {{ applicant.job_description|default:"No description provided." }}</p>
+                </div>
+            {% else %}
+                <p>No work experience details provided.</p>
+            {% endif %}
+            </section>        
+
+
+
+
         <!-- ✅ Additional Questions -->
         <section class="section">
             <h2>Additional Questions</h2>
