@@ -7,79 +7,66 @@
 
 <link rel="stylesheet" type="text/css" href="{% static 'css/applicants_favourites.css' %}">
 
-    <div class="dashboard-container">
-        <aside class="sidebar">
-            <h2>Swamp Hiring</h2>
-            <nav>
-                <ul>
-                    <li><a href="{% url 'applicants-home-page' %}">Home Page</a></li>
-                    <li><a href="{% url 'applicants-account' %}">Account</a></li>
-                    <li><a href="{% url 'applicants-favourites' %}">Favourites</a></li>
-                    <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
-                    <li><a href="{% url 'applicants-notifications' %}">Notifications</a></li>
-                    <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
-                </ul>
-            </nav>
-        </aside>
-        
-        <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
-            <h1 class="page-header">Favourite Jobs</h1>
-            <div class="job-listings-container" style="width: 100%;">
-                <table class="job-table" style="width: 100%; text-align: center;">
-                    <thead>
-                        <tr>
-                            <th>Job Title</th>
-                            <th>Company</th>
-                            <th>Location</th>
-                            <th>Salary</th>
-                            <th>Type</th>
-                            <th>Favourite</th>
-                        </tr>
-                    </thead>
-                    <tbody class="job-listings">
-                        <!-- Favorite jobs will be dynamically loaded here -->
-                    </tbody>
-                </table>
-            </div>
-        </main>
-    </div>
+<!-- Pass CSRF token and toggle URL to JavaScript -->
+<meta name="csrf-token" content="{{ csrf_token }}">
+<script>
+    var toggleFavoriteUrl = "{% url 'toggle_favorite' %}";
+</script>
+
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <h2>Swamp Hiring</h2>
+        <nav>
+            <ul>
+                <li><a href="{% url 'applicants-home-page' %}">Home Page</a></li>
+                <li><a href="{% url 'applicants-account' %}">Account</a></li>
+                <li><a href="{% url 'applicants-favourites' %}">Favourites</a></li>
+                <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
+                <li><a href="{% url 'applicants-notifications' %}">Notifications</a></li>
+                <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
+            </ul>
+        </nav>
+    </aside>
     
-    <script>
-        function toggleFavorite(starElement) {
-            if (starElement.classList.contains("active")) {
-                starElement.classList.remove("active");
-                starElement.innerHTML = "&#9734;"; // Empty star (☆)
-            } else {
-                starElement.classList.add("active");
-                starElement.innerHTML = "&#9733;"; // Filled star (★)
-            }
-        }
+    <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
+        <h1 class="page-header">Favourite Jobs</h1>
+        <div class="job-listings-container" style="width: 100%;">
+            <table class="job-table" style="width: 100%; text-align: center;">
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Location</th>
+                        <th>Salary</th>
+                        <th>Type</th>
+                        <th>Favourite</th>
+                    </tr>
+                </thead>
+                <tbody class="job-listings">
+                    {% for job in favorite_jobs %}
+                    <tr>
+                        <td>{{ job.title }}</td>
+                        <td>{{ job.company_name }}</td>
+                        <td>{{ job.location }}</td>
+                        <td>{{ job.salary }}</td>
+                        <td>{{ job.job_type }}</td>
+                        <td>
+                            <span class="favorite-star active" data-job-id="{{ job.id }}">
+                                &#9733;
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">You have no favorite jobs yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </main>
+</div>
 
-        function loadFavoriteJobs() {
-            const favoriteJobs = [
-                { title: "Software Engineer", company: "TechCorp", location: "San Francisco, CA", salary: "$120,000/year", job_type: "Full-Time" },
-                { title: "Marketing Manager", company: "MarketPros", location: "New York, NY", salary: "$90,000/year", job_type: "Part-Time" }
-            ];
-
-            const jobListings = document.querySelector(".job-listings");
-            jobListings.innerHTML = "";
-
-            favoriteJobs.forEach(job => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${job.title}</td>
-                    <td>${job.company}</td>
-                    <td>${job.location}</td>
-                    <td>${job.salary}</td>
-                    <td>${job.job_type}</td>
-                    <td>
-                        <span class="favorite-star active" onclick="toggleFavorite(this)">&#9733;</span>
-                    </td>
-                `;
-                jobListings.appendChild(row);
-            });
-        }
-
-        window.onload = loadFavoriteJobs;
-    </script>
+<!-- Load the separated toggle_favorite.js file -->
+<script src="{% static 'js/applicants_favorites.js' %}" defer></script>
 {% endblock %}
