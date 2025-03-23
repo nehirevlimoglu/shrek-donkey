@@ -266,10 +266,13 @@ def admin_notifications(request):
     search_query = request.GET.get('search', '')
     page = request.GET.get('page', 1)
     
-    # Base queryset
-    notifications = Notification.objects.filter(is_deleted=False)
+    # Base queryset: filter by recipient = current admin user
+    notifications = Notification.objects.filter(
+        recipient=request.user,      # <--- filter by the logged-in admin
+        is_deleted=False
+    )
     
-    # Apply filters
+    # Apply filters as before
     if notification_type != 'all':
         notifications = notifications.filter(notification_type=notification_type)
     
@@ -287,12 +290,12 @@ def admin_notifications(request):
             Q(message__icontains=search_query)
         )
     
-    # Count totals for statistics
+    # Count totals for statistics (only among this admin’s notifications)
     total_count = notifications.count()
     unread_count = notifications.filter(is_read=False).count()
     feedback_count = notifications.filter(notification_type='feedback').count()
     
-    # Get counts by type and priority for filter display
+    # Count by type and priority
     type_counts = {
         'general': notifications.filter(notification_type='general').count(),
         'job': notifications.filter(notification_type='job').count(),
@@ -308,8 +311,8 @@ def admin_notifications(request):
         'low': notifications.filter(priority='low').count(),
     }
     
-    # Paginate notifications
-    paginator = Paginator(notifications, 10)  # Show 10 notifications per page
+    # Paginate
+    paginator = Paginator(notifications, 10)
     try:
         notifications = paginator.page(page)
     except PageNotAnInteger:
@@ -334,10 +337,14 @@ def admin_notifications(request):
 
 @user_passes_test(is_admin)
 def admin_notifications_count(request):
-    """Return the count of all unread notifications for admin dashboard"""
-    # Count all unread and not deleted notifications, not just the current user's
-    unread_count = Notification.objects.filter(is_read=False, is_deleted=False).count()
+    # Count only unread notifications for this specific Admin
+    unread_count = Notification.objects.filter(
+        recipient=request.user,
+        is_read=False,
+        is_deleted=False
+    ).count()
     return JsonResponse({'count': unread_count})
+
 
 @user_passes_test(is_admin)
 @require_POST

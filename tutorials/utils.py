@@ -26,6 +26,9 @@ SOFT_SKILL_PENALTY_FACTOR = 0.85    # Reduce score by 15% if soft-skills-heavy
 def extract_skills_nlp(text, top_n=20):
     if not text:
         return []
+    # Ensure text is a string
+    if not isinstance(text, str):
+        text = str(text)
 
     keybert_phrases = kw_model.extract_keywords(
         text,
@@ -39,6 +42,7 @@ def extract_skills_nlp(text, top_n=20):
 
     combined = list(set(keybert_results + words))
     return combined
+
 def match_candidates_to_job(job_title, top_n=5):
     """Finds the best candidates for a given job based on semantic skill similarity, 
        work experience, discipline matching, and a minimum match threshold.
@@ -67,7 +71,13 @@ def match_candidates_to_job(job_title, top_n=5):
         print(f"📌 Raw skills field: {repr(candidate.skills)}")
         
         raw_skills = candidate.skills
-        if not raw_skills or raw_skills.strip() == "":
+        if raw_skills is None:
+            print(f"⚠️ No skills found for {candidate.user.username}, skipping.")
+            continue
+        # Ensure raw_skills is a string
+        if not isinstance(raw_skills, str):
+            raw_skills = str(raw_skills)
+        if raw_skills.strip() == "":
             print(f"⚠️ No skills found for {candidate.user.username}, skipping.")
             continue
         

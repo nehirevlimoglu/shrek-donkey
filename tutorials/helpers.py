@@ -33,3 +33,42 @@ def clear_feedback_messages(request):
 
 
 
+def create_admin_notification(
+    user,
+    title,
+    message,
+    notification_type='general',
+    priority='medium',
+    related_object_id=None,
+    related_object_type=None,
+    action_url=None
+):
+    """
+    Enhanced utility function to create notifications for admin users
+    but prevents creating duplicates with the same fields.
+    """
+    if user.role == 'Admin':
+        # Check if an identical (non-deleted) notification already exists
+        existing = Notification.objects.filter(
+            recipient=user,
+            title=title,
+            message=message,
+            notification_type=notification_type,
+            priority=priority,
+            related_object_id=related_object_id,
+            related_object_type=related_object_type,
+            action_url=action_url,
+            is_deleted=False
+        )
+        if not existing.exists():
+            Notification.objects.create(
+                recipient=user,
+                title=title,
+                message=message,
+                notification_type=notification_type,
+                priority=priority,
+                related_object_id=related_object_id,
+                related_object_type=related_object_type,
+                action_url=action_url,
+                is_read=False
+            )
