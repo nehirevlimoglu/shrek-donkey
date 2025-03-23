@@ -39,15 +39,15 @@
                     <div class="form-grid">
                         <div>
                             <label>School</label>
-                            <input type="text" name="school" required>
+                            <input type="text" name="school[]" required>
                         </div>
                         <div>
                             <label>Degree</label>
-                            <input type="text" name="degree" required>
+                            <input type="text" name="degree[]" required>
                         </div>
                         <div>
                             <label>Discipline</label>
-                            <select name="discipline" class="form-control">
+                            <select name="discipline[]" class="form-control">
                                 <option value="">Select a discipline</option>
                                 <option value="bachelors">Bachelors</option>
                                 <option value="masters">Masters</option>
@@ -59,11 +59,11 @@
                         </div>
                         <div>
                             <label>Start Date</label>
-                            <input type="date" name="start_date" required>
+                            <input type="date" name="start_date[]" required>
                         </div>
                         <div>
                             <label>End Date</label>
-                            <input type="date" name="end_date">
+                            <input type="date" name="end_date[]">
                         </div>
                     </div>
                 </div>
@@ -91,35 +91,30 @@
                     <div class="form-grid">
                         <div>
                             <label>Job Title</label>
-                            <input type="text" name="work_job_title" required>
-
+                            <input type="text" name="work_job_title[]" required>
                         </div>
                         <div>
                             <label>Employer</label>
-                            <input type="text" name="work_employer" required>
+                            <input type="text" name="work_employer[]" required>
                         </div>
                         <div>
                             <label>Start Date</label>
-                            <input type="date" name="work_start_date" required>
+                            <input type="date" name="work_start_date[]" required>
                         </div>
                         <div>
                             <label>End Date</label>
-                            <input type="date" name="work_end_date">
+                            <input type="date" name="work_end_date[]">
                         </div>
                         <div class="full-width">
                             <label>Description</label>
-                            <textarea name="job_description" rows="3"></textarea>
+                            <textarea name="job_description[]" rows="3"></textarea>
                         </div>
                     </div>
                 </div>
             </div>
             <button type="button" id="add-work-experience-btn" class="btn-secondary">+ Add another work experience</button>
 
-            <!-- ✅ Hidden input for JSONField -->
-            <input type="hidden" name="work_experience" id="work_experience">
-
-                
-
+            <!-- Skills Section -->
             <h2>Skills</h2>
             <div class="form-grid">
                 <div>{{ form.skills.label_tag }} {{ form.skills }}</div>
@@ -154,11 +149,11 @@
                 newEducationEntry.classList.add("education-entry");
                 newEducationEntry.innerHTML = `
                     <div class="form-grid">
-                        <div><label>School</label><input type="text" name="school" required></div>
-                        <div><label>Degree</label><input type="text" name="degree" required></div>
-                        <div><label>Discipline</label><input type="text" name="discipline" required></div>
-                        <div><label>Start Date</label><input type="date" name="start_date" required></div>
-                        <div><label>End Date</label><input type="date" name="end_date"></div>
+                        <div><label>School</label><input type="text" name="school[]" required></div>
+                        <div><label>Degree</label><input type="text" name="degree[]" required></div>
+                        <div><label>Discipline</label><input type="text" name="discipline[]" required></div>
+                        <div><label>Start Date</label><input type="date" name="start_date[]" required></div>
+                        <div><label>End Date</label><input type="date" name="end_date[]"></div>
                     </div>
                     <button type="button" class="remove-education-btn">Remove</button>
                 `;

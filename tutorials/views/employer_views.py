@@ -26,6 +26,8 @@ from tutorials.helpers import clear_feedback_messages
 
 
 
+from datetime import datetime, date
+
 logger = logging.getLogger(__name__)
 
 def is_employer(user):
@@ -516,10 +518,41 @@ def mark_notification_as_read(request, notification_id):
         return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
     
 
+def calculate_duration(start_date, end_date):
+    """
+    Calculate the duration between start_date and end_date.
+    If end_date is missing or 'Present', use today's date.
+    Returns a string like "X years, Y months, Z days".
+    """
+    if not start_date:
+        return ""
+    
+    # Convert start_date to a date object if necessary.
+    if isinstance(start_date, str):
+        try:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        except ValueError:
+            return ""
+    
+    # Process end_date: if empty or "Present", use today's date.
+    if not end_date or end_date == "Present":
+        end_date = date.today()
+    elif isinstance(end_date, str):
+        try:
+            end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+        except ValueError:
+            end_date = date.today()
+    
+    delta = end_date - start_date
+    total_days = delta.days
+    years = total_days // 365
+    months = (total_days % 365) // 30
+    days = (total_days % 365) % 30
+    return f"{years} years, {months} months, {days} days"
+
 @login_required
 def applicant_profile(request, applicant_id):
     """View full applicant details for an employer."""
-    
     try:
         # Get the candidate instance (used in employer views)
         candidate = Candidate.objects.get(id=applicant_id)
@@ -536,8 +569,14 @@ def applicant_profile(request, applicant_id):
         # Retrieve the Application instance for this applicant and job
         application = Application.objects.get(applicant=applicant_obj, job=candidate.job)
     except Application.DoesNotExist:
-        application = None  # Handle as needed (e.g., show a message in the template)
+        application = None  # Handle as needed
     
+    # Add duration info to each work experience entry if available.
+    if application and application.work_experience:
+        for work in application.work_experience:
+            work['duration'] = calculate_duration(work.get('work_start_date'), work.get('work_end_date'))
+    
+    # Handle status update submissions.
     if request.method == "POST":
         new_status = request.POST.get("status")
         if new_status in ["Pending", "Interview", "Hired", "Rejected"]:
@@ -550,15 +589,7 @@ def applicant_profile(request, applicant_id):
         "candidate": candidate,
         "application": application
     })
-    return redirect("applicant_profile", applicant_id=applicant.id)
 
-    # ✅ Pass job title to template
-    job_listing = applicant.job
-
-    return render(request, "applicant_profile.html", {
-        "applicant": applicant,
-        "job_listing": job_listing
-    })
 
 
 @login_required
