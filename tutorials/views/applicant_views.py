@@ -109,9 +109,11 @@ def applicants_applied_jobs(request):
     })
 
 
-@applicant_only
+@login_required
 def applicants_favourites(request):
-    return render(request, 'applicants_favourites.html')
+    applicant = get_object_or_404(Applicant, user=request.user)
+    favorite_jobs = applicant.favorites.all()
+    return render(request, 'applicants_favourites.html', { 'favorite_jobs': favorite_jobs })
 
 
 @applicant_only
@@ -522,3 +524,25 @@ def applicants_analytics(request):
         "offer_acceptance_breakdown": json.dumps([accepted_count, declined_count]),
     })
 
+
+@login_required
+@csrf_exempt  # Ensure CSRF is handled appropriately (alternatively, include CSRF token in your JS)
+def toggle_favorite(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        job_id = data.get("job_id")
+        try:
+            job = Job.objects.get(id=job_id)
+        except Job.DoesNotExist:
+            return JsonResponse({"error": "Job not found."}, status=404)
+        
+        applicant = request.user.applicant
+        if job in applicant.favorites.all():
+            applicant.favorites.remove(job)
+            favorited = False
+        else:
+            applicant.favorites.add(job)
+            favorited = True
+        
+        return JsonResponse({"favorited": favorited})
+    return JsonResponse({"error": "Invalid request method."}, status=400)

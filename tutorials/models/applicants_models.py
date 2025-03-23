@@ -12,6 +12,9 @@ class Applicant(models.Model):
     job_preferences = models.ManyToManyField(JobTitle, blank=True)
     location_preferences = models.CharField(max_length=150, blank=True)
 
+    # Add the favorites field:
+    favorites = models.ManyToManyField(Job, related_name='favorited_by', blank=True)
+
     def __str__(self):
         return f"{self.user.username} - {self.degree if self.degree else 'No Degree'}"
 
