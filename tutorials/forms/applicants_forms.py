@@ -40,7 +40,8 @@ class ApplicantForm(forms.ModelForm):
             # Check file type
             if hasattr(cv, 'content_type') and cv.content_type not in self.ALLOWED_FILE_TYPES:
                 raise forms.ValidationError('Only PDF and Word documents are allowed')
-        return cv
+            return cv  # Add this line to return the validated file
+        return cv  # Also return if no file was uploaded
 
     class Meta:
         model = Applicant
@@ -132,11 +133,40 @@ class ApplicationForm(forms.ModelForm):
 
     confirm_information = forms.BooleanField(required=True, label="I confirm all information is accurate.", widget=forms.CheckboxInput())
 
+    MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+    ALLOWED_FILE_TYPES = ['application/pdf', 'application/msword', 
+                         'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+
     class Meta:
         model = Application
         fields = [
-            "first_name", "last_name", "email", "phone", "address", "resume", "cover_letter",
-            "school", "degree", "discipline", "start_date", "end_date",  # ✅ Education is now optional
-            "current_job_title", "current_employer", "linkedin_profile", "portfolio_website",
-            "how_did_you_hear", "sponsorship_needed", "confirm_information",
+            'first_name', 'last_name', 'email', 'phone', 'address',
+            'resume', 'cover_letter', 'school', 'degree', 'discipline',
+            'start_date', 'end_date', 'current_job_title', 'current_employer',
+            'linkedin_profile', 'portfolio_website', 'how_did_you_hear',
+            'sponsorship_needed', 'confirm_information'
         ]
+
+    def clean_resume(self):
+        resume = self.cleaned_data.get('resume')
+        if resume:
+            # Check file size
+            if resume.size > self.MAX_FILE_SIZE:
+                raise forms.ValidationError('Resume file size must be under 5MB')
+            
+            # Check file type
+            if hasattr(resume, 'content_type') and resume.content_type not in self.ALLOWED_FILE_TYPES:
+                raise forms.ValidationError('Resume must be a PDF or Word document')
+        return resume
+
+    def clean_cover_letter(self):
+        cover_letter = self.cleaned_data.get('cover_letter')
+        if cover_letter:
+            # Check file size
+            if cover_letter.size > self.MAX_FILE_SIZE:
+                raise forms.ValidationError('Cover letter file size must be under 5MB')
+            
+            # Check file type
+            if hasattr(cover_letter, 'content_type') and cover_letter.content_type not in self.ALLOWED_FILE_TYPES:
+                raise forms.ValidationError('Cover letter must be a PDF or Word document')
+        return cover_letter

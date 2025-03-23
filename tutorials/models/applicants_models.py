@@ -10,7 +10,7 @@ class Applicant(models.Model):
     degree = models.CharField(max_length=255, blank=True, null=True)
     cv = models.FileField(upload_to="uploads/cv/", blank=True, null=True)
     salary_preferences = models.CharField(max_length=100, blank=True)
-    job_preferences = models.TextField(max_length=100, blank=True)  
+    job_preferences = models.ManyToManyField(JobTitle, blank=True)
     location_preferences = models.CharField(max_length=150, blank=True)
 
     def __str__(self):
