@@ -45,11 +45,12 @@ def match_candidates_to_job(job_title, top_n=5):
     """Finds the best candidates for a given job based on semantic skill similarity."""
 
     job = Job.objects.filter(title__iexact=job_title).first()
+    if not job:
+        return f"❌ No job found with the title '{job_title}'."
+
     print("🧠 DEBUG - Job Requirements Text:", job.requirements)
     print("🧠 DEBUG - Extracted Job Skills:", job.get_extracted_skills())
 
-    if not job:
-        return f"❌ No job found with the title '{job_title}'."
 
     job_skills = job.get_extracted_skills()
     if not job_skills:

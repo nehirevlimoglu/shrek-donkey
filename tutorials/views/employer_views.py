@@ -22,7 +22,6 @@ from django.db.models import Count, Q
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from tutorials.helpers import clear_feedback_messages
 
 
 

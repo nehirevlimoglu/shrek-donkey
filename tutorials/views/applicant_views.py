@@ -4,7 +4,7 @@ from django.contrib import messages  # Import the messages module
 from tutorials.models.applicants_models import Applicant, Application, ApplicantNotification
 from tutorials.forms.applicants_forms import ApplicantForm, ApplicationForm
 from django.contrib.auth.decorators import login_required
-from decorators import applicant_only  # Import the decorator
+from tutorials.decorators import applicant_only  # Import the decorator
 from tutorials.models.employer_models import Job, EmployerNotification, JobTitle, Candidate
 from django.contrib.messages import get_messages
 from django.contrib import messages

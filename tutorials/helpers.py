@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.contrib.messages import get_messages
 
+
 def login_prohibited(view_function):
     """Decorator for view functions that redirect users based on their role if they are logged in."""
 
@@ -20,16 +21,4 @@ def login_prohibited(view_function):
         return view_function(request, *args, **kwargs)
 
     return modified_view_function
-
-from django.contrib.messages import get_messages
-
-def clear_feedback_messages(request):
-    """
-    Removes all messages except ones tagged 'login' — does NOT re-add anything.
-    """
-    storage = get_messages(request)
-    # Mark only non-login ones as used
-    storage._queued_messages = [m for m in storage if 'login' in m.tags]
-
-
 

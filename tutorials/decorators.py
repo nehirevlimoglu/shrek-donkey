@@ -32,7 +32,7 @@ def applicant_only(view_func):
     def _wrapped_view(request, *args, **kwargs):
         # 1) If user not logged in => redirect to login page
         if not request.user.is_authenticated:
-            return redirect(f"{reverse('log-in')}?next={request.path}")
+            return redirect(f"{reverse('log_in')}?next={request.path}")
 
         # 2) If logged in but not applicant/job_seeker => raise 403
         if getattr(request.user, 'role', None) not in ["Applicant", "job_seeker"]:

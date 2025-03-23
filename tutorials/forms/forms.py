@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse  # Used for redirection
 from django.contrib.auth.decorators import login_required
-from tutorials.helpers import login_prohibited, clear_feedback_messages  # If used elsewhere
 from tutorials.forms.applicants_forms import ApplicantForm  # Applicant profile form
 from tutorials.forms.employer_forms import EmployerProfileForm  # Employer profile form
 from tutorials.models.applicants_models import Applicant  # Applicant model

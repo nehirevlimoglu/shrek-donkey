@@ -212,7 +212,7 @@ class ApplicationForm(forms.ModelForm):
             
             # Check file type
             if hasattr(resume, 'content_type') and resume.content_type not in self.ALLOWED_FILE_TYPES:
-                raise forms.ValidationError('Resume must be a PDF or Word document')
+                raise forms.ValidationError('Only PDF files are allowed')
         return resume
 
     def clean_cover_letter(self):
@@ -224,5 +224,5 @@ class ApplicationForm(forms.ModelForm):
             
             # Check file type
             if hasattr(cover_letter, 'content_type') and cover_letter.content_type not in self.ALLOWED_FILE_TYPES:
-                raise forms.ValidationError('Cover letter must be a PDF or Word document')
+                raise forms.ValidationError('Only PDF files are allowed')
         return cover_letter

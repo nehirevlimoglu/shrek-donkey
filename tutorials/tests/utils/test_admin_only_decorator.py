@@ -4,22 +4,12 @@ from django.test import TestCase, RequestFactory
 from django.http import Http404, HttpResponse
 from django.contrib.auth import get_user_model
 
-from functools import wraps
-from django.http import Http404
+# 1. Import your real decorator from `tutorials.decorators`
+from tutorials.decorators import admin_only
 
 User = get_user_model()
 
-# 1. The actual decorator inlined here for clarity, but you can import it from your code.
-def admin_only(view_func):
-    """Admin only access."""
-    @wraps(view_func)
-    def _wrapped_view(request, *args, **kwargs):
-        if request.user.role != "Admin":
-            raise Http404("You are not authorized to view this page.")
-        return view_func(request, *args, **kwargs)
-    return _wrapped_view
-
-# 2. A dummy view that uses the decorator
+# 2. Define a dummy view that uses the REAL admin_only
 @admin_only
 def protected_admin_view(request):
     return HttpResponse("Hello, Admin!")
@@ -36,7 +26,7 @@ class AdminOnlyDecoratorTest(TestCase):
             role="Admin"
         )
 
-        # Create a non-admin user (different email)
+        # Create a non-admin user
         self.regular_user = User.objects.create_user(
             username="regularuser",
             password="testpass",
@@ -47,7 +37,7 @@ class AdminOnlyDecoratorTest(TestCase):
     def test_admin_only_allows_admin_user(self):
         """
         The view should allow access if user.role == 'Admin'
-        by returning status code 200 and 'Hello, Admin!' content.
+        returning 200 and 'Hello, Admin!' content.
         """
         request = self.factory.get("/some-url/")
         request.user = self.admin_user
