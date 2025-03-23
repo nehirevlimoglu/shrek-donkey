@@ -152,6 +152,22 @@ class Candidate(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.job.title if self.job else 'No Job Assigned'}"
 
+    @property
+    def total_experience(self):
+        """
+        Calculate total work experience duration based on work_start_date and work_end_date.
+        If work_end_date is not provided, use today's date.
+        Returns a string like "X years, Y months, Z days" or "Not Provided" if no start date exists.
+        """
+        if self.work_start_date:
+            end_date = self.work_end_date if self.work_end_date else date.today()
+            delta = end_date - self.work_start_date
+            total_days = delta.days
+            years = total_days // 365
+            months = (total_days % 365) // 30
+            days = (total_days % 365) % 30
+            return f"{years} years, {months} months, {days} days"
+        return "Not Provided"
 
 
 
