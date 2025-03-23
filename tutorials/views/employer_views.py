@@ -23,6 +23,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from tutorials.helpers import clear_feedback_messages
+from tutorials.utils import match_candidates_to_job
 
 
 
@@ -441,7 +442,7 @@ def delete_account(request):
 
 @login_required
 def employer_job_listings(request):
-    """ Display only the jobs posted by the logged-in employer """
+    """Display only the jobs posted by the logged-in employer and attach matched candidates to each job."""
 
     try:
         employer = Employer.objects.get(username=request.user.username)
@@ -453,7 +454,18 @@ def employer_job_listings(request):
     if not jobs.exists():
         logger.warning(f"⚠️ No jobs found for employer: {employer.company_name}")
 
+    # For each job, run the matching function and attach the results
+    for job in jobs:
+        matched = match_candidates_to_job(job.title, top_n=5)
+        # If the function returns a string, it might be an error message, so handle that:
+        if isinstance(matched, list):
+            job.matched_candidates = matched  # A list of (candidate, score) tuples
+        else:
+            # It's a string (e.g., an error message or "No candidates")
+            job.matched_candidates = []
+
     return render(request, 'employer_job_listings.html', {'jobs': jobs})
+
 
 
 @login_required

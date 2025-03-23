@@ -40,8 +40,6 @@ def csrf_failure(request, reason=""):
 @csrf_exempt  # Temporarily disable CSRF protection, only for testing purposes
 @ensure_csrf_cookie
 def log_in(request):
-
-    
     # Clear any feedback messages before rendering login page
     clear_feedback_messages(request)
     

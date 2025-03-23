@@ -5,7 +5,7 @@ from tutorials.models.applicants_models import Applicant, Application, Applicant
 from tutorials.forms.applicants_forms import ApplicantForm, ApplicationForm
 from django.contrib.auth.decorators import login_required
 from decorators import applicant_only  # Import the decorator
-from tutorials.models.employer_models import Job, EmployerNotification, JobTitle, Candidate
+from tutorials.models.employer_models import Job, EmployerNotification, JobTitle, Candidate, WorkExperience
 from django.contrib.messages import get_messages
 from django.contrib import messages
 from django.http import JsonResponse
@@ -14,6 +14,7 @@ from tutorials.utils import extract_skills_nlp
 from random import randint
 import json
 from tutorials.models.employer_models import Interview
+from tutorials.utils import match_candidates_to_job
 
 @applicant_only
 @login_required
@@ -236,7 +237,29 @@ def apply_for_job(request, job_id):
                     "job_description": job_descriptions[i],
                 })
             application.work_experience = work_experience_data
-            application.save()  # Save work experience data
+            application.save()  # Save work experience data as JSON in Application
+            print("📌 Application saved with dynamic work experience entries.")
+
+            # -----------------------------
+            # Parse dynamic work experience fields
+            # -----------------------------
+            work_job_titles = request.POST.getlist('work_job_title[]')
+            work_employers = request.POST.getlist('work_employer[]')
+            work_start_dates = request.POST.getlist('work_start_date[]')
+            work_end_dates = request.POST.getlist('work_end_date[]')
+            job_descriptions = request.POST.getlist('job_description[]')
+
+            work_experience_data = []
+            for i in range(len(work_job_titles)):
+                work_experience_data.append({
+                    "work_job_title": work_job_titles[i],
+                    "work_employer": work_employers[i],
+                    "work_start_date": work_start_dates[i],
+                    "work_end_date": work_end_dates[i],
+                    "job_description": job_descriptions[i],
+                })
+            application.work_experience = work_experience_data
+            application.save()  # Save work experience data as JSON in Application
             print("📌 Application saved with dynamic work experience entries.")
 
             # -----------------------------
@@ -273,8 +296,47 @@ def apply_for_job(request, job_id):
             print(f"👤 Candidate {'created' if created else 'updated'}: {candidate}")
 
             # -----------------------------
+            # Create WorkExperience model objects for the candidate
+            # -----------------------------
+            # Make sure to import your WorkExperience model at the top:
+            # from tutorials.models.employer_models import WorkExperience
+
+            # Optionally, clear out old entries for this candidate if you want to refresh them
+            candidate.work_experiences.all().delete()
+
+            for work in work_experience_data:
+                if work.get("work_job_title") and work.get("work_start_date"):
+                    WorkExperience.objects.create(
+                        candidate=candidate,
+                        job_title=work.get("work_job_title"),
+                        employer=work.get("work_employer"),
+                        start_date=work.get("work_start_date"),  # Ensure proper date format or parse it
+                        end_date=work.get("work_end_date") or None,
+                        job_description=work.get("job_description")
+                    )
+                    print(f"📌 Work experience added: {work.get('work_job_title')} at {work.get('work_employer')}")
+                else:
+                    print("⚠️ Incomplete work experience entry; skipping.")
+
+
+            # -----------------------------
             # Notifications
             # -----------------------------
+            matched_candidates = match_candidates_to_job(job.title, top_n=10)  # get top 10 matches
+            print("DEBUG: Matched candidates list:", matched_candidates)
+            for cand, score in matched_candidates:
+                print(f"DEBUG: Candidate {cand.user.username} with ID {cand.id} has score {score:.2f}")
+                if cand.id == candidate.id and score >= 0.68:
+                    EmployerNotification.objects.create(
+                        employer=job.employer,
+                        title="New Matched Candidate Found",
+                        message=(f"Your job '{job.title}' just received a matched candidate: "
+                                f"{candidate.user.username} (Score: {score:.2f}).")
+                    )
+                    print("📢 Matched candidate notification sent to employer via match_candidates_to_job().")
+                    break  # No need to check further
+
+
             if job.employer:
                 EmployerNotification.objects.create(
                     employer=job.employer,
