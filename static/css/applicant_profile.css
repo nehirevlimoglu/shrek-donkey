@@ -1,9 +1,11 @@
 .confirmation-modal {
-    display: none !important; /* Prevent accidental display */
+    display: none;
     position: fixed;
     inset: 0;
     background-color: rgba(0, 0, 0, 0.45);
     z-index: 1000;
+
+    display: flex;
     align-items: center;
     justify-content: center;
 }
