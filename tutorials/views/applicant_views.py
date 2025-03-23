@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from tutorials.utils import extract_skills_nlp
 from random import randint
 import json
+from datetime import date
 
 @applicant_only
 @login_required
@@ -159,9 +160,20 @@ def apply_for_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
     print(f"✅ Job found: {job.title}")
 
-    # Get the applicant or return early with an error message
-    applicant = get_object_or_404(Applicant, user=request.user)
-    print(f"✅ Applicant found: {applicant.user.username}")
+    # Check if job is expired
+    if job.application_deadline and job.application_deadline < date.today():
+        print("❌ Job posting has expired")
+        messages.error(request, "This job posting has expired")
+        return redirect("job_detail", job_id=job.id)
+
+    # Get the applicant or return early with error message
+    try:
+        applicant = get_object_or_404(Applicant, user=request.user)
+        print(f"✅ Applicant found: {applicant.user.username}")
+    except Exception as e:
+        print(f"❌ Error retrieving applicant: {e}")
+        messages.error(request, "Applicant profile not found.")
+        return redirect("job_detail", job_id=job.id)
 
     # Check for existing application
     existing_application = Application.objects.filter(applicant=applicant, job=job).exists()
