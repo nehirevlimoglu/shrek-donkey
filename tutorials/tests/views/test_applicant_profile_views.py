@@ -366,3 +366,16 @@ class ApplicantProfileTests(TestCase):
         self.assertTrue(self.applicant.cv)
         self.assertTrue(self.applicant.cv.name.startswith('uploads/cv/'))
         self.assertTrue(self.applicant.cv.name.endswith('.docx'))
+
+    def test_invalid_profile_update(self):
+        """Test profile update with invalid data"""
+        response = self.client.post(
+            reverse('applicants-edit-profile'),
+            {
+                'salary_preferences': 'invalid',  # Invalid salary format
+            }
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('form' in response.context)
+        self.assertTrue(response.context['form'].errors)
