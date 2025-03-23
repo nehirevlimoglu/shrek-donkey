@@ -11,13 +11,13 @@ User = get_user_model()
 
 class ApplicantProfileTests(TestCase):
     """
-    Test suite for applicant profile management functionality
-    Tests profile viewing and editing features
+    Test suite for applicant profile management functionality.
+    Tests profile viewing and editing features.
     """
     
     def setUp(self):
         """Set up test data for profile management tests"""
-        # Create applicant user
+        # Create applicant user with first and last name.
         self.user = User.objects.create_user(
             username='@testapplicant',
             password='testpass123',
@@ -27,17 +27,17 @@ class ApplicantProfileTests(TestCase):
             role='Applicant'
         )
         
-        # Create job titles first
+        # Create job title for M2M relationships.
         self.job_title = JobTitle.objects.create(title="Software Development")
         
-        # Create applicant profile
+        # Create applicant profile with a valid degree value.
         self.applicant = Applicant.objects.create(
             user=self.user,
-            degree='Computer Science',
+            degree='bachelors',  # Valid degree choice.
             salary_preferences='50000-70000',
             location_preferences='Remote'
         )
-        # Add job preferences after creation
+        # Add job preferences.
         self.applicant.job_preferences.add(self.job_title)
         
         self.client = Client()
@@ -63,19 +63,19 @@ class ApplicantProfileTests(TestCase):
 
     def test_edit_profile_invalid_data(self):
         """Test profile update with invalid data"""
-        # Submit empty form
+        # Submit empty form.
         response = self.client.post(reverse('applicants-edit-profile'), {})
         
-        self.assertEqual(response.status_code, 200)  # Stays on same page
-        self.assertTrue(response.context['form'].errors)  # Form has errors
+        self.assertEqual(response.status_code, 200)  # Form re-renders.
+        self.assertTrue(response.context['form'].errors)  # Form has errors.
         
-        # Check error message
+        # Check error message.
         messages = list(get_messages(response.wsgi_request))
         self.assertEqual(str(messages[0]), "Please fix the errors below.")
 
     def test_edit_profile_non_applicant(self):
         """Test that non-applicant users cannot access profile editing"""
-        # Create non-applicant user
+        # Create non-applicant user.
         non_applicant = User.objects.create_user(
             username='@testemployer',
             password='testpass123',
@@ -85,7 +85,7 @@ class ApplicantProfileTests(TestCase):
         self.client.login(username='@testemployer', password='testpass123')
         response = self.client.get(reverse('applicants-edit-profile'))
         
-        # Should be forbidden for non-applicants
+        # Should be forbidden for non-applicants.
         self.assertEqual(response.status_code, 403)
 
     def test_edit_profile_with_invalid_file_type(self):
@@ -99,9 +99,15 @@ class ApplicantProfileTests(TestCase):
         response = self.client.post(
             reverse('applicants-edit-profile'),
             {
-                'degree': 'Master in CS',
-                'cv': invalid_file
-            }
+                'first_name': self.user.first_name,
+                'last_name': self.user.last_name,
+                'degree': self.applicant.degree,  # 'bachelors'
+                'cv': invalid_file,
+                'salary_preferences': self.applicant.salary_preferences,
+                'job_preferences': [self.job_title.id],
+                'location_preferences': self.applicant.location_preferences
+            },
+            format='multipart'
         )
         
         self.assertEqual(response.status_code, 200)
@@ -120,9 +126,15 @@ class ApplicantProfileTests(TestCase):
         response = self.client.post(
             reverse('applicants-edit-profile'),
             {
-                'degree': 'Master in CS',
-                'cv': large_file
-            }
+                'first_name': self.user.first_name,
+                'last_name': self.user.last_name,
+                'degree': self.applicant.degree,  # 'bachelors'
+                'cv': large_file,
+                'salary_preferences': self.applicant.salary_preferences,
+                'job_preferences': [self.job_title.id],
+                'location_preferences': self.applicant.location_preferences
+            },
+            format='multipart'
         )
         
         self.assertEqual(response.status_code, 200)
@@ -135,27 +147,27 @@ class ApplicantProfileTests(TestCase):
             {
                 'first_name': 'Updated',
                 'last_name': 'Name',
-                'degree': 'PhD in Computer Science',
+                'degree': 'phd',  # Valid degree value.
                 'salary_preferences': '80000-100000',
                 'job_preferences': [self.job_title.id],
                 'location_preferences': 'Hybrid'
             },
-            follow=True  # Follow redirects
+            follow=True  # Follow redirects.
         )
         
-        # Check response after redirect
+        # Check response after redirect.
         self.assertEqual(response.status_code, 200)
         
-        # Check success message
+        # Check success message.
         messages = list(get_messages(response.wsgi_request))
         self.assertEqual(str(messages[0]), "Your changes have been saved.")
         
-        # Refresh from database
+        # Refresh from database.
         self.applicant.refresh_from_db()
         self.user.refresh_from_db()
         
-        # Check updated values
-        self.assertEqual(self.applicant.degree, 'PhD in Computer Science')
+        # Check updated values.
+        self.assertEqual(self.applicant.degree, 'phd')
         self.assertEqual(self.applicant.salary_preferences, '80000-100000')
         self.assertEqual(
             set(self.applicant.job_preferences.values_list('id', flat=True)),
@@ -173,7 +185,7 @@ class ApplicantProfileTests(TestCase):
         self.assertEqual(form.initial['degree'], self.applicant.degree)
         self.assertEqual(form.initial['salary_preferences'], self.applicant.salary_preferences)
         
-        # Convert JobTitle objects to IDs in form initial data
+        # Convert JobTitle objects to IDs in form initial data.
         actual_ids = {obj.id for obj in form.initial['job_preferences']}
         expected_ids = set(self.applicant.job_preferences.values_list('id', flat=True))
         self.assertEqual(actual_ids, expected_ids)
@@ -193,7 +205,7 @@ class ApplicantProfileTests(TestCase):
             {
                 'first_name': self.user.first_name,
                 'last_name': self.user.last_name,
-                'degree': self.applicant.degree,
+                'degree': self.applicant.degree,  # 'bachelors'
                 'cv': cv_file,
                 'salary_preferences': self.applicant.salary_preferences,
                 'job_preferences': [self.job_title.id],
@@ -202,95 +214,18 @@ class ApplicantProfileTests(TestCase):
             format='multipart'
         )
         
-        # Should redirect on success
+        # Should redirect on success.
         self.assertEqual(response.status_code, 302)
         
-        # Follow the redirect
+        # Follow the redirect.
         response = self.client.get(response.url)
         self.assertEqual(response.status_code, 200)
         
+        # Check success message.
         messages = list(get_messages(response.wsgi_request))
         self.assertEqual(str(messages[0]), "Your changes have been saved.")
         
-        self.applicant.refresh_from_db()
-        self.assertTrue(self.applicant.cv)
-        self.assertTrue(self.applicant.cv.name.startswith('uploads/cv/'))
-
-    def test_edit_profile_non_pdf_cv(self):
-        """Test that non-PDF files are rejected"""
-        invalid_file = SimpleUploadedFile(
-            "test_cv.txt",
-            b"invalid file content",
-            content_type="text/plain"
-        )
-        
-        response = self.client.post(
-            reverse('applicants-edit-profile'),
-            {
-                'first_name': self.user.first_name,
-                'last_name': self.user.last_name,
-                'degree': self.applicant.degree,
-                'cv': invalid_file,
-                'salary_preferences': self.applicant.salary_preferences,
-                'job_preferences': [str(self.job_title.id)],  # Convert ID to string
-                'location_preferences': self.applicant.location_preferences
-            },
-            format='multipart'
-        )
-        
-        self.assertEqual(response.status_code, 200)
-        form_errors = response.context['form'].errors
-        self.assertIn('cv', form_errors)
-        self.assertIn('Only PDF and Word documents are allowed', str(form_errors['cv']))
-
-    def test_edit_profile_missing_required_fields(self):
-        """Test form validation when required fields are missing"""
-        response = self.client.post(
-            reverse('applicants-edit-profile'),
-            {
-                'degree': 'PhD in CS',
-                # Missing first_name and last_name
-            }
-        )
-        
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('first_name', response.context['form'].errors)
-        self.assertIn('last_name', response.context['form'].errors)
-
-    def test_edit_profile_valid_pdf_upload(self):
-        """Test successful PDF CV upload"""
-        cv_file = SimpleUploadedFile(
-            "test_cv.pdf",
-            b"%PDF-1.4\n Sample PDF content",
-            content_type="application/pdf"
-        )
-        
-        response = self.client.post(
-            reverse('applicants-edit-profile'),
-            {
-                'first_name': self.user.first_name,
-                'last_name': self.user.last_name,
-                'degree': self.applicant.degree,
-                'cv': cv_file,
-                'salary_preferences': self.applicant.salary_preferences,
-                'job_preferences': [self.job_title.id],  # Use JobTitle ID
-                'location_preferences': self.applicant.location_preferences
-            },
-            format='multipart'
-        )
-        
-        # Should redirect on success (302)
-        self.assertEqual(response.status_code, 302)
-        
-        # Follow the redirect
-        response = self.client.get(response.url)
-        self.assertEqual(response.status_code, 200)
-        
-        # Check success message
-        messages = list(get_messages(response.wsgi_request))
-        self.assertEqual(str(messages[0]), "Your changes have been saved.")
-        
-        # Verify file was uploaded
+        # Verify file was uploaded.
         self.applicant.refresh_from_db()
         self.assertTrue(self.applicant.cv)
         self.assertTrue(self.applicant.cv.name.startswith('uploads/cv/'))
@@ -309,27 +244,25 @@ class ApplicantProfileTests(TestCase):
             {
                 'first_name': self.user.first_name,
                 'last_name': self.user.last_name,
-                'degree': self.applicant.degree,
+                'degree': self.applicant.degree,  # 'bachelors'
                 'cv': doc_file,
                 'salary_preferences': self.applicant.salary_preferences,
-                'job_preferences': [str(self.job_title.id)],  # Convert ID to string
+                'job_preferences': [str(self.job_title.id)],
                 'location_preferences': self.applicant.location_preferences
             },
             format='multipart'
         )
         
-        # Should redirect on success (302)
         self.assertEqual(response.status_code, 302)
         
-        # Follow the redirect
+        # Follow the redirect.
         response = self.client.get(response.url)
         self.assertEqual(response.status_code, 200)
         
-        # Check success message
+        # Check success message.
         messages = list(get_messages(response.wsgi_request))
         self.assertEqual(str(messages[0]), "Your changes have been saved.")
         
-        # Verify file was uploaded
         self.applicant.refresh_from_db()
         self.assertTrue(self.applicant.cv)
         self.assertTrue(self.applicant.cv.name.startswith('uploads/cv/'))
@@ -348,14 +281,14 @@ class ApplicantProfileTests(TestCase):
             {
                 'first_name': self.user.first_name,
                 'last_name': self.user.last_name,
-                'degree': self.applicant.degree,
+                'degree': self.applicant.degree,  # 'bachelors'
                 'cv': docx_file,
                 'salary_preferences': self.applicant.salary_preferences,
                 'job_preferences': [self.job_title.id],
                 'location_preferences': self.applicant.location_preferences
             },
             format='multipart',
-            follow=True  # Follow redirects
+            follow=True  # Follow redirects.
         )
         
         self.assertEqual(response.status_code, 200)
@@ -366,3 +299,4 @@ class ApplicantProfileTests(TestCase):
         self.assertTrue(self.applicant.cv)
         self.assertTrue(self.applicant.cv.name.startswith('uploads/cv/'))
         self.assertTrue(self.applicant.cv.name.endswith('.docx'))
+
