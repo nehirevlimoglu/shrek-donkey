@@ -71,7 +71,7 @@ class ApplicantHomePageViewTests(TestCase):
         response = self.client.get(reverse("applicants-home-page"))
         self.assertRedirects(
             response,
-            reverse("log-in") + "?next=" + reverse("applicants-home-page")
+            reverse("log_in") + "?next=" + reverse("applicants-home-page")
         )
 
     def test_access_denied_for_non_applicant(self):

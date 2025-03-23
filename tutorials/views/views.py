@@ -27,9 +27,6 @@ def csrf_failure(request, reason=""):
     # Add error message
     messages.error(request, f"Form submission failed (CSRF validation error): {reason}")
     
-    # Clear any feedback messages
-    clear_feedback_messages(request)
-    
     # Render login page and force set new CSRF cookie
     response = render(request, 'log_in.html')
     response.set_cookie('csrftoken', request.META.get('CSRF_COOKIE', ''), samesite=None)
@@ -38,10 +35,6 @@ def csrf_failure(request, reason=""):
 
 @ensure_csrf_cookie
 def log_in(request):
-
-    
-    # Clear any feedback messages before rendering login page
-    clear_feedback_messages(request)
     
     if request.method == 'POST':
         username = request.POST['username']
@@ -73,55 +66,6 @@ def log_in(request):
     response = render(request, 'log_in.html')
     response.set_cookie('csrftoken', request.META.get('CSRF_COOKIE', ''), samesite='Lax')
     return response
-
-
-def log_in(request):
-    if request.method == 'POST':
-        username = request.POST['username']
-        password = request.POST['password']
-        
-        print(f"Attempting login: {username} | {password}")  # Debug output
-        
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            print(f"User authenticated: {user.username} | Role: {user.role}")  # Debug output
-            login(request, user)
-            # Redirect based on role
-            if request.user.role == 'Admin':
-                return redirect('admin_home_page')
-            elif request.user.role == 'Employer':
-                return redirect('employer_home_page')
-            elif request.user.role in ['Applicant', 'job_seeker']:
-                return redirect('applicants-home-page')
-            raise Http404("Page not found")
-        else:
-            print("Authentication failed")
-            # Optionally add a message or redirect back with an error.
-    
-    # Clear any feedback messages before rendering login page
-    clear_feedback_messages(request)
-    
-    return render(request, 'log_in.html')
-
-
-
-def sign_up(request):
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            # Immediately create profile based on role
-            if user.role == 'Employer':
-                Employer.objects.create(user=user, username=user.username, email=user.email)
-                return redirect('employer_profile_setup')
-            elif user.role == 'Applicant':
-                Applicant.objects.create(user=user)
-                return redirect('applicant_profile_setup')
-            return redirect('home')
-    else:
-        form = SignUpForm()
-    return render(request, 'sign_up.html', {'form': form})
 
 
 @login_required
@@ -198,7 +142,7 @@ def log_out(request):
     logout(request)  
     print("User after logout:", request.user)  
     # Return response and clear CSRF cookie
-    response = redirect('log-in')
+    response = redirect('log_in')
     response.delete_cookie('csrftoken')
     return response
 
@@ -268,3 +212,22 @@ def submit_feedback(request):
             messages.error(request, f"Error submitting feedback: {str(e)}")
             
     return render(request, 'feedback_form.html')
+
+
+def sign_up(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            # Immediately create profile based on role
+            if user.role == 'Employer':
+                Employer.objects.create(user=user, username=user.username, email=user.email)
+                return redirect('employer_profile_setup')
+            elif user.role == 'Applicant':
+                Applicant.objects.create(user=user)
+                return redirect('applicant_profile_setup')
+            return redirect('home')
+    else:
+        form = SignUpForm()
+    return render(request, 'sign_up.html', {'form': form})

@@ -11,10 +11,18 @@ class EmployerHomePageViewTests(TestCase):
     def setUp(self):
         """Set up test data for employer home page view"""
 
-        # ✅ Create test employer (NO `user` field)
-        self.employer = Employer.objects.create(
+        # ✅ Create a User instance with a unique email
+        self.user = User.objects.create_user(
             username="test_employer",
-            email="employer@example.com",
+            email="employer@example.com",  # unique email
+            password="password123"
+        )
+
+        # ✅ Link the User to Employer instance
+        self.employer = Employer.objects.create(
+            user=self.user,
+            username="test_employer",
+            email="employer@example.com",  # same email as user is fine here
             company_name="Tech Corp",
             company_location="New York",
             industry="Tech"
@@ -22,35 +30,48 @@ class EmployerHomePageViewTests(TestCase):
 
         # ✅ Create test job listings (one active, one expired)
         self.active_job = Job.objects.create(
-            employer=self.employer, title="Software Engineer",
+            employer=self.employer,
+            title="Software Engineer",
             application_deadline=now().date() + timedelta(days=10),
             description="Looking for a great developer!"
         )
         self.expired_job = Job.objects.create(
-            employer=self.employer, title="Expired Job",
+            employer=self.employer,
+            title="Expired Job",
             application_deadline=now().date() - timedelta(days=1),
             description="This job is expired."
         )
 
-        # ✅ Create test applicant
-        self.applicant_user = User.objects.create_user(username="test_applicant", password="password123")
+        # ✅ Create test applicant with a UNIQUE email
+        self.applicant_user = User.objects.create_user(
+            username="test_applicant",
+            email="applicant@example.com",  # unique email!
+            password="password123"
+        )
         self.candidate = Candidate.objects.create(
-            user=self.applicant_user, job=self.active_job, application_date=now(),
-            first_name="John", last_name="Doe"
+            user=self.applicant_user,
+            job=self.active_job,
+            application_date=now(),
+            first_name="John",
+            last_name="Doe"
         )
 
         # ✅ Create test notification
         self.notification = EmployerNotification.objects.create(
-            employer=self.employer, title="New Application", message="An applicant applied."
+            employer=self.employer,
+            title="New Application",
+            message="An applicant applied."
         )
 
         # ✅ Client for making requests
         self.client = Client()
 
+
+
     def test_redirect_if_not_logged_in(self):
         """Test that non-logged-in users cannot access the page"""
         response = self.client.get(reverse("employer_home_page"))
-        self.assertRedirects(response, reverse("log-in") + "?next=" + reverse("employer_home_page"))
+        self.assertRedirects(response, reverse("log_in") + "?next=" + reverse("employer_home_page"))
 
     def test_error_if_employer_not_found(self):
         """Test if view handles employer not found case"""
@@ -104,17 +125,34 @@ class EmployerHomePageViewTests(TestCase):
         """Test employer analytics within a date range"""
         self.client.login(username="test_employer", password="password123")
 
-        # ✅ Add a candidate for expired job to test filtering
-        Candidate.objects.create(
-            user=self.applicant_user, job=self.expired_job, application_date=now() - timedelta(days=30),
-            first_name="Jane", last_name="Doe"
+        # DELETE any existing candidates to start fresh
+        Candidate.objects.all().delete()
+
+        # Candidate within the last 7 days (should be counted)
+        recent_candidate = Candidate.objects.create(
+            user=self.applicant_user,
+            job=self.active_job,
+            application_date=now() - timedelta(days=3),  # within the 7-day window
+            first_name="Alice",
+            last_name="Smith"
+        )
+
+        # Candidate older than 7 days (should NOT be counted)
+        old_candidate = Candidate.objects.create(
+            user=self.applicant_user,
+            job=self.expired_job,
+            application_date=now() - timedelta(days=30),
+            first_name="Jane",
+            last_name="Doe"
         )
 
         response = self.client.get(reverse("employer_home_page"), {
-            "start_date": str(now().date() - timedelta(days=7)),  # ✅ Convert to string for GET request
-            "end_date": str(now().date()),
+            "start_date": (now() - timedelta(days=7)).date().isoformat(),
+            "end_date": now().date().isoformat(),
         })
 
-        # ✅ Should only include applicants from the last 7 days
+        # Exactly 1 candidate should be within the date range (recent_candidate only)
         self.assertEqual(response.context["total_applicants"], 1)
+
+
 

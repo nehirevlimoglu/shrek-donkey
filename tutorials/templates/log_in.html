@@ -48,18 +48,15 @@
                 <h2>Log In</h2>
                 
                 {% if messages %}
-                <div class="messages">
+                <ul class="messages">
                     {% for message in messages %}
-                        {% if "login" in message.tags %}
-                            <div class="message login-message">
-                                {{ message }}
-                            </div>
-                        {% endif %}
+                    <li>{{ message }}</li>
                     {% endfor %}
-                </div>
-                {% endif %}                
+                </ul>
+                {% endif %}
+                                
                 
-                <form method="POST" action="{% url 'log-in' %}">
+                <form method="POST" action="{% url 'log_in' %}">
                     {% csrf_token %}
                     <!-- Manually add a hidden CSRF field as backup -->
                     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">

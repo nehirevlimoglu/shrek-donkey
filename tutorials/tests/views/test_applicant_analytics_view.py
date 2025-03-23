@@ -118,7 +118,7 @@ class ApplicantAnalyticsTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response, 
-            f"{reverse('log-in')}?next={reverse('applicants-analytics')}"
+            f"{reverse('log_in')}?next={reverse('applicants-analytics')}"
         )
 
     def test_non_applicant_access(self):

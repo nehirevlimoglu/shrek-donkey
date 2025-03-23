@@ -47,12 +47,22 @@ def employer_home_page(request):
         ).select_related('job', 'user').order_by('-application_date')[:10]
 
         # ✅ Fetch Analytics Data
-        total_jobs = Job.objects.filter(employer=employer).count()
-        active_listings = Job.objects.filter(
-            employer=employer, 
-            application_deadline__gte=now()  # ✅ Only count jobs with valid deadlines
-        ).count()
-        total_applicants = Candidate.objects.filter(job__employer=employer).count()  # ✅ Fix: Count applicants for employer's jobs
+        jobs = Job.objects.filter(employer=employer)
+        total_jobs = jobs.count()
+        active_listings = jobs.filter(application_deadline__gte=now()).count()
+
+        candidates = Candidate.objects.filter(job__employer=employer)
+
+        # ✅ Apply date filtering if provided
+        start_date = request.GET.get("start_date")
+        end_date = request.GET.get("end_date")
+
+        if start_date:
+            candidates = candidates.filter(application_date__date__gte=start_date)
+        if end_date:
+            candidates = candidates.filter(application_date__date__lte=end_date)
+
+        total_applicants = candidates.count()
 
     except Employer.DoesNotExist:
         return JsonResponse({"success": False, "error": "Employer profile not found"}, status=403)
@@ -60,10 +70,11 @@ def employer_home_page(request):
     return render(request, 'employers_home_page.html', {
         'notifications': notifications,
         'recent_applicants': recent_applicants,
-        'total_jobs': total_jobs,  # ✅ Pass total jobs
-        'active_listings': active_listings,  # ✅ Pass active job count
-        'total_applicants': total_applicants,  # ✅ Pass total applicants
+        'total_jobs': total_jobs,
+        'active_listings': active_listings,
+        'total_applicants': total_applicants,
     })
+
 
 @login_required
 def view_employer_analytics(request):
