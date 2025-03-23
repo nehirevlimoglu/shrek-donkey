@@ -37,6 +37,7 @@ def populate_job_titles(sender, **kwargs):
 
 # Create notifications for admin users when important events occur
 
+
 @receiver(post_save, sender=Job)
 def job_creation_notification(sender, instance, created, **kwargs):
     """Send notification to admins when a new job is created"""
