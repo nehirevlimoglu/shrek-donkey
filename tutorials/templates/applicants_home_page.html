@@ -4,11 +4,17 @@
 {% block title %}Applicants Home Page | Swamp Hiring{% endblock %}
 
 {% block content %}
-<!-- Link to your custom CSS file; ensure it is loaded after any framework CSS -->
 <link rel="stylesheet" type="text/css" href="{% static 'css/applicants_home_page.css' %}">
+
+<!-- Pass CSRF token and toggle URL to JavaScript -->
+<meta name="csrf-token" content="{{ csrf_token }}">
+<script>
+    var toggleFavoriteUrl = "{% url 'toggle_favorite' %}";
+</script>
 
 <div class="dashboard-container">
     <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
+        <!-- Filter Options -->
         <div class="filter-options" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
             <h2>Available Jobs</h2>
             <form method="get" action="" style="display: flex; gap: 1rem; align-items: center;">
@@ -45,11 +51,11 @@
                     {% endfor %}
                 </select>
 
-                <!-- Use ONLY the custom class -->
                 <button type="submit" class="filter-btn">Filter</button>
             </form>
         </div>
 
+        <!-- Job Listings Table -->
         <div class="job-listings-container" style="width: 100%;">
             <table class="job-table" style="width: 100%; text-align: center; border-collapse: collapse;">
                 <thead>
@@ -72,7 +78,13 @@
                         <td>{{ job.salary }}</td>
                         <td>{{ job.job_type }}</td>
                         <td>
-                            <span class="favorite-star" data-job-id="{{ job.id }}">&#9734;</span>
+                            <span class="favorite-star" data-job-id="{{ job.id }}">
+                                {% if job in request.user.applicant.favorites.all %}
+                                    &#9733;
+                                {% else %}
+                                    &#9734;
+                                {% endif %}
+                            </span>
                         </td>
                         <td>
                             <a href="{% url 'job_detail' job.id %}" class="btn btn-primary">View Details</a>
@@ -89,10 +101,10 @@
     </main>
 </div>
 
-<!-- Load Intro.js -->
+<!-- Optional: Load Intro.js and Tutorial Scripts -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intro.js/4.0.10/introjs.min.css">
 <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
-
-<!-- Load Applicant Tutorial (Ensure Proper Loading Order) -->
 <script src="{% static 'js/applicant_tutorial.js' %}?v=1.0" defer></script>
+<!-- Load the separated toggle_favorite.js file -->
+<script src="{% static 'js/toggle_favorite.js' %}" defer></script>
 {% endblock %}

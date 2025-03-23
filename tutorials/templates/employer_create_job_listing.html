@@ -118,6 +118,37 @@
                 </div>
             </div>
 
+            <!-- New Row: Required Discipline (Optional) -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="required_discipline">Required Discipline (Optional):</label>
+                    <select id="required_discipline" name="required_discipline" class="form-control">
+                        <option value="">-- Select Discipline --</option>
+                        <option value="bachelors">Bachelors</option>
+                        <option value="masters">Masters</option>
+                        <option value="phd">PhD</option>
+                        <option value="diploma">Diploma</option>
+                        <option value="associate">Associate Degree</option>
+                        <option value="certificate">Certificate</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Hidden Required Work Experience Field (toggleable) -->
+            <div class="form-row">
+                <div class="form-group">
+                    <button type="button" id="toggle-required-experience" class="toggle-btn">
+                        Advanced: Set Required Work Experience (Optional)
+                    </button>
+                </div>
+            </div>
+            <div class="form-row" id="required-experience-container" style="display: none;">
+                <div class="form-group">
+                    <label for="required_experience">Required Work Experience (Years):</label>
+                    <input type="number" step="0.1" id="required_experience" name="required_experience" placeholder="e.g. 3">
+                </div>
+            </div>
+
             <!-- Submit Button -->
             <div class="form-row">
                 <button type="submit" class="submit-btn">Create Job</button>
@@ -130,7 +161,13 @@
 <script src="{% static 'js/load_job_titles.js' %}"></script>
 
 <script>
-    // Auto-hide success message
+    // Toggle display of the required work experience field
+    document.getElementById('toggle-required-experience').addEventListener('click', function() {
+        var container = document.getElementById('required-experience-container');
+        container.style.display = (container.style.display === 'none') ? 'block' : 'none';
+    });
+
+    // Auto-hide success messages after 4 seconds
     document.addEventListener("DOMContentLoaded", function() {
         setTimeout(function() {
             let alerts = document.querySelectorAll('.alert');

@@ -37,6 +37,26 @@
                                 {{ job.get_status_display }}
                             </span>
                         </p>
+                        
+                        <!-- Matched Candidates Section -->
+                        <div class="matched-candidates">
+                            <h3>Matched Candidates</h3>
+                            {% if job.matched_candidates %}
+                                <ul>
+                                    {% for cand, score in job.matched_candidates %}
+                                        <li>
+                                            <a href="{% url 'applicant_profile' cand.id %}">
+                                                {{ cand.user.username }}
+                                            </a>
+                                            (Score: {{ score|floatformat:2 }})
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p>No matched candidates yet.</p>
+                            {% endif %}
+                        </div>
+
                     </div>
                 </div>
             {% endfor %}

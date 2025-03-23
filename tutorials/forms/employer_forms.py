@@ -48,6 +48,11 @@ def get_job_titles():
 class JobForm(forms.ModelForm):
     """ Job form with text inputs for title and position. """
 
+    required_experience = forms.FloatField(
+        widget=forms.HiddenInput(),
+        required=False
+    )
+
     title = forms.CharField(
         required=True,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Job Title'})
@@ -62,7 +67,7 @@ class JobForm(forms.ModelForm):
         model = Job
         fields = [
             'title', 'position', 'company_name', 'location', 'job_type',
-            'salary', 'description', 'requirements', 'benefits', 'application_deadline', 'contact_email'
+            'salary', 'description', 'requirements', 'benefits', 'application_deadline', 'contact_email', 'required_experience'
         ]
         widgets = {
             'company_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Company Name'}),

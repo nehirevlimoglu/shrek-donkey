@@ -22,14 +22,35 @@ from django.db.models import Count, Q
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-
-
+from tutorials.helpers import clear_feedback_messages
+from tutorials.utils import match_candidates_to_job
+from datetime import datetime, date
 
 logger = logging.getLogger(__name__)
 
 def is_employer(user):
     return hasattr(user, 'role') and user.role == 'Employer'
 
+
+@login_required
+def employer_profile_setup(request):
+    try:
+        employer = request.user.employer  # Ensure the user is an employer
+    except Employer.DoesNotExist:
+        employer = None
+
+    if request.method == 'POST':
+        form = EmployerProfileForm(request.POST, request.FILES, instance=employer)
+        if form.is_valid():
+            employer = form.save(commit=False)
+            employer.user = request.user
+            employer.save()
+            return HttpResponseRedirect(reverse('employer_home_page'))  # Redirect to employer's dashboard
+
+    else:
+        form = EmployerProfileForm(instance=employer)
+
+    return render(request, 'employer_form.html', {'form': form})
 
 @login_required
 def employer_home_page(request):
@@ -47,22 +68,12 @@ def employer_home_page(request):
         ).select_related('job', 'user').order_by('-application_date')[:10]
 
         # ✅ Fetch Analytics Data
-        jobs = Job.objects.filter(employer=employer)
-        total_jobs = jobs.count()
-        active_listings = jobs.filter(application_deadline__gte=now()).count()
-
-        candidates = Candidate.objects.filter(job__employer=employer)
-
-        # ✅ Apply date filtering if provided
-        start_date = request.GET.get("start_date")
-        end_date = request.GET.get("end_date")
-
-        if start_date:
-            candidates = candidates.filter(application_date__date__gte=start_date)
-        if end_date:
-            candidates = candidates.filter(application_date__date__lte=end_date)
-
-        total_applicants = candidates.count()
+        total_jobs = Job.objects.filter(employer=employer).count()
+        active_listings = Job.objects.filter(
+            employer=employer, 
+            application_deadline__gte=now()  # ✅ Only count jobs with valid deadlines
+        ).count()
+        total_applicants = Candidate.objects.filter(job__employer=employer).count()  # ✅ Fix: Count applicants for employer's jobs
 
     except Employer.DoesNotExist:
         return JsonResponse({"success": False, "error": "Employer profile not found"}, status=403)
@@ -70,11 +81,10 @@ def employer_home_page(request):
     return render(request, 'employers_home_page.html', {
         'notifications': notifications,
         'recent_applicants': recent_applicants,
-        'total_jobs': total_jobs,
-        'active_listings': active_listings,
-        'total_applicants': total_applicants,
+        'total_jobs': total_jobs,  # ✅ Pass total jobs
+        'active_listings': active_listings,  # ✅ Pass active job count
+        'total_applicants': total_applicants,  # ✅ Pass total applicants
     })
-
 
 @login_required
 def view_employer_analytics(request):
@@ -136,7 +146,24 @@ def view_employer_analytics(request):
 def employer_settings(request):
     return render(request, 'employer_settings.html')
 
-@login_required
+
+def employer_sign_up(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            if user.role != 'Employer':
+                form.add_error(None, "Only employers can sign up.")
+                return render(request, 'sign_up.html', {'form': form})
+            user.save()
+            login(request, user)
+            return redirect('employer_profile_setup.html')
+    else:
+        form = SignUpForm()
+    return render(request, 'sign_up.html', {'form': form})
+
+
+
 def employer_job_listings(request):
     """ Display only the jobs posted by the logged-in employer """
     
@@ -412,7 +439,7 @@ def delete_account(request):
 
 @login_required
 def employer_job_listings(request):
-    """ Display only the jobs posted by the logged-in employer """
+    """Display only the jobs posted by the logged-in employer and attach matched candidates to each job."""
 
     try:
         employer = Employer.objects.get(username=request.user.username)
@@ -424,7 +451,18 @@ def employer_job_listings(request):
     if not jobs.exists():
         logger.warning(f"⚠️ No jobs found for employer: {employer.company_name}")
 
+    # For each job, run the matching function and attach the results
+    for job in jobs:
+        matched = match_candidates_to_job(job.title, top_n=5)
+        # If the function returns a string, it might be an error message, so handle that:
+        if isinstance(matched, list):
+            job.matched_candidates = matched  # A list of (candidate, score) tuples
+        else:
+            # It's a string (e.g., an error message or "No candidates")
+            job.matched_candidates = []
+
     return render(request, 'employer_job_listings.html', {'jobs': jobs})
+
 
 
 @login_required
@@ -489,10 +527,41 @@ def mark_notification_as_read(request, notification_id):
         return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
     
 
+def calculate_duration(start_date, end_date):
+    """
+    Calculate the duration between start_date and end_date.
+    If end_date is missing or 'Present', use today's date.
+    Returns a string like "X years, Y months, Z days".
+    """
+    if not start_date:
+        return ""
+    
+    # Convert start_date to a date object if necessary.
+    if isinstance(start_date, str):
+        try:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        except ValueError:
+            return ""
+    
+    # Process end_date: if empty or "Present", use today's date.
+    if not end_date or end_date == "Present":
+        end_date = date.today()
+    elif isinstance(end_date, str):
+        try:
+            end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+        except ValueError:
+            end_date = date.today()
+    
+    delta = end_date - start_date
+    total_days = delta.days
+    years = total_days // 365
+    months = (total_days % 365) // 30
+    days = (total_days % 365) % 30
+    return f"{years} years, {months} months, {days} days"
+
 @login_required
 def applicant_profile(request, applicant_id):
     """View full applicant details for an employer."""
-    
     try:
         # Get the candidate instance (used in employer views)
         candidate = Candidate.objects.get(id=applicant_id)
@@ -509,8 +578,14 @@ def applicant_profile(request, applicant_id):
         # Retrieve the Application instance for this applicant and job
         application = Application.objects.get(applicant=applicant_obj, job=candidate.job)
     except Application.DoesNotExist:
-        application = None  # Handle as needed (e.g., show a message in the template)
+        application = None  # Handle as needed
     
+    # Add duration info to each work experience entry if available.
+    if application and application.work_experience:
+        for work in application.work_experience:
+            work['duration'] = calculate_duration(work.get('work_start_date'), work.get('work_end_date'))
+    
+    # Handle status update submissions.
     if request.method == "POST":
         new_status = request.POST.get("status")
         if new_status in ["Pending", "Interview", "Hired", "Rejected"]:
@@ -523,15 +598,7 @@ def applicant_profile(request, applicant_id):
         "candidate": candidate,
         "application": application
     })
-    return redirect("applicant_profile", applicant_id=applicant.id)
 
-    # ✅ Pass job title to template
-    job_listing = applicant.job
-
-    return render(request, "applicant_profile.html", {
-        "applicant": applicant,
-        "job_listing": job_listing
-    })
 
 
 @login_required

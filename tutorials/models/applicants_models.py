@@ -3,7 +3,6 @@ from tutorials.models.user_model import User
 from tutorials.models.employer_models import Job
 from tutorials.models.employer_models import JobTitle 
 
-
 class Applicant(models.Model):
     """ Stores applicant information, linked to a User """
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -12,6 +11,9 @@ class Applicant(models.Model):
     salary_preferences = models.CharField(max_length=100, blank=True)
     job_preferences = models.ManyToManyField(JobTitle, blank=True)
     location_preferences = models.CharField(max_length=150, blank=True)
+
+    # Add the favorites field:
+    favorites = models.ManyToManyField(Job, related_name='favorited_by', blank=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.degree if self.degree else 'No Degree'}"
@@ -43,6 +45,9 @@ class Application(models.Model):
 
     # Education (Stores Multiple Entries as JSON)
     education = models.JSONField(default=list)  # Stores multiple education entries dynamically
+
+    # Work Experience (Stores Multiple Entries as JSON)
+    work_experience = models.JSONField(default=list)  # ADD THIS FIELD
 
     # Current Job Details
     current_job_title = models.CharField(max_length=100, default="Not Specified")
@@ -79,7 +84,7 @@ class Application(models.Model):
     applied_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.applicant.username} - {self.job.title}"
+        return f"{self.applicant.user.username} - {self.job.title}"
 
 
 class ApplicantNotification(models.Model):
@@ -91,4 +96,3 @@ class ApplicantNotification(models.Model):
 
     def __str__(self):
         return f"{self.title} -> {self.applicant.user.username}"
-
