@@ -481,26 +481,47 @@ def mark_notification_as_read(request, notification_id):
 
 @login_required
 def applicant_profile(request, applicant_id):
-    """View full applicant details"""
+    """View full applicant details for an employer."""
     
-    print(f"Requested Applicant ID: {applicant_id}")  # Debugging line
-
     try:
-        applicant = Candidate.objects.get(id=applicant_id)  # Get the candidate
-        print(f"Applicant Found: {applicant}")  # Debugging line
+        # Get the candidate instance (used in employer views)
+        candidate = Candidate.objects.get(id=applicant_id)
     except Candidate.DoesNotExist:
-        return HttpResponse("Candidate does not exist.", status=404)  # Explicit error message
-
+        return HttpResponse("Candidate does not exist.", status=404)
+    
+    try:
+        # Retrieve the Applicant instance linked to the candidate's user
+        applicant_obj = Applicant.objects.get(user=candidate.user)
+    except Applicant.DoesNotExist:
+        return HttpResponse("Applicant profile not found.", status=404)
+    
+    try:
+        # Retrieve the Application instance for this applicant and job
+        application = Application.objects.get(applicant=applicant_obj, job=candidate.job)
+    except Application.DoesNotExist:
+        application = None  # Handle as needed (e.g., show a message in the template)
+    
     if request.method == "POST":
         new_status = request.POST.get("status")
         if new_status in ["Pending", "Interview", "Hired", "Rejected"]:
-            applicant.application_status = new_status
-            applicant.save()
+            candidate.application_status = new_status
+            candidate.save()
             messages.success(request, "Application status updated successfully!")
-        return redirect("applicant_profile", applicant_id=applicant.id)
+        return redirect("applicant_profile", applicant_id=candidate.id)
+    
+    return render(request, "applicant_profile.html", {
+        "candidate": candidate,
+        "application": application
+    })
+    return redirect("applicant_profile", applicant_id=applicant.id)
 
-    return render(request, "applicant_profile.html", {"applicant": applicant})
+    # ✅ Pass job title to template
+    job_listing = applicant.job
 
+    return render(request, "applicant_profile.html", {
+        "applicant": applicant,
+        "job_listing": job_listing
+    })
 
 
 @login_required
@@ -534,7 +555,7 @@ def schedule_interview(request, applicant_id):
             interview_link=interview_link,
             notes=notes,
         )
-        interview.save()
+        #interview.save()
 
         # 4 Create an ApplicantNotification for the actual applicant
         #    The Candidate model references user=User. We need to find the `Applicant` object that belongs to that user.

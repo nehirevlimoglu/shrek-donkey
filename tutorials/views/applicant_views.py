@@ -15,6 +15,7 @@ from tutorials.utils import extract_skills_nlp
 from random import randint
 import json
 from datetime import date
+from tutorials.models.employer_models import Interview
 
 @applicant_only
 @login_required
@@ -181,7 +182,7 @@ def apply_for_job(request, job_id):
 
     if existing_application:
         print("⚠️ Applicant has already applied. Redirecting...")
-        messages.warning(request, "You have already applied for this job.")
+        messages.error(request, "You have already applied for this job.", extra_tags="application")
         return redirect("job_detail", job_id=job.id)
 
     print(f"🛠 Request method: {request.method}")
@@ -244,7 +245,15 @@ def apply_for_job(request, job_id):
             candidate.discipline = form.cleaned_data.get("discipline")
             candidate.start_date = form.cleaned_data.get("start_date")
             candidate.end_date = form.cleaned_data.get("end_date")
+            print("🎯 Candidate values BEFORE save:")   
+            print(candidate.school, candidate.degree, candidate.start_date, candidate.end_date)
+
             candidate.linkedin_profile = form.cleaned_data.get("linkedin_profile")
+            candidate.work_job_title = form.cleaned_data.get("work_job_title")
+            candidate.work_employer = form.cleaned_data.get("work_employer")
+            candidate.work_start_date = form.cleaned_data.get("work_start_date")
+            candidate.work_end_date = form.cleaned_data.get("work_end_date")
+            candidate.job_description = form.cleaned_data.get("job_description")
             candidate.portfolio_website = form.cleaned_data.get("portfolio_website")
             candidate.how_did_you_hear = form.cleaned_data.get("how_did_you_hear")
             candidate.current_job_title = form.cleaned_data.get("current_job_title")
@@ -252,6 +261,41 @@ def apply_for_job(request, job_id):
             candidate.skills = ", ".join(extracted_skills)  # ✅ Add this line
             print("🔍 Extracted Skills Before Saving:", extracted_skills)
             candidate.application_status = "Pending"
+            print("\n🧪 DEBUG: DATA MAPPING CHECK")
+
+            # Candidate model fields
+            print("📍 Candidate model data:")
+            print("→ First Name:", form.cleaned_data.get("first_name"))
+            print("→ Last Name:", form.cleaned_data.get("last_name"))
+            print("→ Email (from user):", request.user.email)
+            print("→ Phone:", form.cleaned_data.get("phone"))
+            print("→ Address:", form.cleaned_data.get("address"))
+            print("→ School:", form.cleaned_data.get("school"))
+            print("→ Degree:", form.cleaned_data.get("degree"))
+            print("→ Discipline:", form.cleaned_data.get("discipline"))
+            print("→ Work Job Title:", form.cleaned_data.get("work_job_title"))
+            print("→ Work Employer:", form.cleaned_data.get("work_employer"))
+            print("→ Work Start Date:", form.cleaned_data.get("work_start_date"))
+            print("→ Work End Date:", form.cleaned_data.get("work_end_date"))
+            print("→ Job Description:", form.cleaned_data.get("job_description"))
+            print("→ Resume:", form.cleaned_data.get("resume"))
+            print("→ Cover Letter:", form.cleaned_data.get("cover_letter"))
+            print("→ Current Job Title:", form.cleaned_data.get("current_job_title"))
+            print("→ Current Employer:", form.cleaned_data.get("current_employer"))
+            print("→ Skills (extracted):", extracted_skills)
+            print("→ Application Status:", "Pending")
+
+            # Applicant model fields (FYI)
+            print("\n🗃️ Applicant model (limited fields):")
+            print("→ Degree (from Applicant):", getattr(applicant, "degree", "N/A"))
+            print("→ CV:", getattr(applicant, "cv", "N/A"))
+            print("→ Salary preferences:", getattr(applicant, "salary_preferences", "N/A"))
+            print("→ Job preferences:", getattr(applicant, "job_preferences", "N/A"))
+            print("→ Location preferences:", getattr(applicant, "location_preferences", "N/A"))
+
+            print("✅ Candidate and Applicant model values mapped.\n")
+
+
             candidate.save()
 
             print(f"👤 Candidate {'created' if created else 'updated'}: {candidate}")
@@ -273,6 +317,8 @@ def apply_for_job(request, job_id):
                 message=f"Your application for '{job.title}' has been submitted successfully!"
             )
             print("📢 Applicant notification sent.")
+
+            print("")
 
             messages.success(request, "✅ Your application has been submitted successfully!")
             print("🎉 Application process completed. Redirecting...")
@@ -304,6 +350,11 @@ def apply_for_job(request, job_id):
             'discipline': getattr(applicant, 'discipline', ''),
             'start_date': getattr(applicant, 'start_date', ''),
             'end_date': getattr(applicant, 'end_date', ''),
+            'work_job_title': getattr(applicant, 'work_job_title', ''),
+            'work_employer': getattr(applicant, 'work_employer', ''),
+            'work_start_date': getattr(applicant, 'work_start_date', ''),
+            'work_end_date': getattr(applicant, 'work_end_date', ''),
+            'job_description': getattr(applicant, 'job_description', ''),
             'linkedin_profile': getattr(applicant, 'linkedin_profile', ''),
             'portfolio_website': getattr(applicant, 'portfolio_website', ''),
             'current_job_title': getattr(applicant, 'current_job_title', ''),
@@ -328,15 +379,17 @@ def applicants_notifications(request):
 
     return render(request, 'applicants_notifications.html', {'notifications': notifications})
 
+
 @applicant_only
 @login_required
 def applicants_application(request, job_id):
+    print("This is the form being used to add the work")
     """
     Displays the job application form and processes the submission.
     """
     job = get_object_or_404(Job, id=job_id)
     applicant = get_object_or_404(Applicant, user=request.user)
-    
+
     # If an application already exists, redirect to the job detail page.
     if Application.objects.filter(applicant=applicant, job=job).exists():
         messages.warning(request, "You have already applied for this job.")
@@ -349,15 +402,53 @@ def applicants_application(request, job_id):
             application = form.save(commit=False)
             application.job = job
             application.applicant = applicant
+
+            # Parse and save education
+            schools = request.POST.getlist('school[]')
+            degrees = request.POST.getlist('degree[]')
+            disciplines = request.POST.getlist('discipline[]')
+            start_dates = request.POST.getlist('start_date[]')
+            end_dates = request.POST.getlist('end_date[]')
+
+            education_data = []
+            for i in range(len(schools)):
+                education_data.append({
+                    "school": schools[i],
+                    "degree": degrees[i],
+                    "discipline": disciplines[i],
+                    "start_date": start_dates[i],
+                    "end_date": end_dates[i]
+                })
+            application.education = education_data
+
+            # Parse and save work experience
+            work_job_titles = request.POST.getlist('work_job_title[]')
+            work_employers = request.POST.getlist('work_employer[]')
+            work_start_dates = request.POST.getlist('work_start_date[]')
+            work_end_dates = request.POST.getlist('work_end_date[]')
+            job_descriptions = request.POST.getlist('job_description[]')
+
+            work_experience_data = []
+            for i in range(len(work_job_titles)):
+                work_experience_data.append({
+                    "work_job_title": work_job_titles[i],
+                    "work_employer": work_employers[i],
+                    "work_start_date": work_start_dates[i],
+                    "work_end_date": work_end_dates[i],
+                    "job_description": job_descriptions[i],
+                })
+            application.work_experience = work_experience_data
+
             application.save()
 
-            # Optionally, update or create candidate record here...
+            # Update or create candidate record
             candidate, created = Candidate.objects.get_or_create(
                 user=applicant.user, job=job
             )
             candidate.resume = form.cleaned_data.get("resume")
             candidate.cover_letter = form.cleaned_data.get("cover_letter")
             candidate.application_status = "Pending"
+            candidate.work_experience = work_experience_data  # ✅ Save work experience to Candidate too
             candidate.save()
 
             # Notifications
@@ -385,6 +476,7 @@ def applicants_application(request, job_id):
         'job': job,
     })
 
+
 @applicant_only
 @login_required
 def applicants_analytics(request):
@@ -395,7 +487,15 @@ def applicants_analytics(request):
 
     # Fetch statistics
     total_applications = Application.objects.filter(applicant=applicant).count()
-    interviews_scheduled = Application.objects.filter(applicant=applicant, status="interviewed").count()
+    candidates = Candidate.objects.filter(user=request.user)
+    # Only count interviews if the user actually has applications
+    applications = Application.objects.filter(applicant=applicant)
+    if applications.exists():
+        applied_jobs = applications.values_list('job', flat=True)
+        candidates = Candidate.objects.filter(user=request.user, job__in=applied_jobs)
+        interviews_scheduled = Interview.objects.filter(candidate__in=candidates).count()
+    else:
+        interviews_scheduled = 0
     job_offers_received = Application.objects.filter(applicant=applicant, status="hired").count()
     
     # Calculate acceptance rate
@@ -417,6 +517,8 @@ def applicants_analytics(request):
 
     # Fetch applications list for table
     applications = Application.objects.filter(applicant=applicant).select_related("job")
+
+    interviews = Interview.objects.filter(candidate__user=request.user)
 
     return render(request, 'applicants_analytics.html', {
         "total_applications": total_applications,

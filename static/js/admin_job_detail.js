@@ -12,7 +12,7 @@ function setupJobActions() {
     if (editJobBtn) {
         editJobBtn.addEventListener('click', function() {
             const jobId = this.dataset.jobId;
-            window.location.href = `/admin/edit-job/${jobId}/`;
+            window.location.href = `/admin_edit_job/${jobId}/`;
         });
     }
     
@@ -22,7 +22,7 @@ function setupJobActions() {
         deleteJobBtn.addEventListener('click', function() {
             const jobId = this.dataset.jobId;
             if (confirm('Are you sure you want to delete this job listing? This action cannot be undone.')) {
-                fetch(`/admin/delete-job/${jobId}/`, {
+                fetch(`/admin_delete_job/${jobId}/`, {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': getCsrfToken(),
@@ -31,10 +31,10 @@ function setupJobActions() {
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.success) {
-                        window.location.href = '/admin/job-listings/';
+                    if (data.success || data.status === 'success') {
+                        window.location.href = '/admin_job_listings/';
                     } else {
-                        alert('Error deleting job: ' + data.error);
+                        alert('Error deleting job: ' + (data.error || 'Unknown error'));
                     }
                 })
                 .catch(error => {
@@ -49,7 +49,9 @@ function setupJobActions() {
     const closeJobBtn = document.querySelector('.close-job');
     if (closeJobBtn) {
         closeJobBtn.addEventListener('click', function() {
-            updateJobStatus(this.dataset.jobId, 'Closed');
+            if (confirm('Are you sure you want to close this job?')) {
+                updateJobStatus(this.dataset.jobId, 'Closed');
+            }
         });
     }
     
@@ -57,7 +59,9 @@ function setupJobActions() {
     const reopenJobBtn = document.querySelector('.reopen-job');
     if (reopenJobBtn) {
         reopenJobBtn.addEventListener('click', function() {
-            updateJobStatus(this.dataset.jobId, 'Open');
+            if (confirm('Are you sure you want to reopen this job?')) {
+                updateJobStatus(this.dataset.jobId, 'Open');
+            }
         });
     }
     
@@ -65,26 +69,44 @@ function setupJobActions() {
     const approveJobBtn = document.querySelector('.approve-job');
     if (approveJobBtn) {
         approveJobBtn.addEventListener('click', function() {
-            updateJobStatus(this.dataset.jobId, 'Approved');
+            if (confirm('Are you sure you want to approve this job?')) {
+                updateJobStatus(this.dataset.jobId, 'Approved');
+            }
         });
     }
 }
 
 function updateJobStatus(jobId, status) {
-    fetch(`/admin/update-job-status/${jobId}/`, {
+    console.log(`Sending request to update job ${jobId} to status: ${status}`);
+    
+    fetch(`/admin_toggle_job_status/${jobId}/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCsrfToken(),
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ status: status })
+        body: JSON.stringify({ 
+            status: status 
+        })
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log(`Received response with status: ${response.status}`);
+        return response.json();
+    })
     .then(data => {
+        console.log('Response data:', data);
         if (data.success) {
-            window.location.reload();
+            // Update UI directly instead of just refreshing the page
+            updateJobStatusUI(status);
+            
+            // Schedule a page reload after a delay to get complete updates
+            console.log('Scheduling page reload in 1.5 seconds...');
+            setTimeout(() => {
+                console.log('Reloading page now...');
+                window.location.reload();
+            }, 1500);
         } else {
-            alert('Error updating job status: ' + data.error);
+            alert('Error updating job status: ' + (data.error || 'Unknown error'));
         }
     })
     .catch(error => {
@@ -93,19 +115,88 @@ function updateJobStatus(jobId, status) {
     });
 }
 
+
+function updateJobStatusUI(status) {
+    
+    console.log(`Updating UI for status: ${status}`);
+    
+    
+    const statusBadge = document.querySelector('.job-header .badge');
+    if (statusBadge) {
+        if (status === 'Open') {
+            statusBadge.textContent = 'Open';
+            statusBadge.classList.remove('closed');
+            statusBadge.classList.add('open');
+            console.log('Updated badge to Open');
+        } else if (status === 'Closed') {
+            statusBadge.textContent = 'Closed';
+            statusBadge.classList.remove('open');
+            statusBadge.classList.add('closed');
+            console.log('Updated badge to Closed');
+        } else if (status === 'Approved') {
+            
+            const approvalStatus = document.querySelector('.approval-status');
+            if (approvalStatus) {
+                approvalStatus.textContent = 'Approved';
+                approvalStatus.classList.remove('pending');
+                approvalStatus.classList.add('approved');
+                console.log('Updated approval status to Approved');
+            }
+        }
+    } else {
+        console.warn('Status badge not found in the DOM');
+    }
+    
+    
+    const closeJobBtn = document.querySelector('.close-job');
+    const reopenJobBtn = document.querySelector('.reopen-job');
+    
+    if (closeJobBtn && reopenJobBtn) {
+        if (status === 'Open') {
+            closeJobBtn.style.display = 'inline-block';
+            reopenJobBtn.style.display = 'none';
+            console.log('Showing Close button, hiding Reopen button');
+        } else if (status === 'Closed') {
+            closeJobBtn.style.display = 'none';
+            reopenJobBtn.style.display = 'inline-block';
+            console.log('Hiding Close button, showing Reopen button');
+        }
+    } else {
+        console.warn('Close/Reopen buttons not found in the DOM');
+    }
+    
+    
+    if (status === 'Approved') {
+        const approveJobBtn = document.querySelector('.approve-job');
+        if (approveJobBtn) {
+            approveJobBtn.style.display = 'none';
+            console.log('Hiding Approve button');
+        }
+    }
+}
+
 function setupCandidateView() {
     // View candidate buttons
     const viewCandidateBtns = document.querySelectorAll('.view-candidate-btn');
     viewCandidateBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const candidateId = this.dataset.candidateId;
-            fetch(`/admin/get-candidate-info/${candidateId}/`)
-                .then(response => response.json())
+            console.log(`Fetching candidate info for ID: ${candidateId}`);
+            
+            fetch(`/admin_get-candidate-info/${candidateId}/`)
+                .then(response => {
+                    console.log(`Response status: ${response.status}`);
+                    if (!response.ok) {
+                        throw new Error(`Server responded with status: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('Received candidate data:', data);
                     displayCandidateModal(data);
                 })
                 .catch(error => {
-                    console.error('Error:', error);
+                    console.error('Error fetching candidate info:', error);
                     alert('An error occurred while fetching candidate information.');
                 });
         });
@@ -159,11 +250,9 @@ function displayCandidateModal(candidateData) {
             <h3>Update Application Status</h3>
             <select id="applicationStatus">
                 <option value="Pending" ${candidateData.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                <option value="Reviewing" ${candidateData.status === 'Reviewing' ? 'selected' : ''}>Reviewing</option>
-                <option value="Interview" ${candidateData.status === 'Interview' ? 'selected' : ''}>Interview</option>
-                <option value="Offered" ${candidateData.status === 'Offered' ? 'selected' : ''}>Offered</option>
-                <option value="Rejected" ${candidateData.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                <option value="Interview" ${candidateData.status === 'Interview' ? 'selected' : ''}>Interview Scheduled</option>
                 <option value="Hired" ${candidateData.status === 'Hired' ? 'selected' : ''}>Hired</option>
+                <option value="Rejected" ${candidateData.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
             </select>
             <button class="update-btn" data-candidate-id="${candidateData.id}">Update Status</button>
         </div>
@@ -174,8 +263,9 @@ function displayCandidateModal(candidateData) {
     updateBtn.addEventListener('click', function() {
         const candidateId = this.dataset.candidateId;
         const newStatus = document.getElementById('applicationStatus').value;
+        console.log(`Updating candidate ${candidateId} status to: ${newStatus}`);
         
-        fetch(`/admin/update-candidate-status/${candidateId}/`, {
+        fetch(`/admin_update-candidate-status/${candidateId}/`, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCsrfToken(),
@@ -183,18 +273,25 @@ function displayCandidateModal(candidateData) {
             },
             body: JSON.stringify({ status: newStatus })
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log(`Update status response: ${response.status}`);
+            if (!response.ok) {
+                throw new Error(`Server responded with status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Update status response data:', data);
             if (data.success) {
                 // Close modal and reload page to see updated status
                 modal.style.display = 'none';
                 window.location.reload();
             } else {
-                alert('Error updating status: ' + data.error);
+                alert('Error updating status: ' + (data.error || 'Unknown error'));
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error('Error updating candidate status:', error);
             alert('An error occurred while updating the candidate status.');
         });
     });

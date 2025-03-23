@@ -2,6 +2,8 @@
     max-width: 1000px;
     margin: 0 auto;
     padding: 20px;
+    max-height: 80vh; /* Adjust the height to your preference */
+    overflow-y: auto; /* Allows scrolling when content exceeds max-height */
 }
 
 .back-link {
@@ -41,19 +43,15 @@
     color: white;
 }
 
-.job-info, .employer-info {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 5px;
+.job-info, .employer-info, .job-description, .job-requirements, .job-benefits, .candidates-section, .admin-actions {
     margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
 }
 
 .info-item {
     margin-bottom: 10px;
-}
-
-.job-description, .job-requirements, .job-benefits {
-    margin-bottom: 20px;
 }
 
 .candidates-table {
@@ -108,22 +106,12 @@
     color: white;
 }
 
-.close-job {
+.close-job, .reopen-job {
     background-color: #6c757d;
     color: white;
 }
 
-.reopen-job {
-    background-color: #28a745;
-    color: white;
-}
-
-.approve-job {
-    background-color: #4a6cf7;
-    color: white;
-}
-
-/* Modal styles for candidate view */
+/* Modal styles */
 .modal {
     display: none;
     position: fixed;

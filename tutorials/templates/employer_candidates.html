@@ -96,7 +96,7 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{% url 'applicant_profile' candidate.id %}" class="btn-review">Review</a>
+                                <a href="{% url 'applicant_profile' candidate.id %}" class="btn-review" data-review-button="true">Review</a>
                             </td>
                         </tr>
                     {% empty %}

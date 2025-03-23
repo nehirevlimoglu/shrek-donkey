@@ -132,7 +132,15 @@ class Candidate(models.Model):
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
 
+    # ✅ Replacing JSON work_experience with individual fields
+    work_job_title = models.CharField(max_length=255, blank=True, null=True)
+    work_employer = models.CharField(max_length=255, blank=True, null=True)
+    work_start_date = models.DateField(null=True, blank=True)
+    work_end_date = models.DateField(null=True, blank=True)
+    job_description = models.TextField(blank=True, null=True)
+
     skills = models.TextField(blank=True, null=True, default="[]")
+    
 
     current_job_title = models.CharField(max_length=255, blank=True, null=True)
     current_employer = models.CharField(max_length=255, blank=True, null=True)
@@ -143,6 +151,8 @@ class Candidate(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.job.title if self.job else 'No Job Assigned'}"
+
+
 
 
 
