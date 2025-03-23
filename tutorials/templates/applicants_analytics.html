@@ -3,11 +3,11 @@
 
 {% block title %}Applicant Analytics | Swamp Hiring{% endblock %}
 
-{% block content %}
-<head>
-    <link rel="stylesheet" href="{% static 'css/applicants_analytics.css' %}">
-</head>
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/applicants_analytics.css' %}">
+{% endblock %}
 
+{% block content %}
 <header>
     <h1>Applicant Analytics Overview</h1>
 </header>
@@ -32,76 +32,53 @@
 </section>
 
 <section class="chart-container">
+    <!-- Pie Chart -->
     <div class="chart-card">
-        <h3>Applications Over Time</h3>
-        <canvas id="applicationsChart"></canvas>
-    </div>
-    <div class="chart-card">
-        <h3>Offer Acceptance Breakdown</h3>
-        <canvas id="offerChart"></canvas>
+        <h3>Acceptance Breakdown</h3>
+        <div class="chart-wrapper">
+            <canvas id="offerChart"></canvas>
+        </div>
+    </div>    
+
+    <!-- Application Details -->
+    <div class="chart-card" style="width: 100%;">
+        <h3>Application Details</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Company</th>
+                    <th>Interview Scheduled</th>
+                    <th>Application Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for application in applications %}
+                <tr>
+                    <td>{{ application.job.title }}</td>
+                    <td>{{ application.job.company }}</td>
+                    <td>{% if application.status == "interviewed" %}Yes{% else %}No{% endif %}</td>
+                    <td>
+                        {% if application.status == "hired" %}
+                            Hired
+                        {% elif application.status == "rejected" %}
+                            Rejected
+                        {% else %}
+                            Pending
+                        {% endif %}
+                    </td>                                    
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </section>
 
-<section class="detailed-reports">
-    <h2>Application Details</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Job Title</th>
-                <th>Status</th>
-                <th>Interview Scheduled</th>
-                <th>Offer Received</th>
-                <th>Accepted</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for application in applications %}
-            <tr>
-                <td>{{ application.job.title }}</td>
-                <td>{{ application.status }}</td>
-                <td>{% if application.status == "interviewed" %}Yes{% else %}No{% endif %}</td>
-                <td>{% if application.status == "hired" %}Yes{% else %}No{% endif %}</td>
-                <td>{% if application.status == "hired" and application.confirm_information %}Yes{% else %}No{% endif %}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</section>
+{{ offer_chart_labels|json_script:"offerLabels" }}
+{{ offer_chart_data|json_script:"offerData" }}
+{{ offer_chart_colors|json_script:"offerColors" }}
 
-<!-- Pass Django data to JavaScript safely -->
-{{ applications_over_time|json_script:"applicationsData" }}
-{{ offer_acceptance_breakdown|json_script:"offerData" }}
-
+<!-- Chart.js and your custom chart logic -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // Parse JSON safely from Django template
-    const applicationsData = JSON.parse(document.getElementById('applicationsData').textContent);
-    const offerData = JSON.parse(document.getElementById('offerData').textContent);
-
-    // Applications Over Time Chart
-    new Chart(document.getElementById('applicationsChart').getContext('2d'), {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{
-                label: 'Applications Submitted',
-                data: applicationsData,
-                borderColor: '#1A73E8',
-                fill: false
-            }]
-        }
-    });
-
-    // Offer Acceptance Breakdown Chart
-    new Chart(document.getElementById('offerChart').getContext('2d'), {
-        type: 'pie',
-        data: {
-            labels: ['Accepted', 'Declined'],
-            datasets: [{
-                data: offerData,
-                backgroundColor: ['#34A853', '#EA4335']
-            }]
-        }
-    });
-</script>
+<script src="{% static 'js/applicants_analytics.js' %}"></script>
 {% endblock %}
