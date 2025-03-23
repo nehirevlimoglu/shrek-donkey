@@ -1,117 +1,96 @@
-document.addEventListener("DOMContentLoaded", function () {
-    let searchInput = document.getElementById("job-search");
-    let dropdownResults = document.querySelector(".dropdown-results");
-    let selectElement = document.getElementById("id_job_preferences");
-
-    searchInput.addEventListener("input", function () {
-        let searchTerm = searchInput.value.toLowerCase();
-        dropdownResults.innerHTML = "";
-        if (searchTerm.length > 0) {
-            let options = Array.from(selectElement.options);
-            let filteredOptions = options.filter(option =>
-                option.text.toLowerCase().includes(searchTerm)
-            );
-
-            filteredOptions.forEach(option => {
-                let div = document.createElement("div");
-                div.textContent = option.text;
-                div.setAttribute("data-value", option.value);
-                div.addEventListener("click", function () {
-                    let selectedOption = document.createElement("option");
-                    selectedOption.value = option.value;
-                    selectedOption.textContent = option.text;
-                    selectedOption.selected = true;
-                    selectElement.appendChild(selectedOption);
-                    searchInput.value = "";
-                    dropdownResults.innerHTML = "";
-                });
-                dropdownResults.appendChild(div);
-            });
-
-            dropdownResults.style.display = "block";
-        } else {
-            dropdownResults.style.display = "none";
-        }
-    });
-
-    document.addEventListener("click", function (event) {
-        if (!searchInput.contains(event.target) && !dropdownResults.contains(event.target)) {
-            dropdownResults.style.display = "none";
-        }
-    });
-});
-
 let selectedAction = null;
 let selectedCandidateId = null;
 
+document.addEventListener("DOMContentLoaded", function () {
+    const candidateIdField = document.getElementById("candidate-id");
+    selectedCandidateId = candidateIdField ? candidateIdField.value : null;
+
+    // 💡 FORCE-HIDE modal on load (in case inline display:flex remains from prior use)
+    const modal = document.getElementById("confirmation-modal");
+    if (modal) {
+        modal.style.display = "none";
+    }
+
+    // Prevent "Review" button from triggering modal logic (just in case)
+    const reviewLinks = document.querySelectorAll('a.btn-review');
+    reviewLinks.forEach(link => {
+        link.addEventListener("click", function (e) {
+            e.stopImmediatePropagation();
+        });
+    });
+});
+
+
 function confirmAction(action, applicantName, jobTitle) {
+    if (!["accept", "reject"].includes(action)) return;
+
+    if (!action || !selectedCandidateId || !applicantName?.trim() || !jobTitle?.trim() || jobTitle === "None") {
+        return;
+    }
+
+    const modal = document.getElementById("confirmation-modal");
+    const titleEl = document.getElementById("confirmation-title");
+    const messageEl = document.getElementById("confirmation-message");
+
+    if (!modal || !titleEl || !messageEl) return;
+
+    titleEl.textContent = action === "accept" ? "Accept Applicant" : "Reject Applicant";
+    messageEl.textContent = `Are you sure you want to ${action} ${applicantName} for the role "${jobTitle}"?`;
+    modal.style.display = "flex";
+
     selectedAction = action;
-    selectedCandidateId = document.getElementById('candidate-id').value;
-
-    const title = action === 'accept' ? "Accept Applicant" : "Reject Applicant";
-    const message = `Are you sure you want to ${action} ${applicantName} for the role "${jobTitle}"?`;
-
-    document.getElementById('confirmation-title').innerText = title;
-    document.getElementById('confirmation-message').innerText = message;
-    document.getElementById('confirmation-modal').style.display = 'flex';
 }
 
+
 function closeModal() {
-    document.getElementById('confirmation-modal').style.display = 'none';
+    document.getElementById("confirmation-modal").style.display = "none";
     selectedAction = null;
-    selectedCandidateId = null;
 }
 
 function confirmActionFinal() {
     if (!selectedAction || !selectedCandidateId) return;
 
-    const url = `/candidates/${selectedCandidateId}/${selectedAction}/`;  // Update path if needed
-    const csrfToken = getCookie('csrftoken');
+    const url = `/candidates/${selectedCandidateId}/${selectedAction}/`;
+    const csrfToken = getCookie("csrftoken");
 
     fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-            'X-CSRFToken': csrfToken,
-            'Content-Type': 'application/json',
+            "X-CSRFToken": csrfToken,
+            "Content-Type": "application/json",
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status) {
-            // Update chip text & style
-            const chip = document.querySelector(".chip");
-            chip.innerText = data.status;
-            chip.className = "chip " + (data.status === 'Hired' ? 'chip-accepted' : 'chip-rejected');
+        .then(res => res.json())
+        .then(data => {
+            if (data.status) {
+                const chip = document.querySelector(".chip");
+                if (chip) {
+                    chip.innerText = data.status;
+                    chip.className = `chip ${data.status === 'Hired' ? 'chip-accepted' : 'chip-rejected'}`;
+                }
 
-            // Hide buttons
-            const buttons = document.querySelector(".action-buttons");
-            if (buttons) buttons.style.display = "none";
-
-            const interviewBtn = document.querySelector(".btn-primary");
-            if (interviewBtn) interviewBtn.style.display = "none";
-
-        } else if (data.error) {
-            alert(data.error);
-        }
-
-        closeModal();
-    })
-    .catch(error => {
-        console.error("Error updating candidate status:", error);
-        alert("Something went wrong. Please try again.");
-        closeModal();
-    });
+                document.querySelector(".action-buttons")?.remove();
+                document.querySelector(".btn-primary")?.remove();
+            } else {
+                alert(data.error || "Unexpected error.");
+            }
+            closeModal();
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Something went wrong. Try again.");
+            closeModal();
+        });
 }
 
-// Grab CSRF token from cookies
 function getCookie(name) {
     let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (const cookie of cookies) {
-            const cookieTrimmed = cookie.trim();
-            if (cookieTrimmed.startsWith(name + '=')) {
-                cookieValue = decodeURIComponent(cookieTrimmed.slice(name.length + 1));
+    if (document.cookie) {
+        const cookies = document.cookie.split(";");
+        for (let cookie of cookies) {
+            const trimmed = cookie.trim();
+            if (trimmed.startsWith(name + "=")) {
+                cookieValue = decodeURIComponent(trimmed.slice(name.length + 1));
                 break;
             }
         }
