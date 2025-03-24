@@ -19,7 +19,7 @@ from tutorials.views.admin_views import admin_home_page, admin_job_listings, adm
 from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings,change_password, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view,  employer_candidates, get_interviews, edit_company_profile, delete_account
 from tutorials.models.applicants_models import Applicant
 from tutorials.views.views import sign_up, applicant_profile_setup, employer_profile_setup
-from tutorials.views.employer_views import job_detail_view
+from tutorials.views.employer_views import job_detail_view, mark_notification_as_read
 
 from tutorials import views
 
@@ -79,6 +79,8 @@ urlpatterns = [
     path('admin_update-candidate-status/<int:candidate_id>/', update_candidate_status, name='update_candidate_status'),
     path('admin_settings/', admin_settings, name='admin_settings'),
     path('employer_settings/', employer_settings, name='employer_settings'),
+    path('employer_notifications/', employer_notifications, name='employer_notifications'),
+    path('mark-notification-read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
     path('create-job/', create_job_listings, name='employer_create_job_listing'),
     path('candidates/', employer_candidates, name='employer_candidates'),
 

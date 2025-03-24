@@ -126,13 +126,13 @@ class WorkExperience(models.Model):
 
     def __str__(self):
         return f"{self.job_title} at {self.employer}"
-
+    
 
 class EmployerNotification(models.Model):
     employer = models.ForeignKey(Employer, on_delete=models.CASCADE, related_name="notifications")
     title = models.CharField(max_length=200)
-    message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    message = models.TextField(default="No message provided")
+    created_at = models.DateTimeField(default=timezone.now)
     is_read = models.BooleanField(default=False)
 
     class Meta:
@@ -140,6 +140,7 @@ class EmployerNotification(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.employer.company_name}"
+
         
 
 class Candidate(models.Model):

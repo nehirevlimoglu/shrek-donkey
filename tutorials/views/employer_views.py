@@ -377,20 +377,20 @@ def employer_job_listings(request):
     return render(request, 'employer_job_listings.html', {'jobs': jobs})
 
 
-
 @login_required
 def employer_notifications(request):
     try:
-        # This ensures the user is actually an Employer with a profile
-        Employer.objects.get(user=request.user)
+        employer = Employer.objects.get(user=request.user)
     except Employer.DoesNotExist:
-        return JsonResponse({"error": "Employer not found"}, status=403)
+        return JsonResponse({"success": False, "error": "Employer profile not found"}, status=403)
 
-    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
-    notifications.update(is_read=True)
+    notifications = EmployerNotification.objects.filter(employer=employer).order_by('-created_at')
 
-    return render(request, 'employer_notifications.html', {'notifications': notifications})
-    
+    return render(request, 'employer_notifications.html', {
+        'notifications': notifications
+    })
+
+
 @login_required
 def get_employer_events(request):
     """Fetch events only for the logged-in employer"""
@@ -495,6 +495,24 @@ def applicant_profile(request, applicant_id):
         "application": application
     })
 
+@csrf_exempt
+@login_required
+def mark_notification_as_read(request, notification_id):
+    try:
+        employer = Employer.objects.get(user=request.user)
+        notification = EmployerNotification.objects.get(id=notification_id, employer=employer)
+
+        if request.method == "POST":
+            notification.is_read = True
+            notification.save()
+            return JsonResponse({"success": True})
+
+        return JsonResponse({"success": False, "error": "Invalid request method"}, status=405)
+
+    except Employer.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Employer not found"}, status=403)
+    except EmployerNotification.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
 
 
 @login_required

@@ -332,17 +332,22 @@ def apply_for_job(request, job_id):
             # -----------------------------
             matched_candidates = match_candidates_to_job(job.title, top_n=10)  # get top 10 matches
             print("DEBUG: Matched candidates list:", matched_candidates)
-            for cand, score in matched_candidates:
-                print(f"DEBUG: Candidate {cand.user.username} with ID {cand.id} has score {score:.2f}")
-                if cand.id == candidate.id and score >= 0.68:
-                    EmployerNotification.objects.create(
-                        employer=job.employer,
-                        title="New Matched Candidate Found",
-                        message=(f"Your job '{job.title}' just received a matched candidate: "
-                                f"{candidate.user.username} (Score: {score:.2f}).")
-                    )
-                    print("📢 Matched candidate notification sent to employer via match_candidates_to_job().")
-                    break  # No need to check further
+
+            if isinstance(matched_candidates, list):
+                for cand, score in matched_candidates:
+                    print(f"DEBUG: Candidate {cand.user.username} with ID {cand.id} has score {score:.2f}")
+                    if cand.id == candidate.id and score >= 0.68:
+                        EmployerNotification.objects.create(
+                            employer=job.employer,
+                            title="New Matched Candidate Found",
+                            message=(f"Your job '{job.title}' just received a matched candidate: "
+                                    f"{candidate.user.username} (Score: {score:.2f}).")
+                        )
+                        print("📢 Matched candidate notification sent to employer via match_candidates_to_job().")
+                        break  # No need to check further
+            else:
+                print(f"⚠️ Matching system returned a message instead of a list: {matched_candidates}")
+
 
 
             if job.employer:
