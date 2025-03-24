@@ -747,7 +747,6 @@ def update_job_status(request):
                 )
                 logger.debug(f"[update_job_status] Sent approval notification to employer {job.employer.id}")
 
-            # 手动刷新缓存，确保admin_job_detail页面检索到最新状态
             try:
                 cache.delete(f'job_{job_id}_status')
                 logger.debug(f"[update_job_status] Cleared cache for job_{job_id}_status")

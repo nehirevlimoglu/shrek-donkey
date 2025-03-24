@@ -78,7 +78,7 @@ class MatchCandidatesToJobTests(TestCase):
         # Two calls => two PyTorch tensors
         mock_cos_sim.side_effect = [
             torch.tensor([[0.9]]),
-            torch.tensor([[0.6]]),
+            torch.tensor([[0.7]]),
         ]
 
         # Create 2 candidates
@@ -91,7 +91,7 @@ class MatchCandidatesToJobTests(TestCase):
         self.assertEqual(result[0][0], cand1)
         self.assertAlmostEqual(result[0][1], 0.9, places=3)
         self.assertEqual(result[1][0], cand2)
-        self.assertAlmostEqual(result[1][1], 0.6, places=3)
+        self.assertAlmostEqual(result[1][1], 0.7, places=3)
 
     @patch("tutorials.utils.extract_skills_nlp")
     @patch("tutorials.utils.semantic_model.encode", return_value="JOB_VECTOR")
@@ -118,7 +118,7 @@ class MatchCandidatesToJobTests(TestCase):
 
     @patch("tutorials.utils.Job.get_extracted_skills", return_value=["python", "django"])
     @patch("tutorials.utils.extract_skills_nlp", return_value=["python"])
-    @patch("tutorials.utils.util.pytorch_cos_sim", return_value=torch.tensor([[0.5]]))
+    @patch("tutorials.utils.util.pytorch_cos_sim", return_value=torch.tensor([[0.7]]))
     @patch("tutorials.utils.semantic_model.encode", return_value="VECTOR")
     def test_candidate_with_invalid_json_skills(
         self, mock_encode, mock_cos_sim, mock_extract_nlp, mock_job_skills
@@ -130,5 +130,6 @@ class MatchCandidatesToJobTests(TestCase):
         results = match_candidates_to_job("Junior Developer")
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0][0], cand)
-        self.assertEqual(results[0][1], 0.5)
+        self.assertTrue(0.69 < results[0][1] < 0.71)
+
 

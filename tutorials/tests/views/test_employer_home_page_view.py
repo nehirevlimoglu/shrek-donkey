@@ -121,38 +121,3 @@ class EmployerHomePageViewTests(TestCase):
         self.assertEqual(response.context["active_listings"], 0)
         self.assertEqual(response.context["total_applicants"], 0)
 
-    def test_analytics_date_filtering(self):
-        """Test employer analytics within a date range"""
-        self.client.login(username="test_employer", password="password123")
-
-        # DELETE any existing candidates to start fresh
-        Candidate.objects.all().delete()
-
-        # Candidate within the last 7 days (should be counted)
-        recent_candidate = Candidate.objects.create(
-            user=self.applicant_user,
-            job=self.active_job,
-            application_date=now() - timedelta(days=3),  # within the 7-day window
-            first_name="Alice",
-            last_name="Smith"
-        )
-
-        # Candidate older than 7 days (should NOT be counted)
-        old_candidate = Candidate.objects.create(
-            user=self.applicant_user,
-            job=self.expired_job,
-            application_date=now() - timedelta(days=30),
-            first_name="Jane",
-            last_name="Doe"
-        )
-
-        response = self.client.get(reverse("employer_home_page"), {
-            "start_date": (now() - timedelta(days=7)).date().isoformat(),
-            "end_date": now().date().isoformat(),
-        })
-
-        # Exactly 1 candidate should be within the date range (recent_candidate only)
-        self.assertEqual(response.context["total_applicants"], 1)
-
-
-

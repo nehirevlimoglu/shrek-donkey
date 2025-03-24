@@ -49,13 +49,13 @@ class Employer(models.Model):
     def __str__(self):
         return f"{self.company_name} ({self.username})"
     
+
 class JobTitle(models.Model):
     title = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.title 
         return f"{self.company_name} ({self.user.username})"
-
 
 
 class Job(models.Model):

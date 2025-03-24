@@ -66,7 +66,8 @@ class EditJobViewTests(TestCase):
             "contact_email": self.employer.email,
         }
         response = self.client.post(self.url, updated_data)
-        expected_redirect = reverse("employer_job_detail", kwargs={"pk": self.job.pk})
+        expected_redirect = reverse("employer_job_detail", kwargs={"job_id": self.job.pk})  # ✅
+
         self.assertRedirects(response, expected_redirect)
 
         self.job.refresh_from_db()

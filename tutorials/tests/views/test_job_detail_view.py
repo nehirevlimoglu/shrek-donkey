@@ -40,7 +40,8 @@ class JobDetailViewTests(TestCase):
         )
 
     def test_job_detail_view_returns_200(self):
-        url = reverse("employer_job_detail", kwargs={"pk": self.job.id})  # ✅ updated
+        url = reverse("employer_job_detail", kwargs={"job_id": self.job.id})
+
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
@@ -49,6 +50,7 @@ class JobDetailViewTests(TestCase):
         self.assertEqual(response.context["job"].id, self.job.id)
 
     def test_job_detail_404_if_invalid_id(self):
-        url = reverse("employer_job_detail", kwargs={"pk": 9999})  # ✅ updated
+        url = reverse("employer_job_detail", kwargs={"job_id": 9999})
+
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
