@@ -1,4 +1,9 @@
 /* General Styling */
+
+html, body {
+    overflow-y: auto;
+}
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -150,20 +155,25 @@ body {
     font-size: 0.9em;
 }
 
-/* Favorite Star Styling */
-.favorite-star {
-    font-size: 2rem;
-    color: #ccc;
-    cursor: pointer;
-    transition: color 0.3s ease, transform 0.2s ease;
-    text-align: center;
+/* Add details-btn styles (same as second snippet) */
+.details-btn {
+    background-color: #007BFF !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 4px 10px !important;  /* Reduced padding */
+    font-size: 0.9rem !important;   /* Slightly smaller font */
+    cursor: pointer !important;
+    text-decoration: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
 }
 
-.favorite-star:hover {
-    color: #ffd700;
-    transform: scale(1.2);
+.details-btn:hover {
+    background-color: #f0f0f0 !important; /* Slightly darker on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
-.favorite-star.active {
-    color: #ffd700;
+.details-btn:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.3) !important; /* Adjust focus ring as needed */
 }
