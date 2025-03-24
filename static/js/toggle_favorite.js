@@ -19,8 +19,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 if (data.favorited) {
                     star.innerHTML = '&#9733;'; // filled star
+                    star.classList.add('active');
                 } else {
                     star.innerHTML = '&#9734;'; // empty star
+                    star.classList.remove('active');
                 }
             })
             .catch(error => console.error('Error:', error));

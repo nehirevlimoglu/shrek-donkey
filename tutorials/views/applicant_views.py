@@ -537,25 +537,26 @@ def applicants_analytics(request):
         "offer_chart_colors": offer_colors,
     })
 
+from django.views.decorators.http import require_POST
 
 @login_required
 @csrf_exempt  # Ensure CSRF is handled appropriately (alternatively, include CSRF token in your JS)
+@require_POST
 def toggle_favorite(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        job_id = data.get("job_id")
-        try:
-            job = Job.objects.get(id=job_id)
-        except Job.DoesNotExist:
-            return JsonResponse({"error": "Job not found."}, status=404)
-        
-        applicant = request.user.applicant
-        if job in applicant.favorites.all():
-            applicant.favorites.remove(job)
-            favorited = False
-        else:
-            applicant.favorites.add(job)
-            favorited = True
-        
-        return JsonResponse({"favorited": favorited})
-    return JsonResponse({"error": "Invalid request method."}, status=400)
+    data = json.loads(request.body)
+    job_id = data.get('job_id')
+    # Assuming you have a Job model and the applicant profile is attached to the user
+    try:
+        job = Job.objects.get(id=job_id)
+        applicant = request.user.applicant  # Make sure the user has an applicant profile
+    except Job.DoesNotExist:
+        return JsonResponse({'error': 'Job not found'}, status=404)
+
+    if job in applicant.favorites.all():
+        applicant.favorites.remove(job)
+        favorited = False
+    else:
+        applicant.favorites.add(job)
+        favorited = True
+    # Ensure that the change is saved (ManyToManyFields usually update immediately)
+    return JsonResponse({'favorited': favorited})

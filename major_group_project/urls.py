@@ -91,7 +91,7 @@ urlpatterns = [
 
     path("settings/edit_profile/", edit_company_profile, name="edit_company_profile"),
     path("settings/delete_account/", delete_account, name="delete_account"),
-    path('job/<int:job_id>/', job_detail_view, name='job_detail'),
+    path('job/<int:job_id>/', job_detail, name='job_detail'),
     
     path('employer-notifications/', employer_notifications, name='employer_notifications'),
     path('get-employer-events/', get_employer_events, name='get_employer_events'),
