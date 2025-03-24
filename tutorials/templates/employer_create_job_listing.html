@@ -36,7 +36,7 @@
                     <input type="text" id="title" name="title" required placeholder="e.g. Senior Web Developer">
                 </div>
                 <div class="form-group">
-                    <label for="position">Position</label>
+                    <label for="position">Position <span class="required">*</span></label>
                     <select id="position" name="position">
                         <option value="">Loading positions...</option>
                         <!-- If you have dynamic positions, they can be populated here -->
@@ -70,7 +70,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="salary">Salary (Optional)</label>
+                    <label for="salary">Salary</label>
                     <input type="number" id="salary" name="salary" placeholder="e.g. 50000">
                 </div>
             </div>
@@ -98,7 +98,7 @@
             <!-- Row 6: Benefits & Application Deadline -->
             <div class="form-row">
                 <div class="form-group">
-                    <label for="benefits">Benefits (Optional)</label>
+                    <label for="benefits">Benefits</label>
                     <textarea id="benefits" name="benefits" rows="4" 
                               placeholder="e.g. Health insurance, remote work options, etc."></textarea>
                 </div>
@@ -121,7 +121,7 @@
             <!-- New Row: Required Discipline (Optional) -->
             <div class="form-row">
                 <div class="form-group">
-                    <label for="required_discipline">Required Discipline (Optional):</label>
+                    <label for="required_discipline">Required Discipline:</label>
                     <select id="required_discipline" name="required_discipline" class="form-control">
                         <option value="">-- Select Discipline --</option>
                         <option value="bachelors">Bachelors</option>
@@ -134,20 +134,12 @@
                 </div>
             </div>
 
-            <!-- Hidden Required Work Experience Field (toggleable) -->
-            <div class="form-row">
-                <div class="form-group">
-                    <button type="button" id="toggle-required-experience" class="toggle-btn">
-                        Advanced: Set Required Work Experience (Optional)
-                    </button>
-                </div>
-            </div>
-            <div class="form-row" id="required-experience-container" style="display: none;">
+            <div class="form-row" id="required-experience-container">
                 <div class="form-group">
                     <label for="required_experience">Required Work Experience (Years):</label>
                     <input type="number" step="0.1" id="required_experience" name="required_experience" placeholder="e.g. 3">
                 </div>
-            </div>
+            </div>            
 
             <!-- Submit Button -->
             <div class="form-row">
@@ -161,12 +153,6 @@
 <script src="{% static 'js/load_job_titles.js' %}"></script>
 
 <script>
-    // Toggle display of the required work experience field
-    document.getElementById('toggle-required-experience').addEventListener('click', function() {
-        var container = document.getElementById('required-experience-container');
-        container.style.display = (container.style.display === 'none') ? 'block' : 'none';
-    });
-
     // Auto-hide success messages after 4 seconds
     document.addEventListener("DOMContentLoaded", function() {
         setTimeout(function() {
