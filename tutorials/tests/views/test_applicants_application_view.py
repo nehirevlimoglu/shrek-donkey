@@ -102,7 +102,7 @@ class ApplicantsApplicationViewTests(TestCase):
         # Expect a warning message and a redirect.
         messages = list(get_messages(response.wsgi_request))
         self.assertTrue(any("You have already applied for this job." in m.message for m in messages))
-        expected_redirect = reverse("job_detail", kwargs={"job_id": self.job.id})
+        expected_redirect = reverse("job_detail", kwargs={"pk": self.job.id})
         self.assertRedirects(response, expected_redirect)
 
     def test_post_valid_application(self):
@@ -121,7 +121,7 @@ class ApplicantsApplicationViewTests(TestCase):
             "how_did_you_hear": "other",
             "sponsorship_needed": "no",
             # For checkboxes, the form might expect "True" or "on". Adjust accordingly.
-            "confirm_information": "True",
+            "confirm_information": "on",
             # List fields submitted as lists:
             "school[]": ["School A"],
             "degree[]": ["Bachelor"],

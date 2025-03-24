@@ -259,18 +259,15 @@ def employer_candidates(request):
         'degrees': degrees,  # Pass degrees for dropdown
     })
 
-
 @login_required
-@user_passes_test(is_employer)  # Make sure this is a valid test for the employer
 def employer_calendar(request):
-    try:
-        # Match Employer by username instead of user object
-        employer = Employer.objects.get(username=request.user.username)
-        interviews = Interview.objects.filter(job__employer=employer)
-    except Employer.DoesNotExist:
+    if not hasattr(request.user, 'employer'):
         return HttpResponseForbidden("You are not an employer.")
 
+    employer = request.user.employer
+    interviews = Interview.objects.filter(job__employer=employer)
     return render(request, 'employer_calendar.html', {'interviews': interviews})
+
 
 
 def create_interview_event(request):

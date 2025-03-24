@@ -2,6 +2,11 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from tutorials.models.applicants_models import Applicant
+from django.http import HttpResponseForbidden
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+
+
 
 User = get_user_model()
 

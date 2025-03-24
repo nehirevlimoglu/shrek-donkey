@@ -16,6 +16,8 @@ import json
 from datetime import date
 from tutorials.models.employer_models import Interview
 from tutorials.utils import match_candidates_to_job
+from django.http import HttpResponseForbidden
+
 
 @applicant_only
 @login_required
@@ -112,10 +114,13 @@ def applicants_applied_jobs(request):
 
 @login_required
 def applicants_favourites(request):
-    applicant = get_object_or_404(Applicant, user=request.user)
-    favorite_jobs = applicant.favorites.all()
-    return render(request, 'applicants_favourites.html', { 'favorite_jobs': favorite_jobs })
+    try:
+        applicant = Applicant.objects.get(user=request.user)
+    except Applicant.DoesNotExist:
+        return HttpResponseForbidden("You are not authorized to view this page.")
 
+    favorite_jobs = applicant.favorites.all()
+    return render(request, 'applicants_favourites.html', {'favorite_jobs': favorite_jobs})
 
 @applicant_only
 @login_required

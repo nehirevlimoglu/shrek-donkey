@@ -21,12 +21,13 @@ class SignUpViewTests(TestCase):
         self.assertContains(response, '<form')
 
     def test_successful_employer_signup_creates_employer_and_redirects(self):
+        """Valid employer signup creates Employer profile and redirects correctly"""
         form_data = {
-            'username': 'uniqueemployer123',
+            'username': '@uniqueemployer',  # ✅ now matches the @-pattern
             'first_name': 'Employer',
             'last_name': 'User',
-            'email': 'uniqueemployer123@example.com',
-            'confirm_email': 'uniqueemployer123@example.com',
+            'email': 'uniqueemployer@example.com',
+            'confirm_email': 'uniqueemployer@example.com',
             'password1': 'StrongPass123!',
             'password2': 'StrongPass123!',
             'role': 'Employer'
@@ -34,27 +35,20 @@ class SignUpViewTests(TestCase):
 
         response = self.client.post(self.signup_url, form_data)
 
-        # Ensure form errors get printed if the response isn't a redirect
-        if response.status_code != 302:
-            form = response.context['form']
-            print("\nFORM ERRORS:", form.errors.as_json())
-
         self.assertRedirects(response, reverse('employer_profile_setup'))
 
-        user = User.objects.get(username='uniqueemployer123')
+        user = User.objects.get(username='@uniqueemployer')
         self.assertTrue(user.check_password('StrongPass123!'))
         self.assertEqual(user.role, 'Employer')
 
         employer = Employer.objects.get(user=user)
-        self.assertEqual(employer.email, 'uniqueemployer123@example.com')
-        self.assertEqual(employer.username, 'uniqueemployer123')
-
-
+        self.assertEqual(employer.email, 'uniqueemployer@example.com')
+        self.assertEqual(employer.username, '@uniqueemployer')
 
     def test_successful_applicant_signup_creates_applicant_and_redirects(self):
         """Valid applicant signup creates Applicant profile and redirects correctly"""
         form_data = {
-            'username': 'applicantuser',
+            'username': '@applicantuser',  # ✅ valid username format
             'first_name': 'Applicant',
             'last_name': 'User',
             'email': 'applicant@example.com',
@@ -68,22 +62,21 @@ class SignUpViewTests(TestCase):
 
         self.assertRedirects(response, reverse('applicant_profile_setup'))
 
-        user = User.objects.get(username='applicantuser')
+        user = User.objects.get(username='@applicantuser')
         self.assertTrue(user.check_password('StrongPass123'))
         self.assertEqual(user.role, 'Applicant')
 
         applicant = Applicant.objects.get(user=user)
         self.assertIsNotNone(applicant)
 
-
     def test_invalid_signup_form_shows_errors(self):
         """Invalid form submission does not create user and shows errors"""
         form_data = {
-            'username': '',  # invalid: username required
-            'email': 'invalid-email',  # invalid: incorrect format
+            'username': '',  # ❌ invalid: required
+            'email': 'invalid-email',  # ❌ invalid format
             'confirm_email': 'invalid-email',
             'password1': 'pass123',
-            'password2': 'pass1234',  # passwords don't match
+            'password2': 'pass1234',  # ❌ mismatch
             'role': 'Employer'
         }
 
