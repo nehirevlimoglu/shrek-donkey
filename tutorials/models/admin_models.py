@@ -103,4 +103,3 @@ class NotificationPreference(models.Model):
     
     def __str__(self):
         return f"Notification Preferences for {self.admin.username}"
-

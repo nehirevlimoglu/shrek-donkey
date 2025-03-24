@@ -28,6 +28,7 @@ class AdminNotificationsViewTests(TestCase):
         # Create several Notification objects.
         # Assume Notification has fields: title, message, notification_type, priority, is_read, is_deleted.
         Notification.objects.create(
+            recipient=self.admin_user,
             title="General 1",
             message="General message",
             notification_type="general",
@@ -36,6 +37,7 @@ class AdminNotificationsViewTests(TestCase):
             is_deleted=False
         )
         Notification.objects.create(
+            recipient=self.admin_user,
             title="Job 1",
             message="Job message",
             notification_type="job",
@@ -44,6 +46,7 @@ class AdminNotificationsViewTests(TestCase):
             is_deleted=False
         )
         Notification.objects.create(
+            recipient=self.admin_user,
             title="Feedback 1",
             message="Feedback message",
             notification_type="feedback",
@@ -54,6 +57,7 @@ class AdminNotificationsViewTests(TestCase):
         # Create additional notifications to test pagination.
         for i in range(15):
             Notification.objects.create(
+                recipient=self.admin_user,  # ← this is the key!
                 title=f"Test {i}",
                 message="Test message",
                 notification_type="application",
@@ -61,6 +65,7 @@ class AdminNotificationsViewTests(TestCase):
                 is_read=False,
                 is_deleted=False
             )
+
 
     def test_redirect_if_not_logged_in(self):
         """Test that non-logged-in users are redirected to the login page."""

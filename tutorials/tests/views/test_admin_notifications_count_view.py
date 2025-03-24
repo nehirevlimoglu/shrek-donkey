@@ -11,7 +11,9 @@ User = get_user_model()
 class AdminNotificationsCountViewTests(TestCase):
     def setUp(self):
         self.client = Client()
-        self.admin_user = User.objects.create_user(
+
+        # ✅ Create the admin directly (Admin IS a User)
+        self.admin_user = Admin.objects.create_user(
             username="adminuser",
             email="admin@example.com",
             password="password123",
@@ -19,21 +21,13 @@ class AdminNotificationsCountViewTests(TestCase):
             is_staff=True,
             is_superuser=True
         )
-        self.admin_instance = Admin.objects.create(
-            id=self.admin_user.id,
-            username="adminuser_admin",
-            email="admin_admin@example.com"
-        )
-        self.employer = Employer.objects.create(
-            user=self.admin_user,
-            username="test_employer",
-            email="employer@example.com",
-            company_name="Tech Corp",
-            company_location="New York",
-            industry="Tech"
-        )
+
+        # ✅ No need to create Admin separately
         self.url = reverse("admin_notifications_count")
+
+        # ✅ Login directly
         self.client.force_login(self.admin_user)
+
 
 
     def test_redirect_if_not_logged_in(self):
@@ -50,6 +44,7 @@ class AdminNotificationsCountViewTests(TestCase):
         Notification.objects.create(
             title="Notif 1",
             message="Message 1",
+            recipient=self.admin_user,  # ✅ Add this
             notification_type="general",
             priority="high",
             is_read=False,
@@ -58,6 +53,7 @@ class AdminNotificationsCountViewTests(TestCase):
         Notification.objects.create(
             title="Notif 2",
             message="Message 2",
+            recipient=self.admin_user,  # ✅ Add this
             notification_type="job",
             priority="medium",
             is_read=False,
@@ -66,6 +62,7 @@ class AdminNotificationsCountViewTests(TestCase):
         Notification.objects.create(
             title="Notif 3",
             message="Message 3",
+            recipient=self.admin_user,  # ✅ Add this
             notification_type="application",
             priority="low",
             is_read=False,
@@ -75,6 +72,7 @@ class AdminNotificationsCountViewTests(TestCase):
         Notification.objects.create(
             title="Notif 4",
             message="Message 4",
+            recipient=self.admin_user,  # ✅ Add this
             notification_type="user",
             priority="low",
             is_read=True,
@@ -84,6 +82,7 @@ class AdminNotificationsCountViewTests(TestCase):
         Notification.objects.create(
             title="Notif 5",
             message="Message 5",
+            recipient=self.admin_user,  # ✅ Add this
             notification_type="system",
             priority="medium",
             is_read=False,

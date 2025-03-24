@@ -182,8 +182,8 @@ def create_job_listings(request):
     return render(request, 'employer_create_job_listing.html', {'form': form})
 
 
-def job_detail_view(request, job_id):
-    job = get_object_or_404(Job, id=job_id)
+def job_detail_view(request, pk):
+    job = get_object_or_404(Job, pk=pk)
     return render(request, 'job_detail.html', {'job': job})
 
 
@@ -198,7 +198,8 @@ def edit_job_view(request, pk):
     else:
         form = JobForm(instance=job)
 
-    return render(request, 'jobs/edit_job.html', {'form': form, 'job': job})
+    return render(request, 'edit_job.html', {'form': form, 'job': job})
+
 
 
 @login_required
@@ -597,6 +598,7 @@ def schedule_interview(request, applicant_id):
 
 
 @csrf_exempt
+@login_required
 def accept_candidate(request, candidate_id):
     candidate = get_object_or_404(Candidate, id=candidate_id)
 
