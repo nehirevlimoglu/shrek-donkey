@@ -4,10 +4,13 @@
 {% block title %}My Applied Jobs | Swamp Hiring{% endblock %}
 
 {% block content %}
-
+<!-- 1) Reuse the same CSS from the first page -->
+<link rel="stylesheet" type="text/css" href="{% static 'css/applicants_home_page.css' %}?v={{ timestamp }}">
+<!-- 2) Optionally keep your custom CSS if you need extra overrides -->
 <link rel="stylesheet" type="text/css" href="{% static 'css/applicants_applied_jobs.css' %}?v={{ timestamp }}">
 
 <div class="dashboard-container">
+    <!-- Sidebar (same as before) -->
     <aside class="sidebar">
         <h2>Swamp Hiring</h2>
         <nav>
@@ -22,12 +25,14 @@
         </nav>
     </aside>
     
+    <!-- Main content area -->
     <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
-        <h1 class="page-header">Applied Jobs</h1>
+        <h2>Applied Jobs</h2>
 
         {% if applied_jobs %}
+            <!-- 3) Same container + table structure as first page -->
             <div class="job-listings-container" style="width: 100%;">
-                <table class="job-table" style="width: 100%; text-align: center;">
+                <table class="job-table" style="width: 100%; text-align: center; border-collapse: collapse;">
                     <thead>
                         <tr>
                             <th>Job Title</th>
@@ -36,17 +41,13 @@
                             <th>Salary</th>
                             <th>Type</th>
                             <th>Status</th>
-                            <!-- Replace Favourite with Details -->
                             <th>Details</th>
                         </tr>
                     </thead>
                     <tbody class="job-listings">
                         {% for application in applied_jobs %}
                             <tr>
-                                <td>
-                                    <!-- Job title as plain text -->
-                                    {{ application.job.title }}
-                                </td>
+                                <td>{{ application.job.title }}</td>
                                 <td>{{ application.job.company_name }}</td>
                                 <td>{{ application.job.location }}</td>
                                 <td>${{ application.job.salary }}</td>
@@ -59,11 +60,11 @@
                                     {% elif application.status == "hired" %}
                                         <span class="badge hired">Hired</span>
                                     {% else %}
-                                        <span class="badge pending">Pending</span>
+                                        <span class="badge pending">Rejected</span>
                                     {% endif %}
                                 </td>
-                                <!-- View Details Button -->
                                 <td>
+                                    <!-- 4) Use the same 'details-btn' class from the first page -->
                                     <a href="{% url 'job_detail' application.job.id %}" class="details-btn">
                                         View
                                     </a>
@@ -78,5 +79,4 @@
         {% endif %}
     </main>
 </div>
-
 {% endblock %}

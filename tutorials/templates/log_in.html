@@ -2,68 +2,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'css/log_in.css' %}">
-    <title>Swamp Hiring</title>
-    <script>
-        // Ensure CSRF cookie is properly set
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
+  <meta charset="UTF-8">
+  <title>Swamp Hiring</title>
+  <!-- Link to your custom CSS -->
+  <link rel="stylesheet" href="{% static 'css/log_in.css' %}">
+
+  <script>
+    // Ensure CSRF cookie is properly set
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
         }
-        
-        // Check CSRF Cookie after page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            const csrftoken = getCookie('csrftoken');
-            if (!csrftoken) {
-                console.warn('CSRF token not found in cookies');
-            } else {
-                console.log('CSRF token is present');
-                // Ensure the form's CSRF token matches the cookie
-                document.querySelector('[name=csrfmiddlewaretoken]').value = csrftoken;
-            }
-        });
-    </script>
+      }
+      return cookieValue;
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      const csrftoken = getCookie('csrftoken');
+      if (!csrftoken) {
+        console.warn('CSRF token not found in cookies');
+      } else {
+        console.log('CSRF token is present');
+        // Ensure the form's CSRF token matches the cookie
+        document.querySelector('[name=csrfmiddlewaretoken]').value = csrftoken;
+      }
+    });
+  </script>
 </head>
+
 <body>
-    <div class="page-wrapper">
-        <div class="header-title">Swamp Hiring</div>
-        <div class="auth-container">
-            <div class="card">
-                <h2>Log In</h2>
+  <div class="page-wrapper">
+    <div class="header-title">Swamp Hiring</div>
 
-                {% if messages %}
-                <ul class="messages">
-                    {% for message in messages %}
-                    <li>{{ message }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
+    <div class="auth-container">
+      <div class="card">
+        <h2>Log In</h2>
+        
+        {% if messages %}
+          <ul class="messages">
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
 
-                <form method="POST" action="{% url 'log_in' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-                    <input type="text" name="username" placeholder="Username" required><br>
-                    <input type="password" name="password" placeholder="Password" required><br>
-                    <button class="button" type="submit">Log In</button>
-                </form>
+        <form method="POST" action="{% url 'log_in' %}">
+          {% csrf_token %}
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          
+          <input type="text" name="username" placeholder="Username" required>
+          <input type="password" name="password" placeholder="Password" required>
 
-                <p class="toggle-link">
-                    Don’t have an account? <a href="{% url 'sign-up' %}">Sign Up</a>
-                </p>
-            </div>
-        </div>
+          <button class="button" type="submit">Log In</button>
+        </form>
+
+        <p class="toggle-link">
+          Don’t have an account?
+          <a href="{% url 'sign-up' %}">Sign Up</a>
+        </p>
+      </div>
     </div>
+  </div>
 </body>
 </html>
