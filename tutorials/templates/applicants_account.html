@@ -8,38 +8,44 @@
 {% endblock %}
 
 {% block content %}
-<div class="account-header">
-    <h2>My Account</h2>
-</div>
+<div class="main-scroll-container">
+    <div class="account-wrapper">
+        <div class="account-header">
+            <h2>My Account</h2>
+        </div>
 
-<div class="user-info">
-    <p><strong>First Name:</strong> {{ user.first_name }}</p>
-    <p><strong>Last Name:</strong> {{ user.last_name }}</p>
-    <p><strong>Email:</strong> {{ user.email }}</p>
-    <p><strong>Degree:</strong> {{ applicant.degree }}</p>
-    <p><strong>Salary Preferences:</strong> {{ applicant.salary_preferences }}</p>
+        <div class="user-info">
+            <p><strong>First Name:</strong> {{ user.first_name }}</p>
+            <p><strong>Last Name:</strong> {{ user.last_name }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Degree:</strong> {{ applicant.degree }}</p>
+            <p><strong>Salary Preferences:</strong> {{ applicant.salary_preferences }}</p>
 
-    <label for="id_job_preferences">Job Preferences:</label>
-    <ul>
-        {% for job in applicant.job_preferences.all %}
-            <li>{{ job.title }}</li>
-        {% empty %}
-            <li>No preferences selected.</li>
-        {% endfor %}
-    </ul>
+            <p><strong>Job Preferences:</strong></p>
+            {% if applicant.job_preferences.all %}
+                <ul>
+                    {% for job in applicant.job_preferences.all %}
+                        <li>{{ job.title }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p style="margin-left: 1.2rem;">No preferences selected.</p>
+            {% endif %}
 
-    <p><strong>Location Preferences:</strong> {{ applicant.location_preferences }}</p>
+            <p><strong>Location Preferences:</strong> {{ applicant.location_preferences }}</p>
 
-    {% if applicant.cv %}
-        <p><strong>CV:</strong> 
-            <a href="{{ applicant.cv.url }}" target="_blank">Download</a>
-        </p>
-    {% else %}
-        <p>No CV uploaded.</p>
-    {% endif %}
-</div>
+            <p><strong>CV:</strong> 
+            {% if applicant.cv %}
+                    <a href="{{ applicant.cv.url }}" target="_blank">Download</a>
+                </p>
+            {% else %}
+                <p>No CV uploaded.</p>
+            {% endif %}
+        </div>
 
-<div class="edit-profile">
-    <a href="{% url 'applicants-edit-profile' %}" class="button">Edit Profile</a>
+        <div class="edit-profile">
+            <a href="{% url 'applicants-edit-profile' %}" class="button">Edit Profile</a>
+        </div>
+    </div>
 </div>
 {% endblock %}

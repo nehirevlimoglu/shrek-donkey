@@ -1,4 +1,4 @@
-/* Reset + General Styling */
+/* General page styling */
 html, body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f8f9fa;
@@ -14,46 +14,60 @@ body {
     flex-direction: column;
 }
 
+/* Full-width container styling */
 .main-scroll-container {
-    flex: 1;
-    overflow-y: auto;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center; /* 👈 vertical centering */
     padding: 2rem;
     box-sizing: border-box;
+    overflow-y: auto;
 }
+
+/* Optional wrapper to center content inside full width */
+.account-wrapper {
+    background-color: #ffffff;
+    padding: 2rem 3rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    max-width: 600px;
+    width: 100%;
+}
+
 
 /* Header */
 .account-header {
-    text-align: center;
+    text-align: left;
     margin-bottom: 2rem;
 }
 
 .account-header h2 {
     font-size: 2rem;
-    color: #1B1B1B;
     font-weight: 700;
+    color: #1B1B1B;
 }
 
-/* User Info Box */
+/* Flat layout: no box, just spacing */
 .user-info {
-    background-color: #ffffff;
-    padding: 2rem;
-    border-radius: 12px;
-    border-left: 5px solid #3B82F6;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-    max-width: 1000px;
-    margin: 0 auto;
+    padding: 0;
+    margin: 0;
     width: 100%;
-    box-sizing: border-box;
+    max-width: 600px;         /* Limit content width */
+    display: flex;
+    flex-direction: column;
+    text-align: left;         /* Keep text left-aligned inside */
 }
 
-/* Info Text */
 .user-info p,
 .user-info label,
 .user-info ul,
 .user-info li {
     font-size: 1rem;
     color: #1f2937;
-    line-height: 1.6;
+    line-height: 1.8;
     margin: 0.5rem 0;
 }
 
@@ -61,29 +75,30 @@ body {
     font-weight: 600;
 }
 
-/* CV Link */
-.user-info a {
-    color: #3B82F6;
-    text-decoration: none;
-    font-weight: 500;
+/* Remove default list spacing */
+.user-info ul {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0.25rem 0 1rem;
 }
 
-.user-info a:hover {
-    text-decoration: underline;
-}
-
-/* Edit Button Container */
+/* Edit Profile Button */
 .edit-profile {
-    text-align: center;
     margin-top: 2rem;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    justify-content: center;
+    text-align: center;
 }
+
 
 .edit-profile a {
     display: inline-block;
     padding: 0.75rem 1.5rem;
     background-color: #3B82F6;
     color: white;
-    border-radius: 8px;
+    border-radius: 6px;
     font-size: 1rem;
     font-weight: 600;
     text-decoration: none;
@@ -94,16 +109,14 @@ body {
     background-color: #2563eb;
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
-    .user-info {
-        padding: 1.5rem;
-        border-left-width: 4px;
+    .main-scroll-container {
+        padding: 2rem 1.25rem;
     }
 
     .edit-profile a {
         width: 100%;
-        padding: 0.75rem;
-        font-size: 0.95rem;
+        text-align: center;
     }
 }
