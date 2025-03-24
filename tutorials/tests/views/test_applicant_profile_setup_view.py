@@ -23,7 +23,6 @@ class ApplicantProfileSetupTests(TestCase):
 
         self.profile_url = reverse('applicant_profile_setup')
 
-
     def test_get_profile_setup_page_no_existing_profile(self):
         self.client.login(username='@applicantuser', password='testpass')
         response = self.client.get(self.profile_url)
@@ -44,6 +43,10 @@ class ApplicantProfileSetupTests(TestCase):
         self.assertContains(response, 'Bachelors')
 
     def test_post_valid_form_updates_existing_applicant(self):
+        """
+        This test updates an existing applicant.
+        It includes first_name and last_name and uses the correct degree value.
+        """
         existing_applicant = Applicant.objects.create(
             user=self.user,
             degree='bachelors',
@@ -54,20 +57,19 @@ class ApplicantProfileSetupTests(TestCase):
         self.client.login(username='@applicantuser', password='testpass')
 
         update_form_data = {
-            'degree': 'phd',  # Use lowercase to match the form's choices.
+            'degree': 'phd',  # Use the internal value (lowercase)
             'salary_preferences': '90000',
             'location_preferences': 'Hybrid',
-            'first_name': 'Bob',
-            'last_name': 'Brown',
             'job_preferences': [self.job_title2.id],
             'cv': SimpleUploadedFile(
-                "updated_resume.pdf", b"%PDF-1.4", content_type="application/pdf"
+                "updated_resume.pdf", b"%PDF-1.4 content", content_type="application/pdf"
             ),
+            'first_name': 'Jane',  # Required field
+            'last_name': 'Doe',    # Required field
         }
 
-
         response = self.client.post(self.profile_url, update_form_data)
-
+        # Remove debug print that accesses response.context when redirect occurs.
         self.assertRedirects(response, reverse('applicants-home-page'))
 
         existing_applicant.refresh_from_db()
@@ -78,6 +80,41 @@ class ApplicantProfileSetupTests(TestCase):
         self.assertIn(self.job_title2, existing_applicant.job_preferences.all())
 
 
+    # Renamed to avoid duplicate method name.
+    def test_post_valid_form_updates_existing_applicant_without_names(self):
+        """
+        If the form is submitted without first_name and last_name, it should fail.
+        This test can be used to check that those fields are indeed required.
+        """
+        existing_applicant = Applicant.objects.create(
+            user=self.user,
+            degree='Bachelors',
+            salary_preferences='50000',
+            location_preferences='On-site',
+        )
+
+        self.client.login(username='@applicantuser', password='testpass')
+
+        update_form_data = {
+            'degree': 'phd',
+            'salary_preferences': '90000',
+            'location_preferences': 'Hybrid',
+            'job_preferences': [self.job_title2.id],
+            'cv': SimpleUploadedFile(
+                "updated_resume.pdf", b"%PDF-1.4 content", content_type="application/pdf"
+            ),
+            # first_name and last_name intentionally omitted to trigger validation errors.
+        }
+
+        response = self.client.post(self.profile_url, update_form_data)
+
+        # Since the form is invalid, there is no redirect. Check for errors.
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'applicant_profile_setup.html')
+        form = response.context['form']
+        self.assertFalse(form.is_valid())
+        self.assertIn('first_name', form.errors)
+        self.assertIn('last_name', form.errors)
 
     def test_post_invalid_form_shows_errors(self):
         self.client.login(username='@applicantuser', password='testpass')
@@ -97,41 +134,7 @@ class ApplicantProfileSetupTests(TestCase):
 
         form = response.context['form']
         self.assertFalse(form.is_valid())
-
         self.assertContains(response, "This field is required")
-
-    def test_post_valid_form_updates_existing_applicant(self):
-        existing_applicant = Applicant.objects.create(
-            user=self.user,
-            degree='Bachelors',
-            salary_preferences='50000',
-            location_preferences='On-site',
-        )
-
-        self.client.login(username='@applicantuser', password='testpass')
-
-        update_form_data = {
-            'degree': 'PhD',
-            'salary_preferences': '90000',
-            'location_preferences': 'Hybrid',
-            # Remove first_name and last_name if the form doesn't include them.
-            'job_preferences': [self.job_title2.id],
-            'cv': SimpleUploadedFile(
-                "updated_resume.pdf", b"%PDF-1.4", content_type="application/pdf"
-            ),
-        }
-
-        response = self.client.post(self.profile_url, update_form_data)
-
-        self.assertRedirects(response, reverse('applicants-home-page'))
-
-        existing_applicant.refresh_from_db()
-        self.assertEqual(existing_applicant.degree, 'PhD')
-        self.assertEqual(existing_applicant.salary_preferences, '90000')
-        self.assertEqual(existing_applicant.location_preferences, 'Hybrid')
-        self.assertNotIn(self.job_title1, existing_applicant.job_preferences.all())
-        self.assertIn(self.job_title2, existing_applicant.job_preferences.all())
-
 
     def test_redirect_if_not_logged_in(self):
         response = self.client.get(self.profile_url)

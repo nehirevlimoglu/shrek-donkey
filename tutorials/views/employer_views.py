@@ -30,27 +30,6 @@ logger = logging.getLogger(__name__)
 def is_employer(user):
     return hasattr(user, 'role') and user.role == 'Employer'
 
-
-@login_required
-def employer_profile_setup(request):
-    try:
-        employer = request.user.employer  # Ensure the user is an employer
-    except Employer.DoesNotExist:
-        employer = None
-
-    if request.method == 'POST':
-        form = EmployerProfileForm(request.POST, request.FILES, instance=employer)
-        if form.is_valid():
-            employer = form.save(commit=False)
-            employer.user = request.user
-            employer.save()
-            return HttpResponseRedirect(reverse('employer_home_page'))  # Redirect to employer's dashboard
-
-    else:
-        form = EmployerProfileForm(instance=employer)
-
-    return render(request, 'employer_form.html', {'form': form})
-
 @login_required
 def employer_home_page(request):
     """Employer dashboard with statistics, notifications & recent applicants"""
@@ -182,8 +161,9 @@ def create_job_listings(request):
     return render(request, 'employer_create_job_listing.html', {'form': form})
 
 
-def job_detail_view(request, pk):
-    job = get_object_or_404(Job, pk=pk)
+def job_detail_view(request, job_id):
+    job = get_object_or_404(Job, id=job_id)  # ✅ Correct
+
     return render(request, 'job_detail.html', {'job': job})
 
 
@@ -194,11 +174,12 @@ def edit_job_view(request, pk):
         form = JobForm(request.POST, instance=job)
         if form.is_valid():
             form.save()
-            return redirect('employer_job_detail', pk=job.pk)
+            return redirect('employer_job_detail', job_id=job.pk)  # ✅ FIXED: use job_id
     else:
         form = JobForm(instance=job)
 
     return render(request, 'edit_job.html', {'form': form, 'job': job})
+
 
 
 
@@ -354,6 +335,7 @@ def edit_company_profile(request):
 
     return render(request, "edit_company_profile.html", {"form": form})
 
+
 @login_required
 def delete_account(request):
     if request.method == "POST":
@@ -398,16 +380,17 @@ def employer_job_listings(request):
 
 @login_required
 def employer_notifications(request):
-    """Display notifications for the logged-in employer."""
-    employer = request.user  # The employer who is logged in
-    notifications = Notification.objects.filter(recipient=employer).order_by('-created_at')
+    try:
+        # This ensures the user is actually an Employer with a profile
+        Employer.objects.get(user=request.user)
+    except Employer.DoesNotExist:
+        return JsonResponse({"error": "Employer not found"}, status=403)
 
-    # Mark notifications as read when viewed
+    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
     notifications.update(is_read=True)
 
     return render(request, 'employer_notifications.html', {'notifications': notifications})
-
-
+    
 @login_required
 def get_employer_events(request):
     """Fetch events only for the logged-in employer"""
@@ -438,26 +421,6 @@ def review_application(request, application_id):
     
     return render(request, "application_review.html", {"application": application})
 
-
-
-@csrf_exempt
-@login_required
-def mark_notification_as_read(request, notification_id):
-    """Marks an employer's notification as read."""
-    try:
-        # Ensure the notification actually belongs to this employer
-        employer = Employer.objects.get(username=request.user.username)
-        notification = EmployerNotification.objects.get(id=notification_id, employer=employer)
-
-        notification.is_read = True
-        notification.save()
-        return JsonResponse({"success": True})
-
-    except Employer.DoesNotExist:
-        return JsonResponse({"success": False, "error": "Employer profile not found"}, status=403)
-    except EmployerNotification.DoesNotExist:
-        return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
-    
 
 def calculate_duration(start_date, end_date):
     """
@@ -629,6 +592,7 @@ def accept_candidate(request, candidate_id):
 
 
 @csrf_exempt
+@login_required
 def reject_candidate(request, candidate_id):
     candidate = get_object_or_404(Candidate, id=candidate_id)
 

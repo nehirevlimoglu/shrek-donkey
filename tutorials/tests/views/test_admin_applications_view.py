@@ -1,151 +1,131 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from django.utils import timezone
-from datetime import timedelta
-from django.db.models import Q
-from django.core.paginator import PageNotAnInteger, EmptyPage, Paginator
 from django.contrib.auth import get_user_model
+from django.contrib.messages import get_messages
+from django.utils import timezone
+from django.core.files.uploadedfile import SimpleUploadedFile
+from datetime import timedelta
 
-from tutorials.models.employer_models import Candidate, Job, Employer
+from tutorials.models.employer_models import Job, Employer
+from tutorials.models.applicants_models import Applicant, Application
+from tutorials.forms.applicants_forms import ApplicationForm
 
 User = get_user_model()
 
-class AdminApplicationsViewTests(TestCase):
+class ApplicantsApplicationViewTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.today = timezone.now().date()
 
-        # Create an admin user with necessary flags so that is_admin passes.
-        self.admin_user = User.objects.create_user(
-            username="adminuser",
-            email="admin@example.com",
+        self.applicant_user = User.objects.create_user(
+            username="applicantuser",
+            email="applicant@example.com",
             password="password123",
-            role="Admin",
-            is_staff=True,
-            is_superuser=True
+            role="Applicant"
         )
-        self.client.force_login(self.admin_user)
+        self.client.force_login(self.applicant_user)
 
-        # Create an employer (if needed by the view)
-        self.employer = Employer.objects.create(
-            user=self.admin_user,
-            username="test_employer",
+        self.applicant_obj = Applicant.objects.create(user=self.applicant_user)
+
+        self.employer_user = User.objects.create_user(
+            username="employeruser",
             email="employer@example.com",
-            company_name="Tech Corp",
-            company_location="New York",
+            password="password123",
+            role="Employer"
+        )
+        self.employer = Employer.objects.create(
+            user=self.employer_user,
+            username="employeruser",
+            email="employer@example.com",
+            company_name="Test Co",
+            company_location="Test City",
             industry="Tech"
         )
-
-        # Create some jobs for candidates to apply to.
-        self.job1 = Job.objects.create(
+        self.job = Job.objects.create(
             employer=self.employer,
-            title="Software Engineer",
-            company_name="Tech Corp",
-            application_deadline=self.today + timedelta(days=10),
-            description="Job description 1"
-        )
-        self.job2 = Job.objects.create(
-            employer=self.employer,
-            title="Data Scientist",
-            company_name="Tech Corp",
-            application_deadline=self.today + timedelta(days=20),
-            description="Job description 2"
+            title="Software Developer",
+            description="Exciting role",
+            application_deadline=self.today + timedelta(days=10)
         )
 
-        # Create several candidate applications with different statuses.
-        # We'll create 1 candidate for each status.
-        self.candidate_pending = Candidate.objects.create(
-            user=self.admin_user,  # Using admin user for testing (simplification)
-            job=self.job1,
-            application_status="Pending",
-            application_date=timezone.now(),
+        self.url = reverse("applicants_application", kwargs={"job_id": self.job.id})
+
+    def test_get_application_page(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "applicants_application.html")
+        self.assertIn("form", response.context)
+        self.assertIsInstance(response.context["form"], ApplicationForm)
+
+    def test_redirect_if_already_applied(self):
+        Application.objects.create(
+            applicant=self.applicant_obj,
+            job=self.job,
             first_name="John",
-            last_name="Doe"
+            last_name="Doe",
+            email="john@example.com",
+            phone="1234567890",
+            address="123 Main St",
+            education=[],
+            work_experience=[],
+            current_job_title="Dev",
+            current_employer="Company X",
+            how_did_you_hear="linkedin",
+            sponsorship_needed="no",
+            confirm_information=True,
+            status="under_review"
         )
-        self.candidate_interview = Candidate.objects.create(
-            user=self.admin_user,
-            job=self.job1,
-            application_status="Interview",
-            application_date=timezone.now() - timedelta(days=1),
-            first_name="Alice",
-            last_name="Smith"
-        )
-        self.candidate_hired = Candidate.objects.create(
-            user=self.admin_user,
-            job=self.job2,
-            application_status="Hired",
-            application_date=timezone.now() - timedelta(days=2),
-            first_name="Bob",
-            last_name="Brown"
-        )
-        self.candidate_rejected = Candidate.objects.create(
-            user=self.admin_user,
-            job=self.job2,
-            application_status="Rejected",
-            application_date=timezone.now() - timedelta(days=3),
-            first_name="Carol",
-            last_name="White"
-        )
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("job_detail", kwargs={"job_id": self.job.id}))
+        messages = list(get_messages(response.wsgi_request))
+        self.assertTrue(any("already applied" in m.message for m in messages))
 
-        self.url = reverse("admin_applications_view")
+    def test_post_valid_application(self):
+        resume_file = SimpleUploadedFile("resume.pdf", b"dummy", content_type="application/pdf")
+        valid_data = {
+            "first_name": "John",
+            "last_name": "Doe",
+            "email": "john@example.com",
+            "phone": "1234567890",
+            "address": "123 Main St",
+            "resume": resume_file,
+            "current_job_title": "Engineer",
+            "current_employer": "Test Inc",
+            "linkedin_profile": "",
+            "portfolio_website": "",
+            "how_did_you_hear": "linkedin",
+            "sponsorship_needed": "no",
+            "confirm_information": "on",
+            "school[]": ["Uni A"],
+            "degree[]": ["BSc"],
+            "discipline[]": ["CS"],
+            "start_date[]": ["2015-01-01"],
+            "end_date[]": ["2019-01-01"],
+            "work_job_title[]": ["Dev"],
+            "work_employer[]": ["Work Co"],
+            "work_start_date[]": ["2020-01-01"],
+            "work_end_date[]": ["2022-01-01"],
+            "job_description[]": ["Did stuff"]
+        }
+        response = self.client.post(self.url, valid_data)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("job_detail", kwargs={"job_id": self.job.id}))
+        application = Application.objects.get(applicant=self.applicant_obj, job=self.job)
+        self.assertEqual(application.education[0]["school"], "Uni A")
+        self.assertEqual(application.work_experience[0]["work_employer"], "Work Co")
+
+    def test_post_invalid_application(self):
+        invalid_data = {"first_name": "", "resume": SimpleUploadedFile("resume.pdf", b"", content_type="application/pdf")}
+        response = self.client.post(self.url, invalid_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "applicants_application.html")
+        form = response.context.get("form")
+        self.assertIsNotNone(form)
+        self.assertTrue(form.errors)
 
     def test_redirect_if_not_logged_in(self):
-        """Test that non-logged-in users are redirected to the login page."""
         self.client.logout()
         response = self.client.get(self.url)
-        expected_redirect = reverse("log_in") + "?next=" + self.url
-        self.assertRedirects(response, expected_redirect)
-
-    def test_search_filter(self):
-        """Test that the search filter returns applications matching the search query."""
-        # Search by candidate's first name
-        response = self.client.get(self.url, {"search": "Alice"})
-        self.assertEqual(response.status_code, 200)
-        applications = response.context["applications"].object_list
-        self.assertTrue(any("alice" in app.user.first_name.lower() for app in applications)
-                        or any("alice" in app.user.username.lower() for app in applications)
-                        or any("alice" in app.job.title.lower() for app in applications)
-                        or any("alice" in app.job.company_name.lower() for app in applications))
-    
-    def test_status_filter(self):
-        """Test that filtering by application_status returns only matching applications."""
-        response = self.client.get(self.url, {"status": "Pending"})
-        self.assertEqual(response.status_code, 200)
-        applications = response.context["applications"].object_list
-        for app in applications:
-            self.assertEqual(app.application_status, "Pending")
-    
-    def test_pagination(self):
-        """Test that pagination limits the applications to 5 per page."""
-        # Create additional candidate applications to exceed 5
-        for i in range(6):
-            Candidate.objects.create(
-                user=self.admin_user,
-                job=self.job1,
-                application_status="Pending",
-                application_date=timezone.now() - timedelta(days=i),
-                first_name=f"Extra{i}",
-                last_name="User"
-            )
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        applications_page = response.context["applications"]
-        # Check that the number of applications on the page is <= 5.
-        self.assertLessEqual(len(applications_page.object_list), 5)
-
-    def test_context_statistics(self):
-        """Test that context statistics for applications are calculated correctly."""
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-
-        total_applications = Candidate.objects.count()
-        pending_applications = Candidate.objects.filter(application_status="Pending").count()
-        interview_applications = Candidate.objects.filter(application_status="Interview").count()
-        hired_applications = Candidate.objects.filter(application_status="Hired").count()
-        rejected_applications = Candidate.objects.filter(application_status="Rejected").count()
-
-        self.assertEqual(response.context["total_applications"], total_applications)
-        self.assertEqual(response.context["pending_applications"], pending_applications)
-        self.assertEqual(response.context["interview_applications"], interview_applications)
-        self.assertEqual(response.context["hired_applications"], hired_applications)
-        self.assertEqual(response.context["rejected_applications"], rejected_applications)
+        expected_url = reverse("log_in") + f"?next={self.url}"
+        self.assertRedirects(response, expected_url)

@@ -229,7 +229,7 @@ def sign_up(request):
             elif user.role == 'Applicant':
                 Applicant.objects.create(user=user)
                 return redirect('applicant_profile_setup')
-            return redirect('home')
+            return redirect('log_in')
     else:
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
