@@ -36,13 +36,17 @@
                             <th>Salary</th>
                             <th>Type</th>
                             <th>Status</th>
-                            <th>Favourite</th>
+                            <!-- Replace Favourite with Details -->
+                            <th>Details</th>
                         </tr>
                     </thead>
                     <tbody class="job-listings">
                         {% for application in applied_jobs %}
                             <tr>
-                                <td><a href="{% url 'job_detail' application.job.id %}" class="job-link">{{ application.job.title }}</a></td>
+                                <td>
+                                    <!-- Job title as plain text -->
+                                    {{ application.job.title }}
+                                </td>
                                 <td>{{ application.job.company_name }}</td>
                                 <td>{{ application.job.location }}</td>
                                 <td>${{ application.job.salary }}</td>
@@ -58,8 +62,11 @@
                                         <span class="badge pending">Pending</span>
                                     {% endif %}
                                 </td>
+                                <!-- View Details Button -->
                                 <td>
-                                    <span class="favorite-star" onclick="toggleFavorite(this)">&#9734;</span>
+                                    <a href="{% url 'job_detail' application.job.id %}" class="details-btn">
+                                        View
+                                    </a>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -71,17 +78,5 @@
         {% endif %}
     </main>
 </div>
-
-<script>
-    function toggleFavorite(starElement) {
-        if (starElement.classList.contains("active")) {
-            starElement.classList.remove("active");
-            starElement.innerHTML = "&#9734;"; // Empty star (☆)
-        } else {
-            starElement.classList.add("active");
-            starElement.innerHTML = "&#9733;"; // Filled star (★)
-        }
-    }
-</script>
 
 {% endblock %}
