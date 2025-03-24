@@ -14,9 +14,13 @@ from tutorials.models.employer_models import Job, Candidate, Employer
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
+import logging
+
+logger = logging.getLogger(__name__)
 
 def is_admin(user):
-    return user.role == 'Admin'
+    """Check if user is authenticated and has Admin role"""
+    return user.is_authenticated and hasattr(user, 'role') and user.role == 'Admin'
 
 
 @user_passes_test(is_admin)
@@ -401,28 +405,29 @@ def admin_edit_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
     
     if request.method == 'POST':
-        # Update job information
-        job.title = request.POST.get('title')
-        job.company_name = request.POST.get('company_name')
-        job.location = request.POST.get('location')
-        job.job_type = request.POST.get('job_type')
-        
-        salary = request.POST.get('salary')
-        if salary:
-            job.salary = salary
-        
-        job.description = request.POST.get('description')
-        job.requirements = request.POST.get('requirements')
-        job.benefits = request.POST.get('benefits')
-        
-        deadline = request.POST.get('application_deadline')
-        if deadline:
-            job.application_deadline = deadline
-        
-        job.contact_email = request.POST.get('contact_email')
+        # Only update fields that are present in POST data
+        if request.POST.get('title'):
+            job.title = request.POST['title']
+        if request.POST.get('company_name'):
+            job.company_name = request.POST['company_name']
+        if request.POST.get('location'):
+            job.location = request.POST['location']
+        if request.POST.get('job_type'):
+            job.job_type = request.POST['job_type']
+        if request.POST.get('salary'):
+            job.salary = request.POST['salary']
+        if request.POST.get('description'):
+            job.description = request.POST['description']
+        if request.POST.get('requirements'):
+            job.requirements = request.POST['requirements']
+        if request.POST.get('benefits'):
+            job.benefits = request.POST['benefits']
+        if request.POST.get('application_deadline'):
+            job.application_deadline = request.POST['application_deadline']
+        if request.POST.get('contact_email'):
+            job.contact_email = request.POST['contact_email']
         
         job.save()
-        
         return redirect('admin_job_detail', job_id=job.id)
     
     return render(request, 'admin_edit_job.html', {
@@ -511,17 +516,20 @@ def admin_applications_view(request):
     })
 
 
-import logging
-logger = logging.getLogger(__name__)
-
-
 @csrf_exempt
 def update_job_status(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             job_id = data.get("job_id")
-            new_status = data.get("status")
+            new_status = data.get("status")\
+            
+            valid_statuses = ['pending', 'approved', 'rejected']
+            if new_status not in valid_statuses:
+                return JsonResponse({
+                    "success": False, 
+                    "error": f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
+                }, status=400)
 
             logger.debug(f"Received job_id: {job_id}, new_status: {new_status}")  # Log received data
 
