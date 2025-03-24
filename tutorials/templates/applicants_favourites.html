@@ -4,9 +4,9 @@
 {% block title %}Favourite Jobs | Swamp Hiring{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-<!-- Then your custom CSS -->
-<link rel="stylesheet" type="text/css" href="{% static 'css/applicants_favourites.css' %}">
+<!-- Reuse the same CSS file used by the first page -->
+<link rel="stylesheet" type="text/css" href="{% static 'css/applicants_home_page.css' %}">
+
 <!-- Pass CSRF token and toggle URL to JavaScript -->
 <meta name="csrf-token" content="{{ csrf_token }}">
 <script>
@@ -14,6 +14,8 @@
 </script>
 
 <div class="dashboard-container">
+    <!-- If you still want the sidebar, keep it here.
+         Otherwise, remove or comment out this <aside> block. -->
     <aside class="sidebar">
         <h2>Swamp Hiring</h2>
         <nav>
@@ -27,11 +29,14 @@
             </ul>
         </nav>
     </aside>
-    
+
     <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
-        <h1 class="page-header">Favourite Jobs</h1>
+        <!-- You can keep the same heading style as the first page -->
+        <h2>Favourite Jobs</h2>
+
+        <!-- Same container + table structure from the first page -->
         <div class="job-listings-container" style="width: 100%;">
-            <table class="job-table" style="width: 100%; text-align: center;">
+            <table class="job-table" style="width: 100%; text-align: center; border-collapse: collapse;">
                 <thead>
                     <tr>
                         <th>Job Title</th>
@@ -57,8 +62,8 @@
                             </span>
                         </td>
                         <td>
-                            <!-- Changed class from "btn btn-primary" to "details-btn" -->
-                            <a href="{% url 'job_detail' job.id %}" class="btn btn-primary details-btn">View </a>
+                            <!-- Use the same 'details-btn' class as in the first page -->
+                            <a href="{% url 'job_detail' job.id %}" class="details-btn">View</a>
                         </td>
                     </tr>
                     {% empty %}
@@ -72,6 +77,6 @@
     </main>
 </div>
 
-<!-- Load the separated toggle_favorite.js file -->
-<script src="{% static 'js/applicants_favorites.js' %}" defer></script>
+<!-- Load your JS that handles toggling favorites -->
+<script src="{% static 'js/toggle_favorite.js' %}" defer></script>
 {% endblock %}
