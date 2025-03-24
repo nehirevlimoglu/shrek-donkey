@@ -497,23 +497,29 @@ def applicants_analytics(request):
         interviews_scheduled = 0
     job_offers_received = Application.objects.filter(applicant=applicant, status="hired").count()
 
-    accepted_offers = Application.objects.filter(applicant=applicant, status="hired", confirm_information=True).count()
-    offer_acceptance_rate = (accepted_offers / job_offers_received * 100) if job_offers_received > 0 else 0
+    # Just count all hired applications as accepted
+    accepted_offers = Application.objects.filter(applicant=applicant, status="hired").count()
+    declined_offers = Application.objects.filter(applicant=applicant, status="rejected").count()
 
-    applications_per_month = Application.objects.filter(applicant=applicant).values_list("applied_at", flat=True)
-    
-    month_counts = {m: 0 for m in ["Jan", "Feb", "Mar", "Apr", "May", "Jun"]}  # Adjust as needed
-    for date in applications_per_month:
-        month_name = date.strftime("%b")
-        if month_name in month_counts:
-            month_counts[month_name] += 1
+    total_offers = accepted_offers + declined_offers
+    offer_acceptance_rate = (accepted_offers / total_offers * 100) if total_offers > 0 else 0
 
     accepted_count = accepted_offers
-    declined_count = job_offers_received - accepted_offers
+    declined_count = declined_offers
 
     applications = Application.objects.filter(applicant=applicant).select_related("job")
 
     interviews = Interview.objects.filter(candidate__user=request.user)
+
+    # Dynamically build the pie chart data
+    offer_labels = []
+    offer_data = []
+    offer_colors = []
+
+    # Always push Accepted first, then Declined — even if their count is zero
+    offer_labels = ["Accepted", "Declined"]
+    offer_data = [accepted_offers, declined_offers]
+    offer_colors = ["#34A853", "#EA4335"]
 
     return render(request, 'applicants_analytics.html', {
         "total_applications": total_applications,
@@ -521,8 +527,9 @@ def applicants_analytics(request):
         "job_offers_received": job_offers_received,
         "offer_acceptance_rate": round(offer_acceptance_rate, 2),
         "applications": applications,
-        "applications_over_time": json.dumps(list(month_counts.values())),
-        "offer_acceptance_breakdown": json.dumps([accepted_count, declined_count]),
+        "offer_chart_labels": offer_labels,
+        "offer_chart_data": offer_data,
+        "offer_chart_colors": offer_colors,
     })
 
 

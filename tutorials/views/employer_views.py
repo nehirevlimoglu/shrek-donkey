@@ -600,19 +600,20 @@ def schedule_interview(request, applicant_id):
 def accept_candidate(request, candidate_id):
     candidate = get_object_or_404(Candidate, id=candidate_id)
 
-    # Prevent changing status if already Hired or Rejected
     if candidate.application_status in ["Hired", "Rejected"]:
         return JsonResponse({"error": "Status cannot be changed once set."}, status=400)
 
     candidate.application_status = "Hired"
     candidate.save()
 
-    # Create a notification for the applicant
     try:
-        # Get the Applicant instance corresponding to the candidate's user
         applicant_obj = Applicant.objects.get(user=candidate.user)
-        # Retrieve employer's contact email from the job
         employer_email = candidate.job.employer.email if candidate.job.employer and candidate.job.employer.email else "contact@example.com"
+
+        # ✅ Update the Application status to "hired"
+        application = Application.objects.get(applicant=applicant_obj, job=candidate.job)
+        application.status = "hired"
+        application.save()
 
         ApplicantNotification.objects.create(
             applicant=applicant_obj,
@@ -622,24 +623,28 @@ def accept_candidate(request, candidate_id):
                 f"Please contact {employer_email} for further details."
             )
         )
-    except Applicant.DoesNotExist:
-        # Optionally, log a warning if no matching Applicant is found
-        logger.warning(f"No Applicant profile found for user {candidate.user.username}")
+    except (Applicant.DoesNotExist, Application.DoesNotExist):
+        logger.warning(f"Could not update Application for hired candidate {candidate.id}")
 
     return JsonResponse({"message": "Candidate accepted successfully!", "status": "Hired"})
 
 
 @csrf_exempt
 def reject_candidate(request, candidate_id):
-    """Marks a candidate as Rejected, but prevents changing the status once set."""
     candidate = get_object_or_404(Candidate, id=candidate_id)
 
-    # 🚨 Prevent changing status if already Hired or Rejected
     if candidate.application_status in ["Hired", "Rejected"]:
         return JsonResponse({"error": "Status cannot be changed once set."}, status=400)
 
     candidate.application_status = "Rejected"
     candidate.save()
 
-    print(f"❌ Candidate {candidate_id} is now: {candidate.application_status}")
+    try:
+        applicant_obj = Applicant.objects.get(user=candidate.user)
+        application = Application.objects.get(applicant=applicant_obj, job=candidate.job)
+        application.status = "rejected"
+        application.save()
+    except (Applicant.DoesNotExist, Application.DoesNotExist):
+        logger.warning(f"Could not update Application for rejected candidate {candidate.id}")
+
     return JsonResponse({"message": "Candidate rejected successfully!", "status": "Rejected"})
