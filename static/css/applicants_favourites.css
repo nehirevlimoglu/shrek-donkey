@@ -105,6 +105,7 @@ body {
     cursor: pointer;
     transition: color 0.3s ease, transform 0.2s ease;
     text-align: center;
+    vertical-align: middle;
 }
 
 .favorite-star:hover {
@@ -115,6 +116,9 @@ body {
 .favorite-star.active {
     color: #ffd700;
 }
+
+
+
 
 
 /* -------------------------------------------

@@ -1,6 +1,5 @@
 {% extends 'admin_base.html' %}
-
-{% load static %}  <!-- Ensure the static tag is loaded -->
+{% load static %}
 
 {% block title %}Job Listings | Admin Dashboard{% endblock %}
 
@@ -9,7 +8,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="job-listings-container">
+<div class="admin-job-listings-wrapper">
     <div class="job-listings-header">
         <h2>Job Listings</h2>
         <div class="job-stats">
@@ -27,14 +26,14 @@
             </div>
         </div>
     </div>
-    
+
     <div class="filters-container">
         <div class="tabs">
-            <a href="?status=all{% if search_query %}&search={{ search_query }}{% endif %}{% if jobs.number > 1 %}&page={{ jobs.number }}{% endif %}" class="tab {% if status_filter == 'all' %}active{% endif %}">All Jobs</a>
-            <a href="?status=open{% if search_query %}&search={{ search_query }}{% endif %}{% if jobs.number > 1 %}&page={{ jobs.number }}{% endif %}" class="tab {% if status_filter == 'open' %}active{% endif %}">Open Jobs</a>
-            <a href="?status=closed{% if search_query %}&search={{ search_query }}{% endif %}{% if jobs.number > 1 %}&page={{ jobs.number }}{% endif %}" class="tab {% if status_filter == 'closed' %}active{% endif %}">Closed Jobs</a>
+            <a href="?status=all{% if search_query %}&search={{ search_query }}{% endif %}" class="tab {% if status_filter == 'all' %}active{% endif %}">All Jobs</a>
+            <a href="?status=open{% if search_query %}&search={{ search_query }}{% endif %}" class="tab {% if status_filter == 'open' %}active{% endif %}">Open Jobs</a>
+            <a href="?status=closed{% if search_query %}&search={{ search_query }}{% endif %}" class="tab {% if status_filter == 'closed' %}active{% endif %}">Closed Jobs</a>
         </div>
-        
+
         <form class="search-form" method="GET" action="{% url 'admin_job_listings' %}">
             <input type="hidden" name="status" value="{{ status_filter }}">
             <div class="search-container">
@@ -43,52 +42,55 @@
             </div>
         </form>
     </div>
-    
-    <div class="table-wrapper">
-        <div class="table-container">
-            <table>
-                <thead>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Job Title</th>
+                    <th>Company</th>
+                    <th>Status</th>
+                    <th>Applicants</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if jobs %}
+                    {% for job in jobs %}
                     <tr>
-                        <th>Job Title</th>
-                        <th>Company</th>
-                        <th>Status</th>
-                        <th>Applicants</th>
-                        <th>Actions</th>
+                        <td>{{ job.title }}</td>
+                        <td>{{ job.company_name }}</td>
+                        <td>
+                            <span class="badge {% if job.status == 'Open' %}badge-open{% else %}badge-closed{% endif %}">
+                                {{ job.status }}
+                            </span>
+                        </td>
+                        <td>{{ job.applicant_count }}</td>
+                        <td>
+                            <button class="view-btn" data-job-id="{{ job.id }}">View</button>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    {% if jobs %}
-                        {% for job in jobs %}
-                        <tr>
-                            <td>{{ job.title }}</td>
-                            <td>{{ job.company_name }}</td>
-                            <td><span class="badge {% if job.status == 'Open' %}badge-open{% else %}badge-closed{% endif %}">{{ job.status }}</span></td>
-                            <td>{{ job.applicant_count }}</td>
-                            <td><button class="view-btn" data-job-id="{{ job.id }}">View</button></td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="5" class="no-jobs">No job listings available</td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="no-jobs">No job listings available</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
     </div>
-    
-    <!-- Pagination -->
+
     <div class="pagination-info">
         Showing page {{ jobs.number }} of {{ jobs.paginator.num_pages }} ({{ jobs.paginator.count }} total jobs)
     </div>
-    
+
     <div class="pagination">
         {% if jobs.has_previous %}
             <a href="?page={{ jobs.previous_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">&laquo; Previous</a>
         {% else %}
             <span class="page-link disabled">&laquo; Previous</span>
         {% endif %}
-        
+
         {% for i in jobs.paginator.page_range %}
             {% if forloop.first or forloop.last or i == jobs.number or i == jobs.number|add:'-1' or i == jobs.number|add:'1' %}
                 {% if jobs.number == i %}
@@ -100,7 +102,7 @@
                 <span class="page-link disabled">...</span>
             {% endif %}
         {% endfor %}
-        
+
         {% if jobs.has_next %}
             <a href="?page={{ jobs.next_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="page-link">Next &raquo;</a>
         {% else %}

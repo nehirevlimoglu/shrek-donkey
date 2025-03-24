@@ -22,7 +22,6 @@ html, body {
     padding-bottom: 40px; 
     height: 100vh;
     padding-left: 25px;
-    margin-left: 250px;
 }
 
 /* Header styles */
@@ -43,14 +42,10 @@ header h1 {
 }
 
 .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
     width: 250px;
     height: 100vh;
-    overflow-y: auto;
-    background-color: #FFFFFF;
-    z-index: 100;
+    background: #fff;
+    /* REMOVE position: fixed */
 }
 
 /* Dropdown menu styles */

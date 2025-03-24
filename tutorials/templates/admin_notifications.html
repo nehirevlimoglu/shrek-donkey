@@ -5,172 +5,163 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/admin_notifications.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 {% endblock %}
 
 {% block content %}
-<div class="notifications-container">
-    <div class="notifications-header">
-        <h2>Notifications</h2>
-        <div class="notifications-actions">
-            {% if unread_count > 0 %}
-            <button id="markAllReadBtn" class="btn btn-secondary">Mark All as Read</button>
-            {% endif %}
-            <button id="deleteAllBtn" class="btn btn-danger">Clear All</button>
-        </div>
-    </div>
-    
-    <div class="notifications-filters">
-        <form method="get" action="{% url 'admin_notifications' %}" id="filterForm">
-            <div class="filter-row">
-                <div class="filter-group">
-                    <label for="type">Type:</label>
-                    <select name="type" id="type" class="filter-select">
-                        <option value="all" {% if notification_type == 'all' %}selected{% endif %}>All Types</option>
-                        <option value="job" {% if notification_type == 'job' %}selected{% endif %}>Job Listings ({{ type_counts.job }})</option>
-                        <option value="application" {% if notification_type == 'application' %}selected{% endif %}>Applications ({{ type_counts.application }})</option>
-                        <option value="user" {% if notification_type == 'user' %}selected{% endif %}>Users ({{ type_counts.user }})</option>
-                        <option value="feedback" {% if notification_type == 'feedback' %}selected{% endif %}>Feedback ({{ type_counts.feedback|default:0 }})</option>
-                        <option value="system" {% if notification_type == 'system' %}selected{% endif %}>System ({{ type_counts.system }})</option>
-                        <option value="general" {% if notification_type == 'general' %}selected{% endif %}>General ({{ type_counts.general }})</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label for="priority">Priority:</label>
-                    <select name="priority" id="priority" class="filter-select">
-                        <option value="all" {% if priority == 'all' %}selected{% endif %}>All Priorities</option>
-                        <option value="high" {% if priority == 'high' %}selected{% endif %}>High ({{ priority_counts.high }})</option>
-                        <option value="medium" {% if priority == 'medium' %}selected{% endif %}>Medium ({{ priority_counts.medium }})</option>
-                        <option value="low" {% if priority == 'low' %}selected{% endif %}>Low ({{ priority_counts.low }})</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label for="is_read">Status:</label>
-                    <select name="is_read" id="is_read" class="filter-select">
-                        <option value="all" {% if is_read == 'all' %}selected{% endif %}>All</option>
-                        <option value="unread" {% if is_read == 'unread' %}selected{% endif %}>Unread</option>
-                        <option value="read" {% if is_read == 'read' %}selected{% endif %}>Read</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="filter-row">
-                <div class="search-group">
-                    <input type="text" name="search" placeholder="Search notifications..." value="{{ search_query }}" class="search-input">
-                    <button type="submit" class="btn btn-primary">Filter</button>
-                    {% if search_query or notification_type != 'all' or priority != 'all' or is_read != 'all' %}
-                    <a href="{% url 'admin_notifications' %}" class="btn btn-secondary">Clear Filters</a>
-                    {% endif %}
-                </div>
-            </div>
-        </form>
-    </div>
-    
-    <div class="notifications-stats">
-        <span class="stats-item">Total: <strong>{{ total_count }}</strong></span>
-        <span class="stats-item">Unread: <strong>{{ unread_count }}</strong></span>
-        <span class="stats-item">Feedback: <strong>{{ feedback_count|default:0 }}</strong></span>
-    </div>
-    
-    <div class="notifications-list">
-        {% if notifications %}
-            {% for notification in notifications %}
-            <div class="notification-card {% if not notification.is_read %}unread{% endif %} {% if notification.notification_type == 'feedback' %}feedback-card{% endif %}" data-id="{{ notification.id }}">
-                <div class="notification-indicators">
-                    {% if notification.priority == 'high' %}
-                    <span class="priority-indicator high" title="High Priority">!</span>
-                    {% elif notification.priority == 'medium' %}
-                    <span class="priority-indicator medium" title="Medium Priority">●</span>
-                    {% else %}
-                    <span class="priority-indicator low" title="Low Priority">○</span>
-                    {% endif %}
-                    
-                    <span class="type-indicator {{ notification.notification_type }}" title="{{ notification.get_notification_type_display }}">
-                        {% if notification.notification_type == 'job' %}📄
-                        {% elif notification.notification_type == 'application' %}📝
-                        {% elif notification.notification_type == 'user' %}👤
-                        {% elif notification.notification_type == 'feedback' %}💬
-                        {% elif notification.notification_type == 'system' %}⚙️
-                        {% else %}📢
-                        {% endif %}
-                    </span>
-                </div>
-                
-                <div class="notification-content">
-                    <h3>{{ notification.title }}</h3>
-                    
-                    {% if notification.notification_type == 'feedback' %}
-                        <!-- Feedback type badge -->
-                        <span class="feedback-type feedback-type-{{ notification.feedback_type }}">
-                            {{ notification.feedback_type|title|default:"Feedback" }}
-                        </span>
-                        
-                        <!-- Feedback message -->
-                        <p>{{ notification.message }}</p>
-                        
-                        <!-- Feedback user info -->
-                        <div class="feedback-user-info">
-                            Submitted by: <strong>{{ notification.sender.first_name }} {{ notification.sender.last_name }}</strong> 
-                            ({{ notification.sender.email }}) - 
-                            {% if notification.sender_type == 'applicant' %}Applicant{% else %}Employer{% endif %}
-                        </div>
-                        
-                        <!-- Feedback actions -->
-                        <div class="feedback-actions">
-                            <button class="resolve-btn" data-id="{{ notification.id }}" data-feedback-id="{{ notification.feedback_id }}">
-                                Mark as Resolved
-                            </button>
-                            <button class="contact-btn" data-email="{{ notification.sender.email }}">
-                                Contact User
-                            </button>
-                        </div>
-                    {% else %}
-                        <p>{{ notification.message }}</p>
-                    {% endif %}
-                    
-                    <div class="notification-meta">
-                        <span class="timestamp">{{ notification.created_at|date:"M d, Y H:i" }}</span>
-                        {% if notification.action_url %}
-                        <a href="{{ notification.action_url }}" class="action-link">View Details</a>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <div class="notification-actions">
-                    {% if not notification.is_read %}
-                    <button class="mark-read-btn" data-id="{{ notification.id }}" title="Mark as Read">✓</button>
-                    {% endif %}
-                    <button class="delete-btn" data-id="{{ notification.id }}" title="Delete">×</button>
-                </div>
-            </div>
-            {% endfor %}
-            
-            <!-- Pagination -->
-            {% if notifications.has_other_pages %}
-            <div class="pagination">
-                {% if notifications.has_previous %}
-                <a href="?page={{ notifications.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if notification_type != 'all' %}&type={{ notification_type }}{% endif %}{% if priority != 'all' %}&priority={{ priority }}{% endif %}{% if is_read != 'all' %}&is_read={{ is_read }}{% endif %}" class="pagination-link">&laquo; Previous</a>
-                {% endif %}
-                
-                {% for num in notifications.paginator.page_range %}
-                    {% if notifications.number == num %}
-                    <span class="pagination-link active">{{ num }}</span>
-                    {% else %}
-                    <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if notification_type != 'all' %}&type={{ notification_type }}{% endif %}{% if priority != 'all' %}&priority={{ priority }}{% endif %}{% if is_read != 'all' %}&is_read={{ is_read }}{% endif %}" class="pagination-link">{{ num }}</a>
-                    {% endif %}
-                {% endfor %}
-                
-                {% if notifications.has_next %}
-                <a href="?page={{ notifications.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if notification_type != 'all' %}&type={{ notification_type }}{% endif %}{% if priority != 'all' %}&priority={{ priority }}{% endif %}{% if is_read != 'all' %}&is_read={{ is_read }}{% endif %}" class="pagination-link">Next &raquo;</a>
-                {% endif %}
-            </div>
-            {% endif %}
-            
-        {% else %}
-            <p class="no-notifications">No notifications available</p>
+<div class="notifications-header">
+    <h2>Notifications</h2>
+    <div class="notifications-actions">
+        {% if unread_count > 0 %}
+        <button id="markAllReadBtn" class="btn btn-secondary">Mark All as Read</button>
         {% endif %}
+        <button id="deleteAllBtn" class="btn btn-danger">Clear All</button>
     </div>
+</div>
+
+<div class="notifications-filters">
+    <form method="get" action="{% url 'admin_notifications' %}" id="filterForm">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label for="type">Type:</label>
+                <select name="type" id="type" class="filter-select">
+                    <option value="all" {% if notification_type == 'all' %}selected{% endif %}>All Types</option>
+                    <option value="job" {% if notification_type == 'job' %}selected{% endif %}>Job Listings ({{ type_counts.job }})</option>
+                    <option value="application" {% if notification_type == 'application' %}selected{% endif %}>Applications ({{ type_counts.application }})</option>
+                    <option value="user" {% if notification_type == 'user' %}selected{% endif %}>Users ({{ type_counts.user }})</option>
+                    <option value="feedback" {% if notification_type == 'feedback' %}selected{% endif %}>Feedback ({{ type_counts.feedback|default:0 }})</option>
+                    <option value="system" {% if notification_type == 'system' %}selected{% endif %}>System ({{ type_counts.system }})</option>
+                    <option value="general" {% if notification_type == 'general' %}selected{% endif %}>General ({{ type_counts.general }})</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="priority">Priority:</label>
+                <select name="priority" id="priority" class="filter-select">
+                    <option value="all" {% if priority == 'all' %}selected{% endif %}>All Priorities</option>
+                    <option value="high" {% if priority == 'high' %}selected{% endif %}>High ({{ priority_counts.high }})</option>
+                    <option value="medium" {% if priority == 'medium' %}selected{% endif %}>Medium ({{ priority_counts.medium }})</option>
+                    <option value="low" {% if priority == 'low' %}selected{% endif %}>Low ({{ priority_counts.low }})</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="is_read">Status:</label>
+                <select name="is_read" id="is_read" class="filter-select">
+                    <option value="all" {% if is_read == 'all' %}selected{% endif %}>All</option>
+                    <option value="unread" {% if is_read == 'unread' %}selected{% endif %}>Unread</option>
+                    <option value="read" {% if is_read == 'read' %}selected{% endif %}>Read</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="filter-row">
+            <div class="search-group">
+                <input type="text" name="search" placeholder="Search notifications..." value="{{ search_query }}" class="search-input">
+                <button type="submit" class="btn btn-primary">Filter</button>
+                {% if search_query or notification_type != 'all' or priority != 'all' or is_read != 'all' %}
+                <a href="{% url 'admin_notifications' %}" class="btn btn-secondary">Clear Filters</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="notifications-stats">
+    <span class="stats-item">Total: <strong>{{ total_count }}</strong></span>
+    <span class="stats-item">Unread: <strong>{{ unread_count }}</strong></span>
+    <span class="stats-item">Feedback: <strong>{{ feedback_count|default:0 }}</strong></span>
+</div>
+
+<div class="notifications-list">
+    {% if notifications %}
+        {% for notification in notifications %}
+        <div class="notification-card {% if not notification.is_read %}unread{% endif %} {% if notification.notification_type == 'feedback' %}feedback-card{% endif %}" data-id="{{ notification.id }}">
+            <div class="notification-indicators">
+                {% if notification.priority == 'high' %}
+                <span class="priority-indicator high" title="High Priority">!</span>
+                {% elif notification.priority == 'medium' %}
+                <span class="priority-indicator medium" title="Medium Priority">●</span>
+                {% else %}
+                <span class="priority-indicator low" title="Low Priority">○</span>
+                {% endif %}
+
+                <span class="type-indicator {{ notification.notification_type }}" title="{{ notification.get_notification_type_display }}">
+                    {% if notification.notification_type == 'job' %}📄
+                    {% elif notification.notification_type == 'application' %}📝
+                    {% elif notification.notification_type == 'user' %}👤
+                    {% elif notification.notification_type == 'feedback' %}💬
+                    {% elif notification.notification_type == 'system' %}⚙️
+                    {% else %}📢
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="notification-content">
+                <h3>{{ notification.title }}</h3>
+
+                {% if notification.notification_type == 'feedback' %}
+                    <span class="feedback-type feedback-type-{{ notification.feedback_type }}">
+                        {{ notification.feedback_type|title|default:"Feedback" }}
+                    </span>
+                    <p>{{ notification.message }}</p>
+                    <div class="feedback-user-info">
+                        Submitted by: <strong>{{ notification.sender.first_name }} {{ notification.sender.last_name }}</strong> 
+                        ({{ notification.sender.email }}) - 
+                        {% if notification.sender_type == 'applicant' %}Applicant{% else %}Employer{% endif %}
+                    </div>
+                    <div class="feedback-actions">
+                        <button class="resolve-btn" data-id="{{ notification.id }}" data-feedback-id="{{ notification.feedback_id }}">
+                            Mark as Resolved
+                        </button>
+                        <button class="contact-btn" data-email="{{ notification.sender.email }}">
+                            Contact User
+                        </button>
+                    </div>
+                {% else %}
+                    <p>{{ notification.message }}</p>
+                {% endif %}
+
+                <div class="notification-meta">
+                    <span class="timestamp">{{ notification.created_at|date:"M d, Y H:i" }}</span>
+                    {% if notification.action_url %}
+                    <a href="{{ notification.action_url }}" class="action-link">View Details</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="notification-actions">
+                {% if not notification.is_read %}
+                <button class="mark-read-btn" data-id="{{ notification.id }}" title="Mark as Read">✓</button>
+                {% endif %}
+                <button class="delete-btn" data-id="{{ notification.id }}" title="Delete">×</button>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if notifications.has_other_pages %}
+        <div class="pagination">
+            {% if notifications.has_previous %}
+            <a href="?page={{ notifications.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if notification_type != 'all' %}&type={{ notification_type }}{% endif %}{% if priority != 'all' %}&priority={{ priority }}{% endif %}{% if is_read != 'all' %}&is_read={{ is_read }}{% endif %}" class="pagination-link">&laquo; Previous</a>
+            {% endif %}
+
+            {% for num in notifications.paginator.page_range %}
+                {% if notifications.number == num %}
+                <span class="pagination-link active">{{ num }}</span>
+                {% else %}
+                <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if notification_type != 'all' %}&type={{ notification_type }}{% endif %}{% if priority != 'all' %}&priority={{ priority }}{% endif %}{% if is_read != 'all' %}&is_read={{ is_read }}{% endif %}" class="pagination-link">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if notifications.has_next %}
+            <a href="?page={{ notifications.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if notification_type != 'all' %}&type={{ notification_type }}{% endif %}{% if priority != 'all' %}&priority={{ priority }}{% endif %}{% if is_read != 'all' %}&is_read={{ is_read }}{% endif %}" class="pagination-link">Next &raquo;</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% else %}
+        <p class="no-notifications">No notifications available</p>
+    {% endif %}
 </div>
 {% endblock %}
 
