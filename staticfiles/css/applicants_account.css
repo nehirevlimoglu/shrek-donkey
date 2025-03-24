@@ -1,0 +1,68 @@
+/* General Styling */
+html, body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+
+/* Account Container */
+.account-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 100%; /* Ensures full width */
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Ensure user info card takes full width */
+.user-info {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.1);
+    width: 90%; /* Adjusted for responsiveness */
+    max-width: 800px;
+    border-left: 5px solid #007bff;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .account-container {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .account-container {
+        width: 100%;
+        padding: 1rem;
+    }
+}
+
+/* Edit Profile Button Container */
+.edit-profile {
+    margin-top: 20px;
+    text-align: center;
+    width: 100%;
+}
+
+.edit-profile a {
+    display: inline-block;
+    padding: 12px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.edit-profile a:hover {
+    background-color: #0056b3;
+}

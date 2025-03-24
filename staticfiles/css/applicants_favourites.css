@@ -98,24 +98,21 @@ body {
 }
 
 /* Favorite Star Styling */
-/* Updated Favorite Star Styling */
 .favorite-star {
-    font-size: 1.5rem; 
+    font-size: 0.8rem !important; 
     color: #ccc;
     cursor: pointer;
     transition: color 0.3s ease, transform 0.2s ease;
-    text-align: center;
 }
 
 .favorite-star:hover {
     color: #ffd700;
-    transform: scale(1.2);
+    transform: scale(1.1);
 }
 
 .favorite-star.active {
     color: #ffd700;
 }
-
 
 /* -------------------------------------------
    NEW: Rectangular "View Details" Button

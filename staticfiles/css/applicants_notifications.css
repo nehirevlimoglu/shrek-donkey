@@ -1,0 +1,109 @@
+/* Ensure the HTML and body take up the full height of the viewport */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+/* Container for the entire page (dashboard) */
+.dashboard-container {
+    display: flex;
+    width: 100%;
+    height: 100vh; /* Full viewport height */
+    overflow: hidden; /* We will scroll inside the .content instead */
+}
+
+/* Sidebar */
+.sidebar {
+    width: 250px;
+    position: fixed;  /* Fixes sidebar on the left */
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: #f5f5f5;
+    padding-top: 20px;
+    overflow-y: auto; /* If the sidebar has more items than fit vertically, it can scroll too */
+}
+
+/* Main Content */
+.content {
+    margin-left: 250px;   /* Leave space for the sidebar */
+    flex-grow: 1;         /* Fill remaining width */
+    height: 100vh;        /* Match the parent's height */
+    overflow-y: auto;     /* Make this area scrollable */
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box; 
+}
+
+/* Notification List */
+.notifications-list {
+    list-style: none;
+    padding: 1rem;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Individual Notification Item */
+.notification-item {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    width: 100%;
+    max-width: 80%;
+}
+
+.notification-item:hover {
+    transform: scale(1.02);
+    box-shadow: 4px 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive Design for Smaller Screens */
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 200px;
+    }
+
+    .content {
+        margin-left: 200px;
+    }
+
+    .notification-item {
+        max-width: 90%;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Sidebar becomes unfixed and takes full width on mobile */
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+    }
+
+    /* Content then can take full width and auto height on mobile */
+    .content {
+        margin-left: 0;
+        width: 100%;
+        height: auto;
+        overflow-y: visible; /* or auto, depending on how you want it to behave */
+        padding: 1rem;
+    }
+
+    .notification-item {
+        max-width: 100%;
+    }
+}
