@@ -215,14 +215,10 @@ class Migration(migrations.Migration):
                 ('related_object_type', models.CharField(blank=True, max_length=50, null=True)),
                 ('action_url', models.CharField(blank=True, max_length=255, null=True)),
                 ('is_deleted', models.BooleanField(default=False)),
-<<<<<<< HEAD
-                ('recipient', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications', to=settings.AUTH_USER_MODEL)),
-=======
                 ('feedback_type', models.CharField(blank=True, choices=[('suggestion', 'Suggestion'), ('bug_report', 'Bug Report'), ('compliment', 'Compliment'), ('complaint', 'Complaint'), ('other', 'Other')], max_length=20, null=True)),
                 ('sender_type', models.CharField(blank=True, max_length=20, null=True)),
                 ('recipient', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='notifications', to=settings.AUTH_USER_MODEL)),
                 ('sender', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='sent_notifications', to=settings.AUTH_USER_MODEL)),
->>>>>>> main-at-commit2
             ],
             options={
                 'ordering': ['-created_at'],

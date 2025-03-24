@@ -22,7 +22,6 @@ from django.db.models import Count, Q
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from tutorials.helpers import clear_feedback_messages
 from tutorials.utils import match_candidates_to_job
 from datetime import datetime, date
 
@@ -147,36 +146,6 @@ def employer_settings(request):
     return render(request, 'employer_settings.html')
 
 
-def employer_sign_up(request):
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            if user.role != 'Employer':
-                form.add_error(None, "Only employers can sign up.")
-                return render(request, 'sign_up.html', {'form': form})
-            user.save()
-            login(request, user)
-            return redirect('employer_profile_setup.html')
-    else:
-        form = SignUpForm()
-    return render(request, 'sign_up.html', {'form': form})
-
-
-
-def employer_job_listings(request):
-    """ Display only the jobs posted by the logged-in employer """
-    
-    employer = getattr(request.user, 'employer', None)  # ✅ Fetch employer if exists
-    jobs = Job.objects.filter(employer=employer) if employer else []  # ✅ Get jobs posted by this employer
-
-    return render(request, 'employer_job_listings.html', {'jobs': jobs})
-
-
-
-
-logger = logging.getLogger(__name__)
-
 @login_required
 def create_job_listings(request):
     """ Allow employers to create job listings while handling missing employer profiles. """
@@ -230,28 +199,6 @@ def edit_job_view(request, pk):
         form = JobForm(instance=job)
 
     return render(request, 'jobs/edit_job.html', {'form': form, 'job': job})
-
-
-    
-def employer_login(request):
-    if request.method == 'POST':
-        form = LogInForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None and user.role == 'Employer':
-                login(request, user)
-                return redirect('employer_home_page')
-            else:
-                form.add_error(None, "Only employers can log in here.")
-    else:
-        form = LogInForm()
-    
-    # Clear any feedback messages before rendering login page
-    clear_feedback_messages(request)
-    
-    return render(request, 'log_in.html', {'form': form})
 
 
 @login_required
@@ -324,19 +271,6 @@ def employer_calendar(request):
 
     return render(request, 'employer_calendar.html', {'interviews': interviews})
 
-    
-
-def schedule_interview(request):
-    if request.method == 'POST':
-        form = InterviewForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('interview_list')  # or wherever you want to go
-    else:
-        form = InterviewForm()
-
-    return render(request, 'schedule_interview.html', {'form': form})
-
 
 def create_interview_event(request):
     # Suppose you want to schedule an interview for tomorrow:
@@ -383,7 +317,6 @@ def reschedule_interview(request, pk):
         return render(request, 'reschedule_interview.html', {'interview': interview})
 
 @user_passes_test(is_employer)
-
 @login_required
 def get_interviews(request):
     try:
@@ -431,7 +364,7 @@ def delete_account(request):
         employer.delete() 
         user.delete()  
         logout(request)
-        return redirect("home_page")  
+        return redirect("log_in")  
 
     return render(request, "delete_account.html")
 
@@ -475,6 +408,7 @@ def employer_notifications(request):
     notifications.update(is_read=True)
 
     return render(request, 'employer_notifications.html', {'notifications': notifications})
+
 
 @login_required
 def get_employer_events(request):
@@ -558,6 +492,7 @@ def calculate_duration(start_date, end_date):
     months = (total_days % 365) // 30
     days = (total_days % 365) % 30
     return f"{years} years, {months} months, {days} days"
+
 
 @login_required
 def applicant_profile(request, applicant_id):
@@ -692,6 +627,7 @@ def accept_candidate(request, candidate_id):
         logger.warning(f"No Applicant profile found for user {candidate.user.username}")
 
     return JsonResponse({"message": "Candidate accepted successfully!", "status": "Hired"})
+
 
 @csrf_exempt
 def reject_candidate(request, candidate_id):
