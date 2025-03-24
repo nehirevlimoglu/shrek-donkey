@@ -3,7 +3,7 @@ from django.urls import path, include
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites 
 from tutorials.views.views import log_in, log_out, sign_up, job_matching_view 
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, get_active_users_data, admin_job_detail, admin_edit_job, admin_delete_job, admin_toggle_job_status, admin_applications_view, generate_test_notifications, get_candidate_info, update_candidate_status
-from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings,change_password, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_candidates, get_interviews, edit_company_profile, delete_account, schedule_interview, interview_detail, reschedule_interview
+from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_candidates, get_interviews, delete_account, schedule_interview, interview_detail, reschedule_interview
 
 from tutorials.views.applicant_views import toggle_favorite
 
@@ -13,10 +13,10 @@ from django.conf.urls.static import static
 from tutorials.views.views import log_in, log_out, sign_up, job_matching_view
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile, applicants_analytics, apply_for_job, job_detail, applicants_application
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications,  update_job_status
-from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, change_password, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_calendar, employer_candidates, get_interviews, edit_company_profile, delete_account, employer_notifications, get_employer_events, review_application, applicant_profile, schedule_interview, accept_candidate, reject_candidate
+from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_calendar, employer_candidates, get_interviews, delete_account, employer_notifications, get_employer_events, review_application, applicant_profile, schedule_interview, accept_candidate, reject_candidate
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile, applicants_analytics
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications, admin_applications_view, admin_notifications_count, generate_admin_notification, mark_notification_as_read, mark_all_notifications_as_read, delete_notification, delete_all_notifications, generate_test_notifications
-from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings,change_password, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view,  employer_candidates, get_interviews, edit_company_profile, delete_account
+from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view,  employer_candidates, get_interviews,  delete_account
 from tutorials.models.applicants_models import Applicant
 from tutorials.views.views import sign_up, applicant_profile_setup, employer_profile_setup
 from tutorials.views.employer_views import job_detail_view, mark_notification_as_read
@@ -53,7 +53,6 @@ urlpatterns = [
     path("jobs/<int:job_id>/", job_detail_view, name="employer_job_detail"),
 
     path('jobs/<int:pk>/edit/', edit_job_view, name='job_edit'),
-    path('change-password/', change_password, name='change_password'),
     path('employer_settings/', employer_settings, name='employer_settings'),
     path('create-job/', create_job_listings, name='employer_create_job_listing'),
     path('candidates/', employer_candidates, name='employer_candidates'),
@@ -71,7 +70,6 @@ urlpatterns = [
     path('employer_home_page', employer_home_page, name='employer_home_page'),
     path('create_job_listings', create_job_listings, name='create_job_listings'),
     path('jobs/<int:pk>/edit/', edit_job_view, name='job_edit'),
-    path('change-password/', change_password, name='change_password'),
     path('admin_job_detail/<int:job_id>/', admin_job_detail, name='admin_job_detail'),
     path('admin_edit_job/<int:job_id>/', admin_edit_job, name='admin_edit_job'),
     path('admin_delete_job/<int:job_id>/', admin_delete_job, name='admin_delete_job'),
@@ -92,7 +90,6 @@ urlpatterns = [
     
     path('api/get_active_users_data/', get_active_users_data, name='get_active_users_data'),
 
-    path("settings/edit_profile/", edit_company_profile, name="edit_company_profile"),
     path("settings/delete_account/", delete_account, name="delete_account"),
     path('job/<int:job_id>/', job_detail, name='job_detail'),
     

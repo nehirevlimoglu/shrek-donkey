@@ -16,25 +16,6 @@ class InterviewForm(forms.ModelForm):
         fields = ['candidate', 'job', 'date', 'time', 'interview_link', 'notes']
 
 
-class CustomPasswordChangeForm(PasswordChangeForm):
-    old_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Old Password'}),
-        label="Old Password"
-    )
-    new_password1 = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'New Password'}),
-        label="New Password"
-    )
-    new_password2 = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm New Password'}),
-        label="Confirm New Password"
-    )
-
-    class Meta:
-        model = User
-        fields = ['old_password', 'new_password1', 'new_password2']
-
-
 def get_job_titles():
     json_path = os.path.join(settings.BASE_DIR, 'static/data/job_titles.json')
     try:
@@ -111,12 +92,66 @@ class CustomPasswordChangeForm(PasswordChangeForm):
     class Meta:
         model = User
         fields = ['old_password', 'new_password1', 'new_password2']
-
-
 class EmployerProfileForm(forms.ModelForm):
+    # Include optional user fields with Bootstrap styling
+    first_name = forms.CharField(
+        max_length=30,
+        required=False,
+        label='First Name',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'})
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=False,
+        label='Last Name',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'})
+    )
+    email = forms.EmailField(
+        required=False,
+        label='Email',
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'})
+    )
+
     class Meta:
         model = Employer
-        fields = ['company_name', 'company_logo', 'company_website', 'industry', 'company_location']
+        fields = [
+            'company_name',
+            'company_logo',
+            'company_website',
+            'industry',
+            'company_location',
+        ]
+        widgets = {
+            'company_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Company Name'}),
+            'company_logo': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'company_website': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://'}),
+            'industry': forms.Select(attrs={'class': 'form-select'}),
+            'company_location': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Location'}),
+        }
 
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)  # grab the user instance if passed
+        super().__init__(*args, **kwargs)
 
+        # Pre-populate user fields if user is passed in
+        if self.user:
+            self.fields['first_name'].initial = self.user.first_name
+            self.fields['last_name'].initial = self.user.last_name
+            self.fields['email'].initial = self.user.email
 
+    def save(self, commit=True):
+        employer = super().save(commit=False)
+
+        # Save related user info too
+        if self.user:
+            self.user.first_name = self.cleaned_data.get('first_name', self.user.first_name)
+            self.user.last_name = self.cleaned_data.get('last_name', self.user.last_name)
+            self.user.email = self.cleaned_data.get('email', self.user.email)
+            if commit:
+                self.user.save()
+
+        if commit:
+            employer.save()
+            self.save_m2m()
+
+        return employer

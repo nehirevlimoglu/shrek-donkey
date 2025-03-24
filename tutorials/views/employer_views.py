@@ -122,7 +122,44 @@ def view_employer_analytics(request):
 
 @login_required
 def employer_settings(request):
-    return render(request, 'employer_settings.html')
+    tab = request.GET.get('tab', 'profile')
+    employer = Employer.objects.get(user=request.user)
+
+    form = None
+    password_form = None
+
+    # Handle profile editing
+    if tab == 'edit_profile':
+        if request.method == 'POST':
+            form = EmployerProfileForm(request.POST, request.FILES, instance=employer, user=request.user)
+            if form.is_valid():
+                form.save()
+                request.user.refresh_from_db()  # to reflect updated names immediately
+                messages.success(request, "Company profile updated successfully.")
+                return redirect('employer_settings')  # or redirect with ?tab=profile
+        else:
+            form = EmployerProfileForm(instance=employer, user=request.user)
+
+
+    # Handle password change
+    elif tab == 'password':
+        form = CustomPasswordChangeForm(user=request.user)
+        if request.method == 'POST':
+            form = CustomPasswordChangeForm(user=request.user, data=request.POST)
+            if form.is_valid():
+                user = form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, "Password changed successfully.")
+                return redirect('applicants-account')
+
+    context = {
+        'tab': tab,
+        'employer': employer,
+        'form': form,
+        'password_form': password_form,
+        'user': request.user,
+    }
+    return render(request, 'employer_settings.html', context)
 
 
 @login_required
@@ -182,24 +219,6 @@ def edit_job_view(request, pk):
 
 
 
-
-@login_required
-def change_password(request):
-    if request.method == 'POST':
-        form = CustomPasswordChangeForm(user=request.user, data=request.POST)
-        
-        if form.is_valid():
-            form.save()
-            update_session_auth_hash(request, form.user)  # Prevents logout after password change
-            messages.success(request, "Your password has been successfully changed.")  # Success message
-            return redirect('employer_settings')  # Redirect to settings
-        else:
-            messages.error(request, "There was an issue with your password change. Please check and try again.")
-
-    else:
-        form = CustomPasswordChangeForm(user=request.user)
-    
-    return render(request, 'change_password.html', {'form': form})
 
 
 @login_required
@@ -315,25 +334,6 @@ def get_interviews(request):
     ]
 
     return JsonResponse(events, safe=False)
-
-
-@login_required
-def edit_company_profile(request):
-    try:
-        # FIX: Use 'username' instead of 'user'
-        employer = Employer.objects.get(username=request.user.username)
-    except Employer.DoesNotExist:
-        return render(request, "error.html", {"message": "Employer not found"})
-
-    if request.method == "POST":
-        form = EmployerProfileForm(request.POST, request.FILES, instance=employer)
-        if form.is_valid():
-            form.save()
-            return redirect("employer_settings")  # Redirect to settings after update
-    else:
-        form = EmployerProfileForm(instance=employer)
-
-    return render(request, "edit_company_profile.html", {"form": form})
 
 
 @login_required
