@@ -2,7 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages  # Import the messages module
 from tutorials.models.applicants_models import Applicant, Application, ApplicantNotification
-from tutorials.forms.applicants_forms import ApplicantForm, ApplicationForm
+from tutorials.forms.applicants_forms import ApplicantForm, ApplicationForm, ApplicantEditForm
+from tutorials.forms.forms import CustomPasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from tutorials.decorators import applicant_only  # Import the decorator
 from tutorials.models.employer_models import Job, EmployerNotification, JobTitle, Candidate, WorkExperience
@@ -130,13 +131,45 @@ def applicants_notifications(request):
     return render(request, 'applicants_notifications.html', {'notifications': notifications})
 
 
-@applicant_only
+
+@login_required
 def applicants_account(request):
-    applicant = get_object_or_404(Applicant, user=request.user)
-    return render(request, 'applicants_account.html', {
+    tab = request.GET.get('tab', 'profile')  # default is profile
+    edit_mode = request.GET.get('edit') == 'true'
+    applicant = request.user.applicant
+
+    form = None
+
+    if tab == 'edit_profile':
+        form = ApplicantEditForm(instance=applicant, user=request.user)
+        if request.method == 'POST':
+            form = ApplicantEditForm(request.POST, request.FILES, instance=applicant, user=request.user)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Profile updated successfully.")
+                return redirect('applicants-account')
+    
+    elif tab == 'password':
+        form = CustomPasswordChangeForm(user=request.user)
+        if request.method == 'POST':
+            form = CustomPasswordChangeForm(user=request.user, data=request.POST)
+            if form.is_valid():
+                user = form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, "Password changed successfully.")
+                return redirect('applicants-account')
+
+    elif tab == 'profile':
+        # No form needed — just display info using user and applicant context
+        pass  # nothing to do here, just let it fall through to context
+
+    context = {
+        'tab': tab,
+        'form': form,
         'applicant': applicant,
         'user': request.user,
-    })
+    }
+    return render(request, 'applicants_account.html', context)
 
 
 @login_required
@@ -565,3 +598,5 @@ def toggle_favorite(request):
         favorited = True
     # Ensure that the change is saved (ManyToManyFields usually update immediately)
     return JsonResponse({'favorited': favorited})
+
+

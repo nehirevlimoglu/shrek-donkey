@@ -29,11 +29,11 @@
                         {% elif user.role == "Applicant" %}
                             <!-- Your 5 menu items for Applicants -->
                             <li><a href="{% url 'applicants-home-page' %}">Home Page</a></li>
-                            <li><a href="{% url 'applicants-account' %}">Account</a></li>
                             <li><a href="{% url 'applicants-favourites' %}">Favourites</a></li>
                             <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
                             <li><a href="{% url 'applicants-notifications' %}">Notifications</a></li>
                             <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
+                            <li><a href="{% url 'applicants-account' %}">Settings</a></li>
                             <li><a href="{% url 'submit_feedback' %}">Submit Feedback</a></li>
                         {% else %}
                             <li><a href="/">Home</a></li>  <!-- Uses the root URL instead -->

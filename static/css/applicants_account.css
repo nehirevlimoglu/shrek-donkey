@@ -1,122 +1,124 @@
-/* General page styling */
+/* General reset and base layout */
 html, body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f8f9fa;
+    background-color: #F8F9FA;
     margin: 0;
     padding: 0;
-    height: 100%;
-    overflow: hidden;
-}
-
-/* Scrollable content area */
-body {
-    display: flex;
-    flex-direction: column;
-}
-
-/* Full-width container styling */
-.main-scroll-container {
-    height: 100%;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center; /* 👈 vertical centering */
-    padding: 2rem;
-    box-sizing: border-box;
+    min-height: 100vh;
     overflow-y: auto;
 }
 
-/* Optional wrapper to center content inside full width */
-.account-wrapper {
-    background-color: #ffffff;
-    padding: 2rem 3rem;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-    max-width: 600px;
-    width: 100%;
+/* Main layout when using a sidebar */
+.content {
+    margin-left: 270px; /* assuming your sidebar is 270px wide */
+    width: calc(100vw - 270px);
+    padding: 2rem;
+    overflow-x: hidden;
 }
 
-
-/* Header */
-.account-header {
-    text-align: left;
-    margin-bottom: 2rem;
+/* Page wrapper for visual card structure */
+.settings-container {
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.account-header h2 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #1B1B1B;
+/* Header section */
+.page-header {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
 }
 
-/* Flat layout: no box, just spacing */
-.user-info {
-    padding: 0;
-    margin: 0;
-    width: 100%;
-    max-width: 600px;         /* Limit content width */
-    display: flex;
-    flex-direction: column;
-    text-align: left;         /* Keep text left-aligned inside */
+.page-header h2 {
+    font-weight: 600;
+    font-size: 1.75rem;
+}
+
+.page-header p {
+    color: #6b7280;
+    margin-top: 5px;
+    font-size: 0.95rem;
+}
+
+/* Card styling */
+.card {
+    border: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+.card-header {
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+    padding: 15px 20px;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+/* Avatar sidebar */
+.card-body.text-center img {
+    width: 120px;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+}
+
+/* Text styling */
+strong {
+    font-weight: 600;
+    color: #1f2937;
 }
 
 .user-info p,
-.user-info label,
 .user-info ul,
 .user-info li {
     font-size: 1rem;
     color: #1f2937;
-    line-height: 1.8;
+    line-height: 1.7;
     margin: 0.5rem 0;
 }
 
-.user-info strong {
-    font-weight: 600;
-}
-
-/* Remove default list spacing */
 .user-info ul {
-    list-style-type: none;
-    padding-left: 0;
-    margin: 0.25rem 0 1rem;
+    list-style: none;
+    padding-left: 1.25rem;
+    margin-bottom: 1rem;
 }
 
-/* Edit Profile Button */
-.edit-profile {
-    margin-top: 2rem;
-    width: 100%;
-    max-width: 600px;
-    display: flex;
-    justify-content: center;
-    text-align: center;
+.user-info ul li::before {
+    content: "• ";
+    color: #4a6cf7;
+    margin-right: 6px;
 }
 
-
-.edit-profile a {
-    display: inline-block;
-    padding: 0.75rem 1.5rem;
-    background-color: #3B82F6;
-    color: white;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background-color 0.3s ease;
+/* Button styling */
+.btn-primary {
+    background-color: #4a6cf7;
+    border-color: #4a6cf7;
 }
 
-.edit-profile a:hover {
-    background-color: #2563eb;
+.btn-primary:hover {
+    background-color: #3a5ce5;
+    border-color: #3a5ce5;
 }
 
-/* Responsive */
+/* Optional: form control alignment (if needed later) */
+.form-label {
+    font-weight: 500;
+    color: #374151;
+}
+
+/* Responsive tweaks */
 @media (max-width: 768px) {
-    .main-scroll-container {
-        padding: 2rem 1.25rem;
+    .content {
+        margin-left: 0;
+        width: 100%;
+        padding: 1rem;
     }
 
-    .edit-profile a {
-        width: 100%;
-        text-align: center;
+    .settings-container {
+        padding: 1.5rem;
     }
 }

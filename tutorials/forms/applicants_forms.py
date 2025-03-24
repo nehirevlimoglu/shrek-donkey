@@ -2,7 +2,7 @@
 
 from django import forms
 from tutorials.models.applicants_models import Applicant, Application, JobTitle
-from tutorials.models.employer_models import JobTitle
+from tutorials.models.employer_models import JobTitle, Job
 from django.core.exceptions import ValidationError
 
 class ApplicantForm(forms.ModelForm):
@@ -226,3 +226,73 @@ class ApplicationForm(forms.ModelForm):
             if hasattr(cover_letter, 'content_type') and cover_letter.content_type not in self.ALLOWED_FILE_TYPES:
                 raise forms.ValidationError('Only PDF files are allowed')
         return cover_letter
+
+
+class ApplicantEditForm(forms.ModelForm):
+    # First and last name (from the related User model)
+    first_name = forms.CharField(
+        max_length=30, required=False, label='First Name'
+    )
+    last_name = forms.CharField(
+        max_length=30, required=False, label='Last Name'
+    )
+    
+    degree = forms.CharField(
+        max_length=255, required=False, label='Degree'
+    )
+    salary_preferences = forms.CharField(
+        max_length=255, required=False, label='Salary Preferences'
+    )
+    location_preferences = forms.CharField(
+        max_length=255, required=False, label='Location Preferences'
+    )
+    cv = forms.FileField(
+        required=False, label='Upload CV'
+    )
+    job_preferences = forms.ModelMultipleChoiceField(
+        queryset=Job.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label='Job Preferences'
+    )
+
+    class Meta:
+        model = Applicant
+        fields = [
+            'degree',
+            'salary_preferences',
+            'job_preferences',
+            'location_preferences',
+            'cv',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)  # capture the user instance
+        super().__init__(*args, **kwargs)
+
+        # Pre-fill user-related fields if a user is passed
+        if self.user:
+            self.fields['first_name'].initial = self.user.first_name
+            self.fields['last_name'].initial = self.user.last_name
+
+    def save(self, commit=True):
+        applicant = super().save(commit=False)
+
+        # Save user first and last name if present
+        if self.user:
+            first_name = self.cleaned_data.get('first_name')
+            last_name = self.cleaned_data.get('last_name')
+
+            if first_name:
+                self.user.first_name = first_name
+            if last_name:
+                self.user.last_name = last_name
+
+            if commit:
+                self.user.save()
+
+        if commit:
+            applicant.save()
+            self.save_m2m()
+
+        return applicant

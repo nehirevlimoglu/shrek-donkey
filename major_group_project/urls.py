@@ -40,6 +40,7 @@ urlpatterns = [
     path('applicants_edit_profile/', applicants_edit_profile, name='applicants-edit-profile'),
     path('applicants_analytics/', applicants_analytics, name='applicants-analytics'),
 
+
     path('admin_home_page/', admin_home_page, name='admin_home_page'),
     path('admin_notifications/', admin_notifications, name='admin_notifications'),
     path('admin_settings/', admin_settings, name='admin_settings'),
