@@ -160,7 +160,6 @@ def admin_notifications(request):
     # Count totals for statistics (only among this admin’s notifications)
     total_count = notifications.count()
     unread_count = notifications.filter(is_read=False).count()
-    feedback_count = notifications.filter(notification_type='feedback').count()
     
     # Count by type and priority
     type_counts = {
@@ -169,7 +168,6 @@ def admin_notifications(request):
         'application': notifications.filter(notification_type='application').count(),
         'user': notifications.filter(notification_type='user').count(),
         'system': notifications.filter(notification_type='system').count(),
-        'feedback': notifications.filter(notification_type='feedback').count(),
     }
     
     priority_counts = {
@@ -195,7 +193,6 @@ def admin_notifications(request):
         'search_query': search_query,
         'total_count': total_count,
         'unread_count': unread_count,
-        'feedback_count': feedback_count,
         'type_counts': type_counts,
         'priority_counts': priority_counts,
     }
@@ -264,7 +261,7 @@ def generate_admin_notification(request):
 def generate_test_notifications(request):
     """Generate multiple test notifications for demonstration purposes"""
     # Create different types of notifications with different priorities
-    notification_types = ['general', 'job', 'application', 'user', 'system', 'feedback']
+    notification_types = ['general', 'job', 'application', 'user', 'system']
     priorities = ['high', 'medium', 'low']
     
     # Create one of each type
@@ -278,20 +275,6 @@ def generate_test_notifications(request):
                 priority=priority,
                 is_read=False
             )
-    
-    # Add specific feedback notifications with different feedback types
-    feedback_types = ['suggestion', 'bug_report', 'compliment', 'complaint', 'other']
-    for feedback_type in feedback_types:
-        Notification.objects.create(
-            recipient=request.user,
-            title=f"Test Feedback: {feedback_type.replace('_', ' ').title()}",
-            message=f"This is a test feedback of type {feedback_type.replace('_', ' ')}.",
-            notification_type='feedback',
-            priority='medium',
-            is_read=False,
-            feedback_type=feedback_type,
-            sender_type='applicant'
-        )
     
     return redirect('admin_notifications')
 
@@ -759,28 +742,6 @@ def update_job_status(request):
             return JsonResponse({"success": False, "error": str(e)}, status=500)
     
     return JsonResponse({"success": False, "error": "Method not allowed"}, status=405)
-
-
-
-@csrf_exempt
-@user_passes_test(is_admin)
-def resolve_feedback(request, feedback_id):
-    if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'Only POST method is allowed'}, status=405)
-    
-    try:
-        notification = Notification.objects.get(id=feedback_id, notification_type='feedback')
-        
-        # Mark notification as read and change priority
-        notification.is_read = True
-        notification.priority = 'low'  # Lower priority
-        notification.save()
-        
-        return JsonResponse({'status': 'success'})
-    except Notification.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Feedback not found'}, status=404)
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 #write test for this !!!!! yani gecsin testleri
 @user_passes_test(is_admin)

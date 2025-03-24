@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites 
-from tutorials.views.views import log_in, log_out, sign_up, job_matching_view, submit_feedback  
-from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, get_active_users_data, admin_job_detail, admin_edit_job, admin_delete_job, admin_toggle_job_status, admin_applications_view, resolve_feedback, generate_test_notifications, get_candidate_info, update_candidate_status
+from tutorials.views.views import log_in, log_out, sign_up, job_matching_view 
+from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, get_active_users_data, admin_job_detail, admin_edit_job, admin_delete_job, admin_toggle_job_status, admin_applications_view, generate_test_notifications, get_candidate_info, update_candidate_status
 from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings,change_password, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_candidates, get_interviews, edit_company_profile, delete_account, schedule_interview, interview_detail, reschedule_interview
 
 from tutorials.views.applicant_views import toggle_favorite
@@ -112,12 +112,6 @@ urlpatterns = [
     path('applicants_application/<int:job_id>/', applicants_application, name='applicants_application'),
 
     path('match-candidates/<int:job_id>/', job_matching_view, name='match_candidates'),
-    
-    # Feedback submission path
-    path('submit_feedback/', submit_feedback, name='submit_feedback'),
-    
-    # Feedback resolution path
-    path('admin_feedback/resolve/<int:feedback_id>/', resolve_feedback, name='resolve_feedback'),
 
     path('toggle-favorite/', toggle_favorite, name='toggle_favorite'),
     
