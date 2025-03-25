@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from tutorials.models.employer_models import Employer, Job, Candidate, Interview, EmployerNotification, EmployerEvent
 from tutorials.models.admin_models import Notification 
 from tutorials.forms.forms import SignUpForm, LogInForm
-from tutorials.forms.employer_forms import JobForm, EmployerProfileForm, CustomPasswordChangeForm, InterviewForm
+from tutorials.forms.employer_forms import JobForm, EmployerProfileForm, CustomPasswordChangeForm, InterviewForm, RescheduleInterviewForm
 from tutorials.forms.forms import CustomPasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
@@ -301,20 +301,26 @@ def interview_detail(request, pk):
     interview = get_object_or_404(Interview, pk=pk)
     return render(request, 'interview_detail.html', {'interview': interview})
 
+
+@login_required
 def reschedule_interview(request, pk):
     interview = get_object_or_404(Interview, pk=pk)
 
     if request.method == 'POST':
-        # For example, get new date/time from the form
-        new_date = request.POST.get('date')
-        new_time = request.POST.get('time')
-        # Update the interview
-        interview.date = new_date
-        interview.time = new_time
-        interview.save()
-        return redirect('interview_detail', pk=interview.pk)
+        form = RescheduleInterviewForm(request.POST, instance=interview)
+        if form.is_valid():
+            form.save()  # This updates the interview with the new date/time
+            messages.success(request, "Interview rescheduled successfully!")
+            return redirect('employer_calendar')
     else:
-        return render(request, 'reschedule_interview.html', {'interview': interview})
+        form = RescheduleInterviewForm(instance=interview)
+
+    context = {
+        'form': form,
+        'interview': interview,
+    }
+    return render(request, 'reschedule_interview.html', context)
+
 
 @user_passes_test(is_employer)
 @login_required
@@ -631,3 +637,5 @@ def reject_candidate(request, candidate_id):
         logger.warning(f"Could not update Application for rejected candidate {candidate.id}")
 
     return JsonResponse({"message": "Candidate rejected successfully!", "status": "Rejected"})
+
+

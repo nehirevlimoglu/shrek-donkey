@@ -431,7 +431,6 @@ def admin_job_detail(request, job_id):
 
     if job.status in ['approved', 'rejected'] and employer:
         title = "Job Listing Approved " if job.status == 'approved' else "Job Listing Rejected "
-        message = f"Your job listing '{job.title}' has been {job.status}."
 
         already_exists = EmployerNotification.objects.filter(
             employer=employer,

@@ -157,3 +157,12 @@ class EmployerProfileForm(forms.ModelForm):
             self.save_m2m()
 
         return employer
+
+class RescheduleInterviewForm(forms.ModelForm):
+    class Meta:
+        model = Interview
+        fields = ['date', 'time', 'interview_link', 'notes']  # which fields to edit
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'time': forms.TimeInput(attrs={'type': 'time'}),
+        }

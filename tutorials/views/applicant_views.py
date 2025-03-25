@@ -19,6 +19,7 @@ from tutorials.models.employer_models import Interview
 from tutorials.utils import match_candidates_to_job
 from django.http import HttpResponseForbidden
 from django.views.decorators.http import require_POST
+from tutorials.helpers import clear_feedback_messages
 
 
 @applicant_only
@@ -123,6 +124,7 @@ def applicants_favourites(request):
 
     favorite_jobs = applicant.favorites.all()
     return render(request, 'applicants_favourites.html', {'favorite_jobs': favorite_jobs})
+
 
 @applicant_only
 @login_required
@@ -509,7 +511,7 @@ def applicants_application(request, job_id):
             application.save()
 
             # (Optional) Create/update Candidate, send notifications, etc.
-            messages.success(request, "Your application has been submitted successfully!")
+            clear_feedback_messages(request)
             return redirect('job_detail', job_id=job.id)
         else:
             messages.error(request, "Please fix the errors in your application form.")
