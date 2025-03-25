@@ -336,4 +336,4 @@ class EmployerSignUpTests(TestCase):
         self.assertRedirects(response, reverse('employer_home_page'),
                            status_code=302, target_status_code=200)
 
-    
+

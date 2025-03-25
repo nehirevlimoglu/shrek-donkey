@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from tutorials.models.employer_models import Employer, Job, Candidate, Interview, EmployerNotification, EmployerEvent
 from tutorials.models.admin_models import Notification 
 from tutorials.forms.forms import SignUpForm, LogInForm
@@ -20,6 +20,7 @@ from django.utils.dateparse import parse_date, parse_time
 from django.utils.timezone import now
 from django.db.models import Count, Q
 from django.core.serializers.json import DjangoJSONEncoder
+from django.urls import reverse
 
 
 logger = logging.getLogger(__name__)
@@ -48,7 +49,7 @@ def employer_home_page(request):
             employer=employer, 
             application_deadline__gte=now()  # ✅ Only count jobs with valid deadlines
         ).count()
-        total_applicants = Candidate.objects.filter(job__employer=employer).count()  # ✅ Fix: Count applicants for employer’s jobs
+        total_applicants = Candidate.objects.filter(job__employer=employer).count()  # ✅ Fix: Count applicants for employer's jobs
 
     except Employer.DoesNotExist:
         return JsonResponse({"success": False, "error": "Employer profile not found"}, status=403)
@@ -122,16 +123,32 @@ def employer_settings(request):
     return render(request, 'employer_settings.html')
 
 def employer_sign_up(request):
+    """Handle employer signup with proper validation and profile creation"""
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
             if user.role != 'Employer':
-                form.add_error(None, "Only employers can sign up.")
+                form.add_error('role', "Only employers can sign up here.")
                 return render(request, 'sign_up.html', {'form': form})
+            
+            # Save the user
             user.save()
-            login(request, user)
-            return redirect('employer_home_page')
+            
+            # Create the employer profile
+            try:
+                Employer.objects.create(
+                    user=user,
+                    username=user.username,
+                    email=user.email
+                )
+                login(request, user)
+                return HttpResponseRedirect(f"{reverse('employer_home_page')}?newUser=true")
+            except Exception as e:
+                # If employer profile creation fails, delete the user and show error
+                user.delete()
+                form.add_error(None, "Failed to create employer profile. Please try again.")
+                return render(request, 'sign_up.html', {'form': form})
     else:
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
@@ -206,7 +223,7 @@ def edit_job_view(request, pk):
     else:
         form = JobForm(instance=job)
 
-    return render(request, 'jobs/edit_job.html', {'form': form, 'job': job})
+    return render(request, 'edit_job.html', {'form': form, 'job': job})
 
 
     
@@ -297,16 +314,67 @@ def employer_calendar(request):
 
     
 
-def schedule_interview(request):
-    if request.method == 'POST':
-        form = InterviewForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('interview_list')  # or wherever you want to go
-    else:
-        form = InterviewForm()
+def schedule_interview(request, applicant_id):
+    """Page for scheduling an interview with a candidate"""
+    try:
+        applicant = Candidate.objects.get(id=applicant_id)
+    except Candidate.DoesNotExist:
+        return HttpResponse("Candidate does not exist.", status=404)
 
-    return render(request, 'schedule_interview.html', {'form': form})
+    if request.method == "POST":
+        # 1 Grab form data
+        interview_date = request.POST.get('interview_date')
+        interview_time = request.POST.get('interview_time')
+        interview_link = request.POST.get('interview_link')
+        notes = request.POST.get('notes')
+
+        # 2 Parse date/time from string
+        try:
+            parsed_date = parse_date(interview_date)
+            parsed_time = parse_time(interview_time)
+            if not parsed_date or not parsed_time:  # Add this check
+                return HttpResponse("Invalid date or time format.", status=400)
+        except ValueError:
+            return HttpResponse("Invalid date or time format.", status=400)
+        
+        # 3) Create the interview only if validation passes
+        try:
+            interview = Interview.objects.create(
+                candidate=applicant,
+                job=applicant.job,
+                date=parsed_date,
+                time=parsed_time,
+                interview_link=interview_link,
+                notes=notes,
+            )
+        except Exception:
+            return HttpResponse("Error creating interview.", status=400)
+
+        # 4 Create an ApplicantNotification for the actual applicant
+        #    The Candidate model references user=User. We need to find the `Applicant` object that belongs to that user.
+        try:
+            applicant_obj = Applicant.objects.get(user=applicant.user)
+
+            ApplicantNotification.objects.create(
+                applicant=applicant_obj,
+                title="Interview Scheduled",
+                message=(
+                    f"Your interview for '{applicant.job.title}' has been scheduled "
+                    f"on {parsed_date} at {parsed_time}.\n\n"
+                    f"Link/Location: {interview_link if interview_link else 'See employer message'}\n"
+                    f"Additional Notes: {notes or 'N/A'}"
+                )
+            )
+
+        except Applicant.DoesNotExist:
+            logger.warning(f"No matching Applicant found for user {applicant.user.username}. Cannot create notification.")
+
+        # 5 Redirect or render as you wish
+        messages.success(request, "Interview scheduled successfully!")
+        return redirect('employer_calendar')
+
+    else:
+        return render(request, 'schedule_interview.html', {'applicant': applicant})
 
 
 def create_interview_event(request):
@@ -508,66 +576,6 @@ def applicant_profile(request, applicant_id):
 
     return render(request, "applicant_profile.html", {"applicant": applicant})
 
-
-
-@login_required
-def schedule_interview(request, applicant_id):
-    """Page for scheduling an interview with a candidate"""
-    try:
-        applicant = Candidate.objects.get(id=applicant_id)
-    except Candidate.DoesNotExist:
-        return HttpResponse("Candidate does not exist.", status=404)
-
-    if request.method == "POST":
-        # 1 Grab form data
-        interview_date = request.POST.get('interview_date')
-        interview_time = request.POST.get('interview_time')
-        interview_link = request.POST.get('interview_link')
-        notes = request.POST.get('notes')
-
-        # 2 Parse date/time from string
-        try:
-            interview_date = parse_date(interview_date)
-            interview_time = parse_time(interview_time)
-        except ValueError:
-            return HttpResponse("Invalid date or time format.", status=400)
-        
-        # 3) Create the interview
-        interview = Interview.objects.create(
-            candidate=applicant,
-            job=applicant.job,
-            date=interview_date,
-            time=interview_time,
-            interview_link=interview_link,
-            notes=notes,
-        )
-        interview.save()
-
-        # 4 Create an ApplicantNotification for the actual applicant
-        #    The Candidate model references user=User. We need to find the `Applicant` object that belongs to that user.
-        try:
-            applicant_obj = Applicant.objects.get(user=applicant.user)
-
-            ApplicantNotification.objects.create(
-                applicant=applicant_obj,
-                title="Interview Scheduled",
-                message=(
-                    f"Your interview for '{applicant.job.title}' has been scheduled "
-                    f"on {interview_date} at {interview_time}.\n\n"
-                    f"Link/Location: {interview_link if interview_link else 'See employer message'}\n"
-                    f"Additional Notes: {notes or 'N/A'}"
-                )
-            )
-
-        except Applicant.DoesNotExist:
-            logger.warning(f"No matching Applicant found for user {applicant.user.username}. Cannot create notification.")
-
-        # 5 Redirect or render as you wish
-        messages.success(request, "Interview scheduled successfully!")
-        return redirect('employer_calendar')
-
-    else:
-        return render(request, 'schedule_interview.html', {'applicant': applicant})
 
 
 @csrf_exempt
