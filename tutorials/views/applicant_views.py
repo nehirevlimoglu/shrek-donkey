@@ -18,6 +18,7 @@ from datetime import date
 from tutorials.models.employer_models import Interview
 from tutorials.utils import match_candidates_to_job
 from django.http import HttpResponseForbidden
+from django.views.decorators.http import require_POST
 
 
 @applicant_only
@@ -552,7 +553,18 @@ def applicants_analytics(request):
 
     applications = Application.objects.filter(applicant=applicant).select_related("job")
 
-    interviews = Interview.objects.filter(candidate__user=request.user)
+    # Fetch all related interviews
+    interviews = Interview.objects.filter(candidate__user=request.user).select_related("candidate")
+
+    # Build a mapping of job id to interview (assuming one interview per job)
+    interview_lookup = {i.candidate.job.id: i for i in interviews}
+
+    # Attach interview info directly to each application
+    for app in applications:
+        interview = interview_lookup.get(app.job.id)
+        app.interview_date = interview.date if interview else None
+        app.interview_time = interview.time if interview else None
+
 
     # Dynamically build the pie chart data
     offer_labels = []
@@ -574,8 +586,6 @@ def applicants_analytics(request):
         "offer_chart_data": offer_data,
         "offer_chart_colors": offer_colors,
     })
-
-from django.views.decorators.http import require_POST
 
 @login_required
 @csrf_exempt  # Ensure CSRF is handled appropriately (alternatively, include CSRF token in your JS)

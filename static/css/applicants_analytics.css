@@ -119,3 +119,56 @@ main.content {
     height: auto !important;
 }
 
+/* Centered Chart Section */
+.centered-chart {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+    margin-bottom: 40px;
+}
+
+/* Table Container */
+.application-table-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 50px;
+}
+
+/* Wider table */
+.table-card {
+    width: 90%;
+    max-width: 1200px;
+    padding: 20px;
+    background: #FFFFFF;
+    border-radius: 10px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #E2E8F0;
+    text-align: center;
+}
+
+.table-card table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-card th,
+.table-card td {
+    padding: 15px;
+    text-align: left;
+}
+
+.table-card th {
+    background: #E2E8F0;
+    color: #1A202C;
+    font-weight: bold;
+}
+
+.table-card td {
+    background: #FFFFFF;
+    color: #1A202C;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.table-card tbody tr:hover {
+    background: #F1F3F5;
+}
