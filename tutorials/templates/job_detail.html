@@ -18,7 +18,7 @@
         <a href="{% url 'applicants-home-page' %}" class="btn-primary">Back to Jobs</a>
         
         {% if existing_application %}
-            <p class="already-applied-msg">You have already applied for this job.</p>
+            <p class="already-applied-msg">You have applied for this job.</p>
         {% else %}
         <a href="{% url 'apply_for_job' job.id %}">Apply Now</a>
         {% endif %}

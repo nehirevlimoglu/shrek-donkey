@@ -19,6 +19,7 @@ from django.core.cache import cache
 from django.contrib.auth.decorators import login_required
 from tutorials.forms.forms import CustomPasswordChangeForm
 from tutorials.forms.admin_forms import AdminProfileForm
+from django.urls import reverse
 
 def is_admin(user):
     return bool(user) and getattr(user, 'role', None) == 'Admin'
@@ -393,22 +394,20 @@ def get_active_users_data(request):
     
     return JsonResponse({'error': 'Invalid period'}, status=400)
 
+
 @user_passes_test(is_admin)
 def admin_job_detail(request, job_id):
     job = get_object_or_404(Job, id=job_id)
     candidates = Candidate.objects.filter(job=job).select_related('user')
     employer = job.employer
-    
-    # Debug information
+
+    job.refresh_from_db()
+
     logger.debug(f"[admin_job_detail] Job ID: {job.id}, Title: {job.title}")
     logger.debug(f"[admin_job_detail] Application deadline: {job.application_deadline}")
     logger.debug(f"[admin_job_detail] Current date: {timezone.now().date()}")
     logger.debug(f"[admin_job_detail] Job status from DB: {job.status}")
-    
-    job.refresh_from_db()
-    
-    # Determine if job is open or closed based on deadline
-    # A job is considered closed if its deadline is today or in the past
+
     today = timezone.now().date()
     if job.application_deadline:
         if job.application_deadline <= today:
@@ -418,25 +417,44 @@ def admin_job_detail(request, job_id):
             job.is_open = True
             logger.debug("[admin_job_detail] Job marked as open because deadline is in the future")
     else:
-        # If no deadline is set, check if status is rejected
         if job.status == 'rejected':
             job.is_open = False
             logger.debug("[admin_job_detail] Job marked as closed because status is rejected")
         else:
-            # If no deadline and not rejected, assume job is open
             job.is_open = True
             logger.debug("[admin_job_detail] Job marked as open because no deadline and not rejected")
-    
-    # For the template's conditional display
+
     job.display_status = "Open" if job.is_open else "Closed"
     logger.debug(f"[admin_job_detail] Final display status: {job.display_status}")
-    
+
+    # ✅ Create a notification if job is approved or rejected and no notification has been sent ye
+
+    if job.status in ['approved', 'rejected'] and employer:
+        title = "Job Listing Approved " if job.status == 'approved' else "Job Listing Rejected "
+        message = f"Your job listing '{job.title}' has been {job.status}."
+
+        already_exists = EmployerNotification.objects.filter(
+            employer=employer,
+            title=title,
+        ).exists()
+
+        if not already_exists:
+            EmployerNotification.objects.create(
+                employer=employer,
+                title=title,
+                message=message,
+                is_read=False
+            )
+            logger.debug(f"[admin_job_detail] EmployerNotification created for job '{job.title}' to employer '{employer.user.username}'")
+
     return render(request, 'admin_job_detail.html', {
         'job': job,
         'candidates': candidates,
         'employer': employer,
         'candidate_count': candidates.count(),
     })
+
+
 
 @user_passes_test(is_admin)
 def admin_edit_job(request, job_id):
@@ -610,6 +628,7 @@ def get_candidate_info(request, candidate_id):
         logger.error(f"[get_candidate_info] Traceback: {traceback.format_exc()}")
         return JsonResponse({'error': str(e)}, status=500)
 
+
 @user_passes_test(is_admin)
 @require_POST
 def update_candidate_status(request, candidate_id):
@@ -680,7 +699,6 @@ def update_job_status(request):
                 logger.error(f"[update_job_status] Job with id {job_id} does not exist.")
                 return JsonResponse({"success": False, "error": "Job not found"}, status=404)
 
-            # 记录当前状态，用于比较更改后
             original_status = job.status
             original_deadline = job.application_deadline
             
@@ -724,14 +742,26 @@ def update_job_status(request):
             logger.debug(f"[update_job_status] Deadline changed from {original_deadline} to {job.application_deadline}")
 
             # If the job is approved, send a notification
-            if new_status.lower() == "approved" and job.employer:
-                EmployerNotification.objects.create(
-                    employer=job.employer,
-                    title="Job Approved",
-                    message=f"🎉 Your job listing '{job.title}' has been approved!",
-                    is_read=False
+            if new_status.lower() in ["approved", "rejected"] and job.employer:
+                print("[DEBUG] Hitting approved block in update_job_status")
+
+                Notification.objects.create(
+                    recipient=job.employer.user,
+                    sender=request.user,  # the admin performing the action
+                    title=f"Job Listing {new_status.capitalize()}",
+                    message=(
+                        f"Your job listing '{job.title}' has been {new_status.lower()} by the admin team."
+                        if new_status.lower() == "approved"
+                        else f"Unfortunately, your job listing '{job.title}' was rejected."
+                    ),
+                    notification_type=Notification.TYPE_JOB,
+                    priority=Notification.PRIORITY_HIGH if new_status.lower() == "rejected" else Notification.PRIORITY_MEDIUM,
+                    related_object_id=job.id,
+                    related_object_type='Job',
+                    action_url=f"/job_detail/{job.id}/"  # adjust to your actual job detail route
                 )
-                logger.debug(f"[update_job_status] Sent approval notification to employer {job.employer.id}")
+                logger.debug(f"[update_job_status] Sent '{new_status}' notification to employer {job.employer.user.username}")
+
 
             try:
                 cache.delete(f'job_{job_id}_status')

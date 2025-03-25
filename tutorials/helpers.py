@@ -62,3 +62,7 @@ def create_admin_notification(
                 action_url=action_url,
                 is_read=False
             )
+
+def clear_feedback_messages(request):
+    storage = get_messages(request)
+    storage._queued_messages = []  # Clear all messages

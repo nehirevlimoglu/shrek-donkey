@@ -24,6 +24,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from tutorials.utils import match_candidates_to_job
 from datetime import datetime, date
+from tutorials.helpers import clear_feedback_messages
 
 logger = logging.getLogger(__name__)
 
@@ -165,6 +166,7 @@ def employer_settings(request):
 @login_required
 def create_job_listings(request):
     """ Allow employers to create job listings while handling missing employer profiles. """
+    clear_feedback_messages(request)
 
     try:
         employer = Employer.objects.get(username=request.user.username)

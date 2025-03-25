@@ -13,9 +13,11 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.middleware.csrf import get_token
 from tutorials.models.employer_models import Job
 from tutorials.utils import match_candidates_to_job
+from tutorials.helpers import clear_feedback_messages
 
 # Custom CSRF failure view
 def csrf_failure(request, reason=""):
+    clear_feedback_messages(request)
     """
     Custom CSRF validation failure view
     """
@@ -36,6 +38,7 @@ def csrf_failure(request, reason=""):
 @ensure_csrf_cookie
 def log_in(request):
     # Clear any feedback messages before rendering login page
+    clear_feedback_messages(request)
     
     if request.method == 'POST':
         username = request.POST['username']
@@ -62,6 +65,8 @@ def log_in(request):
             print("Authentication failed")  # ❌ This means the username/password is incorrect.
             # Add error message
             messages.error(request, "Incorrect username or password", extra_tags="login")
+
+    clear_feedback_messages(request)
     
     # Force set CSRF Cookie
     response = render(request, 'log_in.html')
