@@ -171,7 +171,8 @@ table {
     margin-bottom: 50px; /* Increased space between table and next section */
 }
 
-table th, table td {
+table th,
+table td {
     padding: 15px;
     text-align: left;
 }
@@ -214,7 +215,7 @@ table td {
  *  NOTIFICATIONS SECTION
  * =========================
  */
- .notifications {
+.notifications {
     margin-top: 30px;
     padding: 20px;
     border: 1px solid #ddd;
@@ -264,6 +265,7 @@ table td {
     cursor: pointer;
     border-radius: 5px;
 }
+
 .seen-btn:hover {
     background: #1558B5;
 }
@@ -273,4 +275,40 @@ table td {
         flex-direction: column;
         align-items: flex-start;
     }
+}
+
+/*
+ * =========================
+ *  STATUS BADGE STYLES
+ * =========================
+ */
+
+/* 
+   Instead of .badge, use .status-badge to avoid conflicts 
+   with Bootstrap's .badge class.
+*/
+.status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+    color: #fff; /* White text by default */
+    background-color: #6c757d; /* Default "Pending" color or neutral gray */
+}
+
+/* Different statuses */
+.status-badge.under-review {
+    background-color: #f0ad4e; /* e.g., orange-ish */
+}
+
+.status-badge.interviewed {
+    background-color: #0275d8; /* e.g., blue */
+}
+
+.status-badge.hired {
+    background-color: #5cb85c; /* green */
+}
+
+.status-badge.rejected {
+    background-color: #d9534f; /* red */
 }
