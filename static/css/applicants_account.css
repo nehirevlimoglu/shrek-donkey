@@ -1,68 +1,124 @@
-/* General Styling */
+/* General reset and base layout */
 html, body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #F8F9FA;
     margin: 0;
     padding: 0;
-    width: 100%;
-    overflow-x: hidden; /* Prevents horizontal scrolling */
+    min-height: 100vh;
+    overflow-y: auto;
 }
 
-/* Account Container */
-.account-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 100%; /* Ensures full width */
-    margin: 0 auto;
+/* Main layout when using a sidebar */
+.content {
+    margin-left: 270px; /* assuming your sidebar is 270px wide */
+    width: calc(100vw - 270px);
     padding: 2rem;
+    overflow-x: hidden;
 }
 
-/* Ensure user info card takes full width */
-.user-info {
-    background: white;
-    padding: 30px;
+/* Page wrapper for visual card structure */
+.settings-container {
+    padding: 20px;
+    background: #ffffff;
     border-radius: 10px;
-    box-shadow: 2px 2px 15px rgba(0, 0, 0, 0.1);
-    width: 90%; /* Adjusted for responsiveness */
-    max-width: 800px;
-    border-left: 5px solid #007bff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-    .account-container {
-        width: 100%;
-    }
+/* Header section */
+.page-header {
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 15px;
+    margin-bottom: 30px;
 }
 
+.page-header h2 {
+    font-weight: 600;
+    font-size: 1.75rem;
+}
+
+.page-header p {
+    color: #6b7280;
+    margin-top: 5px;
+    font-size: 0.95rem;
+}
+
+/* Card styling */
+.card {
+    border: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+.card-header {
+    border-bottom: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+    padding: 15px 20px;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+/* Avatar sidebar */
+.card-body.text-center img {
+    width: 120px;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+}
+
+/* Text styling */
+strong {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.user-info p,
+.user-info ul,
+.user-info li {
+    font-size: 1rem;
+    color: #1f2937;
+    line-height: 1.7;
+    margin: 0.5rem 0;
+}
+
+.user-info ul {
+    list-style: none;
+    padding-left: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.user-info ul li::before {
+    content: "• ";
+    color: #4a6cf7;
+    margin-right: 6px;
+}
+
+/* Button styling */
+.btn-primary {
+    background-color: #4a6cf7;
+    border-color: #4a6cf7;
+}
+
+.btn-primary:hover {
+    background-color: #3a5ce5;
+    border-color: #3a5ce5;
+}
+
+/* Optional: form control alignment (if needed later) */
+.form-label {
+    font-weight: 500;
+    color: #374151;
+}
+
+/* Responsive tweaks */
 @media (max-width: 768px) {
-    .account-container {
+    .content {
+        margin-left: 0;
         width: 100%;
         padding: 1rem;
     }
-}
 
-/* Edit Profile Button Container */
-.edit-profile {
-    margin-top: 20px;
-    text-align: center;
-    width: 100%;
-}
-
-.edit-profile a {
-    display: inline-block;
-    padding: 12px 20px;
-    background-color: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 16px;
-    font-weight: bold;
-    transition: 0.3s;
-}
-
-.edit-profile a:hover {
-    background-color: #0056b3;
+    .settings-container {
+        padding: 1.5rem;
+    }
 }

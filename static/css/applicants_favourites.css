@@ -1,4 +1,6 @@
 /* General Styling */
+
+/* Ensure the root takes the full height */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -96,12 +98,14 @@ body {
 }
 
 /* Favorite Star Styling */
+/* Updated Favorite Star Styling */
 .favorite-star {
-    font-size: 2rem;
+    font-size: 1.5rem; 
     color: #ccc;
     cursor: pointer;
     transition: color 0.3s ease, transform 0.2s ease;
     text-align: center;
+    vertical-align: middle;
 }
 
 .favorite-star:hover {
@@ -111,4 +115,33 @@ body {
 
 .favorite-star.active {
     color: #ffd700;
+}
+
+
+
+
+
+/* -------------------------------------------
+   NEW: Rectangular "View Details" Button
+   ------------------------------------------- */
+.details-btn {
+    background-color: #007BFF !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 4px 10px !important;  /* Reduced padding */
+    font-size: 0.9rem !important;   /* Slightly smaller font */
+    cursor: pointer !important;
+    text-decoration: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.details-btn:hover {
+    background-color: #f0f0f0 !important; /* Slightly darker on hover */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.details-btn:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.3) !important; /* Adjust focus ring as needed */
 }

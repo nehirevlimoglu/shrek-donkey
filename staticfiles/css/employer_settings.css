@@ -1,0 +1,79 @@
+/* General Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background: #F8F9FA;
+    color: #1A202C;
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+/* Center Content */
+.settings-container {
+    text-align: center;
+}
+
+/* Title */
+.settings-title {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+/* Settings List */
+.settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: left;
+}
+
+/* Settings Items */
+.settings-item {
+    display: flex;
+    align-items: left;
+    justify-content: space-between;
+    background: white;
+    padding: 14px 20px;
+    border-radius: 8px;
+    transition: background 0.3s ease;
+    text-decoration: none;
+    font-size: 18px;
+    font-weight: 500;
+    color: #1A202C;
+    border: 1px solid #E2E8F0;
+    width: 280px;
+}
+
+.settings-item i:first-child {
+    margin-right: 12px;
+    font-size: 20px;
+}
+
+.settings-item:hover {
+    background: #F1F3F5;
+}
+
+/* Delete Account */
+.delete-item {
+    color: #E53E3E;
+    border: 1px solid #E53E3E;
+}
+
+.delete-item:hover {
+    background: #FCE8E8;
+}
+
+/* Responsive Design */
+@media (max-width: 500px) {
+    .settings-item {
+        width: 90%;
+    }
+}

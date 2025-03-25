@@ -1,6 +1,11 @@
-{% extends 'base.html' %}
+{% extends 'admin_base.html' %}
+{% load static %}
 
 {% block title %}Edit Job | Swamp Hiring{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_edit_job.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="edit-job-container">
@@ -74,85 +79,8 @@
         </div>
     </form>
 </div>
+{% endblock %} 
 
-<style>
-    .edit-job-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-    
-    .back-link {
-        margin-bottom: 20px;
-    }
-    
-    .back-link a {
-        color: #4a6cf7;
-        text-decoration: none;
-    }
-    
-    h1 {
-        margin-bottom: 30px;
-    }
-    
-    .job-form {
-        background-color: #f8f9fa;
-        padding: 20px;
-        border-radius: 5px;
-    }
-    
-    .form-group {
-        margin-bottom: 20px;
-    }
-    
-    label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-    }
-    
-    input[type="text"],
-    input[type="email"],
-    input[type="number"],
-    input[type="date"],
-    select,
-    textarea {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 16px;
-    }
-    
-    textarea {
-        resize: vertical;
-    }
-    
-    .form-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 30px;
-    }
-    
-    .save-btn {
-        background-color: #28a745;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-    
-    .cancel-btn {
-        background-color: #6c757d;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 4px;
-        text-decoration: none;
-        text-align: center;
-        font-weight: bold;
-    }
-</style>
+{% block extra_js %}
+<script src="{% static 'js/admin_edit_job.js' %}"></script>
 {% endblock %} 

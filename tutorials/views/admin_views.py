@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import user_passes_test
 from tutorials.models.admin_models import Admin
-from tutorials.models.admin_models import Notification
+from tutorials.models.admin_models import Notification, NotificationPreference
 from tutorials.models.employer_models import EmployerNotification
 from django.http import JsonResponse, HttpResponse
 from tutorials.models.user_model import User
@@ -14,13 +14,11 @@ from tutorials.models.employer_models import Job, Candidate, Employer
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
-import logging
-
-logger = logging.getLogger(__name__)
+from django.contrib import messages
+from django.core.cache import cache
 
 def is_admin(user):
-    """Check if user is authenticated and has Admin role"""
-    return user.is_authenticated and hasattr(user, 'role') and user.role == 'Admin'
+    return bool(user) and getattr(user, 'role', None) == 'Admin'
 
 
 @user_passes_test(is_admin)
@@ -125,105 +123,98 @@ def admin_job_listings(request):
         'closed_jobs': closed_jobs,
     })
 
-def admin_settings(request):
-    return render(request, 'admin_settings.html')
-
 
 @user_passes_test(is_admin)
 def admin_notifications(request):
-    # Get filter parameters
+    # Get query parameters
     notification_type = request.GET.get('type', 'all')
     priority = request.GET.get('priority', 'all')
     is_read = request.GET.get('is_read', 'all')
     search_query = request.GET.get('search', '')
+    page = request.GET.get('page', 1)
     
-    # Base query - exclude soft-deleted notifications
-    notifications_query = Notification.objects.filter(
-        recipient=request.user,
+    # Base queryset: filter by recipient = current admin user
+    notifications = Notification.objects.filter(
+        recipient=request.user,      # <--- filter by the logged-in admin
         is_deleted=False
     )
     
-    # Apply type filter
+    # Apply filters as before
     if notification_type != 'all':
-        notifications_query = notifications_query.filter(notification_type=notification_type)
+        notifications = notifications.filter(notification_type=notification_type)
     
-    # Apply priority filter
     if priority != 'all':
-        notifications_query = notifications_query.filter(priority=priority)
+        notifications = notifications.filter(priority=priority)
     
-    # Apply read status filter
-    if is_read == 'read':
-        notifications_query = notifications_query.filter(is_read=True)
-    elif is_read == 'unread':
-        notifications_query = notifications_query.filter(is_read=False)
+    if is_read == 'unread':
+        notifications = notifications.filter(is_read=False)
+    elif is_read == 'read':
+        notifications = notifications.filter(is_read=True)
     
-    # Apply search filter
     if search_query:
-        notifications_query = notifications_query.filter(
+        notifications = notifications.filter(
             Q(title__icontains=search_query) | 
             Q(message__icontains=search_query)
         )
     
-    # Get notification statistics
-    total_count = Notification.objects.filter(recipient=request.user, is_deleted=False).count()
-    unread_count = Notification.objects.filter(recipient=request.user, is_read=False, is_deleted=False).count()
+    # Count totals for statistics (only among this admin’s notifications)
+    total_count = notifications.count()
+    unread_count = notifications.filter(is_read=False).count()
     
-    # Get notification type counts for filtering UI
+    # Count by type and priority
     type_counts = {
-        'job': Notification.objects.filter(recipient=request.user, notification_type='job', is_deleted=False).count(),
-        'application': Notification.objects.filter(recipient=request.user, notification_type='application', is_deleted=False).count(),
-        'user': Notification.objects.filter(recipient=request.user, notification_type='user', is_deleted=False).count(),
-        'system': Notification.objects.filter(recipient=request.user, notification_type='system', is_deleted=False).count(),
-        'general': Notification.objects.filter(recipient=request.user, notification_type='general', is_deleted=False).count(),
+        'general': notifications.filter(notification_type='general').count(),
+        'job': notifications.filter(notification_type='job').count(),
+        'application': notifications.filter(notification_type='application').count(),
+        'user': notifications.filter(notification_type='user').count(),
+        'system': notifications.filter(notification_type='system').count(),
     }
     
-    # Get priority counts
     priority_counts = {
-        'high': Notification.objects.filter(recipient=request.user, priority='high', is_deleted=False).count(),
-        'medium': Notification.objects.filter(recipient=request.user, priority='medium', is_deleted=False).count(),
-        'low': Notification.objects.filter(recipient=request.user, priority='low', is_deleted=False).count(),
+        'high': notifications.filter(priority='high').count(),
+        'medium': notifications.filter(priority='medium').count(),
+        'low': notifications.filter(priority='low').count(),
     }
     
-    # Order by creation date (newest first)
-    notifications_query = notifications_query.order_by('-created_at')
-    
-    # Pagination
-    page = request.GET.get('page', 1)
-    paginator = Paginator(notifications_query, 10)
-    
+    # Paginate
+    paginator = Paginator(notifications, 10)
     try:
-        notifications_page = paginator.page(page)
+        notifications = paginator.page(page)
     except PageNotAnInteger:
-        notifications_page = paginator.page(1)
+        notifications = paginator.page(1)
     except EmptyPage:
-        notifications_page = paginator.page(paginator.num_pages)
+        notifications = paginator.page(paginator.num_pages)
     
-    # Don't mark as read automatically - let user manually mark them
-    # This was the previous behavior: notifications_query.update(is_read=True)
-    
-    return render(request, 'admin_notifications.html', {
-        'notifications': notifications_page,
-        'total_count': total_count,
-        'unread_count': unread_count,
-        'type_counts': type_counts,
-        'priority_counts': priority_counts,
+    context = {
+        'notifications': notifications,
         'notification_type': notification_type,
         'priority': priority,
         'is_read': is_read,
         'search_query': search_query,
-    })
+        'total_count': total_count,
+        'unread_count': unread_count,
+        'type_counts': type_counts,
+        'priority_counts': priority_counts,
+    }
+    
+    return render(request, 'admin_notifications.html', context)
 
 @user_passes_test(is_admin)
 def admin_notifications_count(request):
-    """Return the count of unread notifications for the admin user"""
-    unread_count = Notification.objects.filter(recipient=request.user, is_read=False, is_deleted=False).count()
+    # Count only unread notifications for this specific Admin
+    unread_count = Notification.objects.filter(
+        recipient=request.user,
+        is_read=False,
+        is_deleted=False
+    ).count()
     return JsonResponse({'count': unread_count})
+
 
 @user_passes_test(is_admin)
 @require_POST
 def mark_notification_as_read(request, notification_id):
     """Mark a single notification as read"""
-    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+    notification = get_object_or_404(Notification, id=notification_id)
     notification.is_read = True
     notification.save()
     return JsonResponse({'status': 'success'})
@@ -231,15 +222,15 @@ def mark_notification_as_read(request, notification_id):
 @user_passes_test(is_admin)
 @require_POST
 def mark_all_notifications_as_read(request):
-    """Mark all notifications as read for the current user"""
-    Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+    """Mark all notifications as read"""
+    Notification.objects.filter(is_read=False).update(is_read=True)
     return JsonResponse({'status': 'success'})
 
 @user_passes_test(is_admin)
 @require_POST
 def delete_notification(request, notification_id):
     """Soft delete a notification (mark as deleted)"""
-    notification = get_object_or_404(Notification, id=notification_id, recipient=request.user)
+    notification = get_object_or_404(Notification, id=notification_id)
     notification.is_deleted = True
     notification.save()
     return JsonResponse({'status': 'success'})
@@ -247,9 +238,10 @@ def delete_notification(request, notification_id):
 @user_passes_test(is_admin)
 @require_POST
 def delete_all_notifications(request):
-    """Soft delete all notifications for the current user"""
-    Notification.objects.filter(recipient=request.user).update(is_deleted=True)
+    """Soft delete all notifications"""
+    Notification.objects.all().update(is_deleted=True)
     return JsonResponse({'status': 'success'})
+
 
 @user_passes_test(is_admin)
 def generate_admin_notification(request):
@@ -258,8 +250,32 @@ def generate_admin_notification(request):
         recipient=request.user,
         title="Test Notification",
         message="This is a test notification for admin users.",
+        notification_type='general',
+        priority='medium',
         is_read=False
     )
+    return redirect('admin_notifications')
+
+
+@user_passes_test(is_admin)
+def generate_test_notifications(request):
+    """Generate multiple test notifications for demonstration purposes"""
+    # Create different types of notifications with different priorities
+    notification_types = ['general', 'job', 'application', 'user', 'system']
+    priorities = ['high', 'medium', 'low']
+    
+    # Create one of each type
+    for notification_type in notification_types:
+        for priority in priorities:
+            Notification.objects.create(
+                recipient=request.user,
+                title=f"Test {notification_type.title()} Notification",
+                message=f"This is a test {notification_type} notification with {priority} priority.",
+                notification_type=notification_type,
+                priority=priority,
+                is_read=False
+            )
+    
     return redirect('admin_notifications')
 
 def create_admin_notification(user, title, message, notification_type='general', priority='medium', related_object_id=None, related_object_type=None, action_url=None):
@@ -376,22 +392,41 @@ def get_active_users_data(request):
 
 @user_passes_test(is_admin)
 def admin_job_detail(request, job_id):
-
     job = get_object_or_404(Job, id=job_id)
-    
-
     candidates = Candidate.objects.filter(job=job).select_related('user')
-
     employer = job.employer
     
-
+    # Debug information
+    logger.debug(f"[admin_job_detail] Job ID: {job.id}, Title: {job.title}")
+    logger.debug(f"[admin_job_detail] Application deadline: {job.application_deadline}")
+    logger.debug(f"[admin_job_detail] Current date: {timezone.now().date()}")
+    logger.debug(f"[admin_job_detail] Job status from DB: {job.status}")
+    
+    job.refresh_from_db()
+    
+    # Determine if job is open or closed based on deadline
+    # A job is considered closed if its deadline is today or in the past
+    today = timezone.now().date()
     if job.application_deadline:
-        if job.application_deadline < timezone.now().date():
-            job.status = "Closed"
+        if job.application_deadline <= today:
+            job.is_open = False
+            logger.debug("[admin_job_detail] Job marked as closed because deadline has passed or is today")
         else:
-            job.status = "Open"
+            job.is_open = True
+            logger.debug("[admin_job_detail] Job marked as open because deadline is in the future")
     else:
-        job.status = "Open"
+        # If no deadline is set, check if status is rejected
+        if job.status == 'rejected':
+            job.is_open = False
+            logger.debug("[admin_job_detail] Job marked as closed because status is rejected")
+        else:
+            # If no deadline and not rejected, assume job is open
+            job.is_open = True
+            logger.debug("[admin_job_detail] Job marked as open because no deadline and not rejected")
+    
+    # For the template's conditional display
+    job.display_status = "Open" if job.is_open else "Closed"
+    logger.debug(f"[admin_job_detail] Final display status: {job.display_status}")
     
     return render(request, 'admin_job_detail.html', {
         'job': job,
@@ -449,16 +484,28 @@ def admin_toggle_job_status(request, job_id):
     data = json.loads(request.body)
     status = data.get('status')
     
+    logger.debug(f"Toggle job status: job_id={job_id}, status={status}")
+    
     if status == 'Closed':
-        # Set deadline to current date to indicate job is closed
-        job.application_deadline = timezone.now().date()
+        # Set deadline to yesterday to ensure it's definitely closed
+        job.application_deadline = timezone.now().date() - timedelta(days=1)
+        logger.debug(f"Closing job: setting deadline to {job.application_deadline}")
     elif status == 'Open':
         # Set deadline to a future date to indicate job is open
         job.application_deadline = timezone.now().date() + timedelta(days=30)
+        logger.debug(f"Opening job: setting deadline to {job.application_deadline}")
+    elif status == 'Approved':
+        # Update the job status to approved
+        job.status = 'approved'
+        logger.debug(f"Approving job: setting status to approved")
+        # Ensure the deadline is in the future for approved jobs
+        if not job.application_deadline or job.application_deadline < timezone.now().date():
+            job.application_deadline = timezone.now().date() + timedelta(days=30)
+            logger.debug(f"Approved job: setting deadline to {job.application_deadline}")
     
     job.save()
     
-    return JsonResponse({'status': 'success'})
+    return JsonResponse({'success': True})
 
 @user_passes_test(is_admin)
 def admin_applications_view(request):
@@ -515,6 +562,95 @@ def admin_applications_view(request):
         'rejected_applications': rejected_applications,
     })
 
+@user_passes_test(is_admin)
+def get_candidate_info(request, candidate_id):
+    """
+    Get detailed information about a candidate for the modal view.
+    This endpoint is called by the view-candidate-btn in admin_job_detail.html.
+    """
+    logger.debug(f"[get_candidate_info] Request method: {request.method}, Candidate ID: {candidate_id}")
+    logger.debug(f"[get_candidate_info] Path: {request.path}, User: {request.user}")
+    
+    try:
+        logger.debug(f"[get_candidate_info] Fetching info for candidate ID: {candidate_id}")
+        candidate = Candidate.objects.get(id=candidate_id)
+        logger.debug(f"[get_candidate_info] Found candidate: {candidate}")
+        
+        # Get candidate data to return as JSON
+        candidate_data = {
+            'id': candidate.id,
+            'name': f"{candidate.user.first_name} {candidate.user.last_name}" if candidate.user.first_name else candidate.user.username,
+            'email': candidate.user.email,
+            'application_date': candidate.application_date.strftime('%Y-%m-%d') if candidate.application_date else '',
+            'status': candidate.application_status,
+            # Add more fields as needed
+            'phone': candidate.phone or 'Not provided',
+            'degree': candidate.degree or 'Not provided',
+            'school': candidate.school or 'Not provided',
+            'skills': candidate.skills or '[]'
+        }
+        
+        logger.debug(f"[get_candidate_info] Returning data: {candidate_data}")
+        response = JsonResponse(candidate_data)
+        
+        # Add CORS headers for development
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "X-Requested-With, Content-Type"
+        
+        return response
+    except Candidate.DoesNotExist:
+        logger.error(f"[get_candidate_info] Candidate with ID {candidate_id} not found")
+        return JsonResponse({'error': 'Candidate not found'}, status=404)
+    except Exception as e:
+        logger.error(f"[get_candidate_info] Error: {str(e)}")
+        import traceback
+        logger.error(f"[get_candidate_info] Traceback: {traceback.format_exc()}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+@user_passes_test(is_admin)
+@require_POST
+def update_candidate_status(request, candidate_id):
+    """
+    Update a candidate's application status.
+    This endpoint is called by the Update Status button in the candidate modal.
+    """
+    try:
+        logger.debug(f"[update_candidate_status] Updating status for candidate ID: {candidate_id}")
+        data = json.loads(request.body)
+        new_status = data.get('status')
+        logger.debug(f"[update_candidate_status] New status: {new_status}")
+        
+        if not new_status:
+            logger.error("[update_candidate_status] Missing status in request")
+            return JsonResponse({'error': 'Status is required'}, status=400)
+        
+        # Get the valid status choices
+        valid_statuses = [status[0] for status in Candidate.STATUS_CHOICES]
+        logger.debug(f"[update_candidate_status] Valid statuses: {valid_statuses}")
+        
+        if new_status not in valid_statuses:
+            logger.error(f"[update_candidate_status] Invalid status: {new_status}")
+            return JsonResponse({'error': f'Invalid status. Valid options are: {", ".join(valid_statuses)}'}, status=400)
+        
+        candidate = Candidate.objects.get(id=candidate_id)
+        logger.debug(f"[update_candidate_status] Found candidate: {candidate}")
+        
+        # Update the status
+        candidate.application_status = new_status
+        candidate.save()
+        logger.debug(f"[update_candidate_status] Status updated successfully to: {new_status}")
+        
+        return JsonResponse({'success': True})
+    except Candidate.DoesNotExist:
+        logger.error(f"[update_candidate_status] Candidate with ID {candidate_id} not found")
+        return JsonResponse({'error': 'Candidate not found'}, status=404)
+    except json.JSONDecodeError:
+        logger.error("[update_candidate_status] Invalid JSON in request body")
+        return JsonResponse({'error': 'Invalid JSON in request body'}, status=400)
+    except Exception as e:
+        logger.error(f"[update_candidate_status] Error: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
 def update_job_status(request):
@@ -531,22 +667,62 @@ def update_job_status(request):
                     "error": f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
                 }, status=400)
 
-            logger.debug(f"Received job_id: {job_id}, new_status: {new_status}")  # Log received data
+            logger.debug(f"[update_job_status] Received job_id: {job_id}, new_status: {new_status}")  # Log received data
 
             if not job_id or not new_status:
-                logger.error("Missing job_id or status")  # Log error if job_id or status is missing
+                logger.error("[update_job_status] Missing job_id or status")  # Log error if job_id or status is missing
                 return JsonResponse({"success": False, "error": "Missing job ID or status"}, status=400)
 
             try:
                 job = Job.objects.get(id=job_id)
-                logger.debug(f"Found job: {job.title} with current status: {job.status}")  # Log job details
+                logger.debug(f"[update_job_status] Found job: {job.title} with current status: {job.status}")  # Log job details
+                logger.debug(f"[update_job_status] Current application deadline: {job.application_deadline}")
             except Job.DoesNotExist:
-                logger.error(f"Job with id {job_id} does not exist.")
+                logger.error(f"[update_job_status] Job with id {job_id} does not exist.")
                 return JsonResponse({"success": False, "error": "Job not found"}, status=404)
 
-            job.status = new_status
+            # 记录当前状态，用于比较更改后
+            original_status = job.status
+            original_deadline = job.application_deadline
+            
+            # Handle special cases for Open/Closed (which affect the deadline)
+            if new_status == 'Open':
+                # Set deadline to a future date to indicate job is open
+                job.application_deadline = timezone.now().date() + timedelta(days=30)
+                logger.debug(f"[update_job_status] Setting deadline to future: {job.application_deadline}")
+                
+                if job.status == 'pending':
+                    # Keep the pending status if it was pending
+                    pass
+                elif job.status == 'rejected':
+                    # If rejected, move back to pending
+                    job.status = 'pending'
+                # The 'approved' status should be preserved if it was already approved
+            elif new_status == 'Closed':
+                # Set deadline to TWO DAYS AGO to ensure it's definitely closed
+                # This fixes the issue where today's date might be interpreted as still open
+                job.application_deadline = timezone.now().date() - timedelta(days=2)
+                logger.debug(f"[update_job_status] Setting deadline to 2 days ago: {job.application_deadline} to ensure closure")
+                # Don't change the actual status field
+            elif new_status.lower() == 'approved':
+                # Change the job's status to approved
+                job.status = 'approved'
+                # Ensure the deadline is in the future
+                if not job.application_deadline or job.application_deadline < timezone.now().date():
+                    job.application_deadline = timezone.now().date() + timedelta(days=30)
+                    logger.debug(f"[update_job_status] Approved job: setting deadline to {job.application_deadline}")
+            elif new_status.lower() == 'rejected':
+                job.status = 'rejected'
+                # Set the deadline to yesterday to close the job
+                job.application_deadline = timezone.now().date() - timedelta(days=2)
+                logger.debug(f"[update_job_status] Rejected job: setting deadline to {job.application_deadline}")
+            else:
+                # For any other status we don't recognize, just keep the changes minimal
+                logger.warning(f"[update_job_status] Unrecognized status: {new_status}")
+
             job.save()
-            logger.debug(f"Job status updated to: {job.status}")  # Log successful status update
+            logger.debug(f"[update_job_status] Job updated: status changed from {original_status} to {job.status}")
+            logger.debug(f"[update_job_status] Deadline changed from {original_deadline} to {job.application_deadline}")
 
             # If the job is approved, send a notification
             if new_status.lower() == "approved" and job.employer:
@@ -556,12 +732,151 @@ def update_job_status(request):
                     message=f"🎉 Your job listing '{job.title}' has been approved!",
                     is_read=False
                 )
+                logger.debug(f"[update_job_status] Sent approval notification to employer {job.employer.id}")
+
+            try:
+                cache.delete(f'job_{job_id}_status')
+                logger.debug(f"[update_job_status] Cleared cache for job_{job_id}_status")
+            except Exception as e:
+                logger.error(f"[update_job_status] Error clearing cache: {str(e)}")
 
             return JsonResponse({"success": True})
-
         except Exception as e:
-            logger.error(f"Unexpected error occurred: {str(e)}")  # Log any unexpected errors
-            return JsonResponse({"success": False, "error": f"An unexpected error occurred: {str(e)}"}, status=500)
+            logger.error(f"[update_job_status] Unexpected error: {str(e)}")
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
+    
+    return JsonResponse({"success": False, "error": "Method not allowed"}, status=405)
 
-    logger.error("Invalid request method")  # Log if request method is not POST
-    return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
+#write test for this !!!!! yani gecsin testleri
+@user_passes_test(is_admin)
+def admin_settings(request):
+    # Get the currently logged in admin user
+    user = request.user
+    try:
+        admin = Admin.objects.get(id=user.id)
+    except Admin.DoesNotExist:
+        admin = None
+    
+    # Get the tab parameter, default to 'profile'
+    tab = request.GET.get('tab', 'profile')
+    
+    error = None
+    
+    # Handle profile update
+    if request.method == 'POST' and 'update_profile' in request.POST:
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        phone_number = request.POST.get('phone_number')
+        
+        # Check if the username already exists (excluding the current user)
+        if User.objects.filter(username=username).exclude(id=user.id).exists():
+            error = "Username already exists. Please choose a different one."
+        else:
+            # Update the user profile
+            user.username = username
+            user.email = email
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save()
+            
+            # Update admin-specific fields
+            if admin:
+                admin.phone_number = phone_number
+                admin.save()
+            
+            messages.success(request, "Profile updated successfully.")
+            return redirect('admin_settings')
+    
+    # Handle password change
+    elif request.method == 'POST' and 'change_password' in request.POST:
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+        
+        # Check if current password is correct
+        if not user.check_password(current_password):
+            error = "Current password is incorrect."
+            tab = 'password'
+        elif new_password != confirm_password:
+            error = "New passwords do not match."
+            tab = 'password'
+        elif len(new_password) < 8:
+            error = "Password must be at least 8 characters long."
+            tab = 'password'
+        else:
+            # Set the new password
+            user.set_password(new_password)
+            user.save()
+            
+            # Update the session to prevent the user from being logged out
+            update_session_auth_hash(request, user)
+            
+            messages.success(request, "Password changed successfully.")
+            return redirect('admin_settings')
+    
+    # Handle notification preferences update
+    elif request.method == 'POST' and 'update_notification_prefs' in request.POST:
+        # Get notification preferences
+        job_notifications = 'job_notifications' in request.POST
+        application_notifications = 'application_notifications' in request.POST
+        user_notifications = 'user_notifications' in request.POST
+        system_notifications = 'system_notifications' in request.POST
+        
+        # Get delivery methods
+        email_delivery = 'email_delivery' in request.POST
+        dashboard_delivery = 'dashboard_delivery' in request.POST
+        
+        # Save notification preferences to admin user
+        if admin:
+            # Get or create notification preferences
+            notification_prefs, created = NotificationPreference.objects.get_or_create(admin=admin)
+            
+            # Update the preferences
+            notification_prefs.job_notifications = job_notifications
+            notification_prefs.application_notifications = application_notifications
+            notification_prefs.user_notifications = user_notifications
+            notification_prefs.system_notifications = system_notifications
+            notification_prefs.email_delivery = email_delivery
+            notification_prefs.dashboard_delivery = dashboard_delivery
+            notification_prefs.save()
+            
+            messages.success(request, "Notification preferences updated successfully.")
+            return redirect('admin_settings')
+    
+    # Get notification preferences from database or use defaults
+    notification_prefs = None
+    if admin:
+        try:
+            notification_prefs = NotificationPreference.objects.get(admin=admin)
+        except NotificationPreference.DoesNotExist:
+            # Use default values
+            notification_prefs = {
+                'job_notifications': True,
+                'application_notifications': True,
+                'user_notifications': True,
+                'system_notifications': True,
+                'email_delivery': True,
+                'dashboard_delivery': True
+            }
+    else:
+        # Use default values
+        notification_prefs = {
+            'job_notifications': True,
+            'application_notifications': True,
+            'user_notifications': True,
+            'system_notifications': True,
+            'email_delivery': True,
+            'dashboard_delivery': True
+        }
+    
+    context = {
+        'tab': tab,
+        'admin': admin,
+        'user': user,
+        'error': error,
+        'notification_prefs': notification_prefs
+    }
+    
+    return render(request, 'admin_settings.html', context)

@@ -1,0 +1,55 @@
+/* Styles for the job detail page */
+
+/* Container around the main job info */
+.job-detail-container {
+    background: #FFFFFF;
+    padding: 20px;
+    margin: 20px auto;
+    border-radius: 8px;
+    max-width: 800px;
+    border: 1px solid #E2E8F0;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+    font-family: 'Poppins', sans-serif;
+}
+
+.job-detail-container h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #1A202C;
+}
+
+.job-detail-container p {
+    font-size: 16px;
+    color: #4A5568;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+.job-detail-container strong {
+    color: #2D3748;
+}
+
+.job-detail-container h3 {
+    font-size: 18px;
+    margin-top: 20px;
+    margin-bottom: 5px;
+    color: #2D3748;
+}
+
+/* Buttons under the job detail (edit, view applicants, etc.) */
+.edit-button, .applicants-button {
+    display: inline-block;
+    padding: 10px 15px;
+    background: #1558B5;
+    color: #fff;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 14px;
+    margin: 10px 5px 0 0;
+    transition: background 0.2s ease;
+}
+
+.edit-button:hover,
+.applicants-button:hover {
+    background: #0F4B99;
+}

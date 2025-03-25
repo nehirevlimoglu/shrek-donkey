@@ -19,7 +19,7 @@ from tutorials.views.employer_views import applicant_profile, \
 
 from tutorials.views.admin_views import (
     admin_home_page, admin_job_listings, admin_settings, admin_notifications, \
-    review_job, update_job_status
+    update_job_status
 )
 
 
@@ -41,7 +41,7 @@ class TestURLPatterns(TestCase):
         self.assertEqual(resolver.func, log_in)
 
     def test_log_in(self):
-        url = reverse('log-in')
+        url = reverse('log_in')
         self.assertEqual(url, '/log_in/')
         resolver = resolve('/log_in/')
         self.assertEqual(resolver.func, log_in)
@@ -110,9 +110,10 @@ class TestURLPatterns(TestCase):
 
     def test_admin_job_listings(self):
         url = reverse('admin_job_listings')
-        self.assertEqual(url, '/admin-job-listings/')
-        resolver = resolve('/admin-job-listings/')
+        self.assertEqual(url, '/admin_job_listings')
+        resolver = resolve('/admin_job_listings')
         self.assertEqual(resolver.func, admin_job_listings)
+
 
     def test_admin_settings(self):
         url = reverse('admin_settings')
@@ -126,12 +127,12 @@ class TestURLPatterns(TestCase):
         resolver = resolve('/update-job-status/')
         self.assertEqual(resolver.func, update_job_status)
 
-    # Employer URLs
     def test_employer_home_page(self):
         url = reverse('employer_home_page')
-        self.assertEqual(url, '/employer_home_page/')
-        resolver = resolve('/employer_home_page/')
+        self.assertEqual(url, '/employer_home_page')
+        resolver = resolve('/employer_home_page')
         self.assertEqual(resolver.func, employer_home_page)
+
 
     def test_employer_job_listings(self):
         url = reverse('employer_job_listings')
@@ -141,9 +142,10 @@ class TestURLPatterns(TestCase):
 
     def test_create_job_listings(self):
         url = reverse('create_job_listings')
-        self.assertEqual(url, '/create_job_listings/')
-        resolver = resolve('/create_job_listings/')
+        self.assertEqual(url, '/create_job_listings')
+        resolver = resolve('/create_job_listings')
         self.assertEqual(resolver.func, create_job_listings)
+
 
     def test_employer_analytics(self):
         url = reverse('employer_analytics')

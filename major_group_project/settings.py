@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-if(vnx@arrljzcbhxag+))$_5%5d^y1f64$jh@s#*q%onf%9tk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 AUTH_USER_MODEL = 'tutorials.User'
 
 
@@ -135,6 +135,18 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory where uploaded files a
 
 # User model for authentication and login purposes
 AUTH_USER_MODEL = 'tutorials.User'
+
+# CSRF Settings
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = None
+CSRF_FAILURE_VIEW = 'tutorials.views.views.csrf_failure'  # Custom CSRF failure view
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000', 'http://localhost:8000']
+
+# Session Settings
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = None
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

@@ -6,14 +6,9 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from tutorials.models.employer_models import Employer, Interview
 from django.conf import settings
+from tutorials.utils import extract_skills_nlp
 
 
-
-
-class JobForm(forms.ModelForm):
-    class Meta:
-        model = Job
-        fields = ['title', 'description', 'requirements', 'salary', 'job_type']
 
 class InterviewForm(forms.ModelForm):
     class Meta:
@@ -49,8 +44,14 @@ def get_job_titles():
     except FileNotFoundError:
         return [("Other", "Other")]
 
+
 class JobForm(forms.ModelForm):
     """ Job form with text inputs for title and position. """
+
+    required_experience = forms.FloatField(
+        widget=forms.HiddenInput(),
+        required=False
+    )
 
     title = forms.CharField(
         required=True,
@@ -66,7 +67,7 @@ class JobForm(forms.ModelForm):
         model = Job
         fields = [
             'title', 'position', 'company_name', 'location', 'job_type',
-            'salary', 'description', 'requirements', 'benefits', 'application_deadline', 'contact_email'
+            'salary', 'description', 'requirements', 'benefits', 'application_deadline', 'contact_email', 'required_experience'
         ]
         widgets = {
             'company_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Company Name'}),
@@ -79,6 +80,19 @@ class JobForm(forms.ModelForm):
             'application_deadline': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'contact_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Contact Email'}),
         }
+
+    def save(self, commit=True):
+        job = super().save(commit=False)
+
+        # Extract skills from requirements field and save to a json field
+        skills = extract_skills_nlp(job.requirements)
+        print(f"Extracted skills: {skills}")
+        job.extracted_skills = json.dumps(skills)
+
+        if commit:
+            job.save()
+
+        return job
 
 class CustomPasswordChangeForm(PasswordChangeForm):
     old_password = forms.CharField(
@@ -105,7 +119,4 @@ class EmployerProfileForm(forms.ModelForm):
         fields = ['company_name', 'company_logo', 'company_website', 'industry', 'company_location']
 
 
-class InterviewForm(forms.ModelForm):
-    class Meta:
-        model = Interview
-        fields = ['date', 'time', 'interview_link', 'notes']
+

@@ -1,15 +1,26 @@
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+from django.http import HttpResponseRedirect, Http404
+from django.urls import reverse  # Used for redirection
+from django.contrib.auth.decorators import login_required
+from tutorials.forms.applicants_forms import ApplicantForm  # Applicant profile form
+from tutorials.forms.employer_forms import EmployerProfileForm  # Employer profile form
+from tutorials.models.applicants_models import Applicant  # Applicant model
+from tutorials.models.employer_models import Employer  # Employer model
+from tutorials.models.user_model import User
+
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 
-User = get_user_model()  # ✅ Use the custom User model
+User = get_user_model()  # Using your custom User model
+
 
 class SignUpForm(forms.ModelForm):
     ROLE_CHOICES = [
         ('Employer', 'Employer'),
         ('Applicant', 'Applicant'),
-        ('Admin', 'Admin')
     ]
 
     first_name = forms.CharField(
@@ -17,37 +28,31 @@ class SignUpForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First Name'}),
         required=True
     )
-
     last_name = forms.CharField(
         label="Last Name",
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
         required=True
     )
-
     email = forms.EmailField(
         label="Email Address",
         widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Enter your email'}),
         required=True
     )
-
     confirm_email = forms.EmailField(
         label="Confirm Email",
         widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Confirm your email'}),
         required=True
     )
-
     password1 = forms.CharField(
         label="Password",
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter your password'}),
         required=True
     )
-
     password2 = forms.CharField(
         label="Confirm Password",
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirm your password'}),
         required=True
     )
-
     role = forms.ChoiceField(
         choices=ROLE_CHOICES,
         required=True,
@@ -63,7 +68,6 @@ class SignUpForm(forms.ModelForm):
         }
 
     def clean(self):
-        """Ensure emails and passwords match before saving."""
         cleaned_data = super().clean()
         email = cleaned_data.get("email")
         confirm_email = cleaned_data.get("confirm_email")
@@ -72,28 +76,32 @@ class SignUpForm(forms.ModelForm):
 
         if email and confirm_email and email != confirm_email:
             self.add_error('confirm_email', "Email addresses do not match.")
-
         if password1 and password2 and password1 != password2:
             self.add_error('password2', "Passwords do not match.")
 
-        return cleaned_data  # ✅ Always return cleaned_data
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        # Use Django's set_password to hash the password correctly
+        user.set_password(self.cleaned_data["password1"])
+        if commit:
+            user.save()
+        return user
+
+
 
 class LogInForm(AuthenticationForm):
     username = forms.CharField(
         label="Username",
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter your username'
-        })
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your username'})
     )
-
     password = forms.CharField(
         label="Password",
-        widget=forms.PasswordInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter your password'
-        })
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Enter your password'})
     )
+
+
 
 class CustomPasswordChangeForm(PasswordChangeForm):
     old_password = forms.CharField(

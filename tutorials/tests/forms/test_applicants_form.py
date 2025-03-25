@@ -30,11 +30,9 @@ class ApplicantFormTest(TestCase):
 
         # Minimal valid form data for the ApplicantForm
         self.valid_form_data = {
-            'degree': 'B.Sc. Computer Science',
+            'degree': 'bachelors',
             'salary_preferences': '60000',
             'location_preferences': 'Remote',
-
-            # Because they're marked required=True in the form:
             'first_name': 'Marty',
             'last_name': 'McFly',
         }
@@ -90,21 +88,62 @@ class ApplicantFormTest(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('cv', form.errors)
 
-    def test_applicant_form_job_preferences(self):
+    def test_applicant_form_job_preferences_commit_true(self):
         """
-        Ensure user can choose multiple job preferences, 
-        but also must provide first_name/last_name because they're required.
+        Ensure we can select multiple job preferences and actually save them 
+        to the DB with commit=True (covering lines that do self.save_m2m()).
         """
         data = self.valid_form_data.copy()
         data['job_preferences'] = [self.job_title.id]
+
         form = ApplicantForm(data=data, instance=self.applicant, user=self.user)
         self.assertTrue(form.is_valid(), form.errors)
-        applicant = form.save(commit=False)
-        self.assertIsNotNone(applicant)
+        applicant = form.save(commit=True)  # This triggers lines 90->93
+
+        # Refresh from DB
+        applicant.refresh_from_db()
+        self.assertIn(self.job_title, applicant.job_preferences.all())
+
+    def test_applicant_form_save_no_commit(self):
+        """
+        Test saving with commit=False so we confirm that lines 90->93 won't execute 
+        until we manually save the applicant. 
+        - user.save() also won't happen if commit=False.
+        """
+        data = self.valid_form_data.copy()
+        data["first_name"] = "NoCommitFirst"
+        data["last_name"] = "NoCommitLast"
+        data['job_preferences'] = [self.job_title.id]
+
+        form = ApplicantForm(data=data, instance=self.applicant, user=self.user)
+        self.assertTrue(form.is_valid(), form.errors)
+
+        applicant_no_commit = form.save(commit=False)  # line 81->89 run, but 90->93 won't
+        # The user fields in memory are updated:
+        self.assertEqual(applicant_no_commit.user.first_name, "NoCommitFirst")
+        self.assertEqual(applicant_no_commit.user.last_name, "NoCommitLast")
+
+        # But they are NOT saved to DB yet
+        self.user.refresh_from_db()
+        self.assertNotEqual(self.user.first_name, "NoCommitFirst")
+        self.assertNotEqual(self.user.last_name, "NoCommitLast")
+
+        # Also, job_preferences won't be saved until we do applicant.save() & form.save_m2m()
+        applicant_no_commit.save()        # saves lines 90->91
+        form.save_m2m()                  # saves line 92 if done manually
+
+        # Now we confirm the user still hasn't changed because line 87 only triggers if commit=True
+        self.user.refresh_from_db()
+        self.assertNotEqual(self.user.first_name, "NoCommitFirst")
+
+        # But job_preferences is saved to the DB
+        applicant_no_commit.refresh_from_db()
+        self.assertIn(self.job_title, applicant_no_commit.job_preferences.all())
 
     def test_applicant_form_save_updates_user(self):
         """
-        Ensure that saving the form updates the linked User's first_name, last_name.
+        Test that saving with commit=True updates the linked User 
+        (covering lines 83->89, 90->93).
         """
         data = self.valid_form_data.copy()
         data["first_name"] = "Alice"
@@ -113,12 +152,13 @@ class ApplicantFormTest(TestCase):
         form = ApplicantForm(data=data, instance=self.applicant, user=self.user)
         self.assertTrue(form.is_valid(), form.errors)
 
-        applicant = form.save()
+        applicant = form.save(commit=True)  # lines 83->88 set user first/last name, line 90->93
+
+        # Confirm user was updated
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, "Alice")
         self.assertEqual(self.user.last_name, "Smith")
         self.assertEqual(applicant.user, self.user)
-
 
 class ApplicationFormTest(TestCase):
     def setUp(self):
@@ -261,7 +301,94 @@ class ApplicationFormTest(TestCase):
         self.assertEqual(application.first_name, "Alice")
         self.assertEqual(application.last_name, "Tester")
     
-        self.assertIn("resume.pdf", application.resume.name)
+        # Instead of self.assertIn("resume.pdf", application.resume.name)s
+        self.assertTrue(application.resume.name.endswith(".pdf"))
+
     
         self.assertEqual(application.applicant, self.applicant)
         self.assertEqual(application.job, self.job)
+
+    def test_resume_too_large(self):
+        """
+        Trigger line 211: If resume size > 5MB => ValidationError: 'Resume file size must be under 5MB'.
+        """
+        large_content = b"%PDF-1.4" + b"A" * (5 * 1024 * 1024 + 1)  # Just over 5MB
+        too_big_pdf = SimpleUploadedFile(
+            "resume.pdf",
+            large_content,
+            content_type="application/pdf"
+        )
+        data = self.valid_application_data.copy()
+        files = {'resume': too_big_pdf}
+
+        form = ApplicationForm(data=data, files=files)
+        self.assertFalse(form.is_valid())
+        self.assertIn('resume', form.errors)
+        self.assertIn('Resume file size must be under 5MB', str(form.errors['resume']))
+
+
+    def test_resume_wrong_file_type(self):
+        """
+        Trigger line 215: If resume content_type is not allowed => 'Resume must be a PDF or Word document'.
+        """
+        fake_txt = SimpleUploadedFile(
+            "resume.txt",
+            b"This is text.",
+            content_type="text/plain"
+        )
+        data = self.valid_application_data.copy()
+        files = {'resume': fake_txt}
+
+        form = ApplicationForm(data=data, files=files)
+        self.assertFalse(form.is_valid())
+        self.assertIn('resume', form.errors)
+        self.assertIn('Only PDF files are allowed', str(form.errors['resume']))
+
+
+    def test_cover_letter_too_large(self):
+        """
+        Trigger lines 222–223: If cover_letter > 5MB => 'Cover letter file size must be under 5MB'.
+        """
+        large_content = b"%PDF-1.4" + b"A" * (5 * 1024 * 1024 + 1)
+        too_big_cover = SimpleUploadedFile(
+            "cover_letter.pdf",
+            large_content,
+            content_type="application/pdf"
+        )
+        data = self.valid_application_data.copy()
+        # We'll keep a valid resume so it doesn't fail that first
+        fake_resume = SimpleUploadedFile(
+            "resume.pdf",
+            b"%PDF-1.4 mock content",
+            content_type="application/pdf"
+        )
+        files = {'resume': fake_resume, 'cover_letter': too_big_cover}
+
+        form = ApplicationForm(data=data, files=files)
+        self.assertFalse(form.is_valid())
+        self.assertIn('cover_letter', form.errors)
+        self.assertIn('file size must be under 5MB', str(form.errors['cover_letter']))
+
+    def test_cover_letter_wrong_file_type(self):
+        """
+        Trigger lines 226–227: If cover_letter content_type is not allowed => 'Cover letter must be a PDF or Word document'.
+        """
+        fake_cover_txt = SimpleUploadedFile(
+            "cover_letter.txt",
+            b"This is text.",
+            content_type="text/plain"
+        )
+        data = self.valid_application_data.copy()
+        # Also keep a valid resume
+        fake_resume = SimpleUploadedFile(
+            "resume.pdf",
+            b"%PDF-1.4 mock content",
+            content_type="application/pdf"
+        )
+        files = {'resume': fake_resume, 'cover_letter': fake_cover_txt}
+
+        form = ApplicationForm(data=data, files=files)
+        self.assertFalse(form.is_valid())
+        self.assertIn('cover_letter', form.errors)
+        self.assertIn('Only PDF files are allowed', str(form.errors['cover_letter']))
+

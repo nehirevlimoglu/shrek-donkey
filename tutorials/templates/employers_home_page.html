@@ -59,30 +59,6 @@
                 </tbody>
             </table>
         </section>
-    
-        <!-- HTML -->
-        <section class="notifications" id="notifications">
-            <h2>Notifications</h2>
-        
-            <!-- The container that will actually scroll -->
-            <div class="notifications-container">
-                {% if notifications|length > 0 %}
-                    {% for notification in notifications %}
-                    <div class="notification-card {% if not notification.is_read %}unread{% endif %}" id="notification-{{ notification.id }}">
-                        <p>{{ notification.message }}</p>
-                    
-                        {% if not notification.is_read %}
-                            <button class="seen-btn" data-notification-id="{{ notification.id }}">Seen</button>
-                        {% else %}
-                            <span style="color: #28A745; font-weight: bold;">✔ Seen</span>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                {% else %}
-                    <p>No new notifications.</p>
-                {% endif %}
-            </div>
-        </section>
         {% endblock %}
     </div>
 

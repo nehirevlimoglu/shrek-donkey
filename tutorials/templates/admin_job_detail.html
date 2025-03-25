@@ -1,16 +1,22 @@
-{% extends 'base.html' %}
+{% extends 'admin_base.html' %}
+{% load static %}
 
 {% block title %}{{ job.title }} | Swamp Hiring{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/admin_job_detail.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="job-detail-container">
+<!-- The job-detail-container is now inserted directly into content -->
+<div class="content-container">
     <div class="back-link">
         <a href="{% url 'admin_job_listings' %}">← Back to Job Listings</a>
     </div>
     
     <div class="job-header">
         <h1>{{ job.title }}</h1>
-        <span class="badge {% if job.status == 'Open' %}open{% else %}closed{% endif %}">{{ job.status }}</span>
+        <span class="badge {% if job.display_status == 'Open' %}open{% else %}closed{% endif %}">{{ job.display_status }}</span>
     </div>
     
     <div class="job-info">
@@ -87,6 +93,16 @@
         <p>No employer information available</p>
         {% endif %}
     </div>
+
+    <!-- Modal structure -->
+    <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <p id="modalMessage"></p>
+            <button id="modalOkButton" class="modal-ok-button">OK</button>
+        </div>
+    </div>
+
     
     <div class="candidates-section">
         <h2>Applicants ({{ candidate_count }})</h2>
@@ -123,307 +139,21 @@
         <div class="action-buttons">
             <button class="action-btn edit-job" data-job-id="{{ job.id }}">Edit Job</button>
             <button class="action-btn delete-job" data-job-id="{{ job.id }}">Delete Job</button>
-            {% if job.status == 'Open' %}
+            {% if job.display_status == 'Open' %}
             <button class="action-btn close-job" data-job-id="{{ job.id }}">Close Job</button>
             {% else %}
             <button class="action-btn reopen-job" data-job-id="{{ job.id }}">Reopen Job</button>
-            {% endif %}
-            
-            <!-- Approve Job Button -->
-            {% if job.status != 'Approved' %}
+        {% endif %}
+
+        <!-- Approve Job Button -->
+        {% if job.status != 'approved' %}
             <button class="action-btn approve-job" data-job-id="{{ job.id }}">Approve Job</button>
-            {% endif %}
-        </div>
+        {% endif %}
     </div>
-    
 </div>
 
-<style>
-    .job-detail-container {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 20px;
-    }
-    
-    .back-link {
-        margin-bottom: 20px;
-    }
-    
-    .back-link a {
-        color: #4a6cf7;
-        text-decoration: none;
-    }
-    
-    .job-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-    
-    .job-header h1 {
-        margin-right: 15px;
-        margin-bottom: 0;
-    }
-    
-    .badge {
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 14px;
-        font-weight: bold;
-    }
-    
-    .badge.open {
-        background-color: #28a745;
-        color: white;
-    }
-    
-    .badge.closed {
-        background-color: #dc3545;
-        color: white;
-    }
-    
-    .job-info, .employer-info {
-        background-color: #f8f9fa;
-        padding: 15px;
-        border-radius: 5px;
-        margin-bottom: 20px;
-    }
-    
-    .info-item {
-        margin-bottom: 10px;
-    }
-    
-    .job-description, .job-requirements, .job-benefits {
-        margin-bottom: 20px;
-    }
-    
-    .candidates-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-    
-    .candidates-table th, .candidates-table td {
-        padding: 10px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-    }
-    
-    .candidates-table th {
-        background-color: #f2f2f2;
-    }
-    
-    .view-candidate-btn {
-        background-color: #4a6cf7;
-        color: white;
-        border: none;
-        padding: 5px 10px;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    
-    .admin-actions {
-        margin-top: 30px;
-    }
-    
-    .action-buttons {
-        display: flex;
-        gap: 10px;
-    }
-    
-    .action-btn {
-        padding: 8px 15px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-    
-    .edit-job {
-        background-color: #ffc107;
-        color: #212529;
-    }
-    
-    .delete-job {
-        background-color: #dc3545;
-        color: white;
-    }
-    
-    .close-job, .reopen-job {
-        background-color: #6c757d;
-        color: white;
-    }
+{% endblock %}
 
-    .job-detail-container {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 20px;
-    max-height: 80vh; /* Adjust the height to your preference */
-    overflow-y: auto; /* Allows scrolling when content exceeds max-height */
-}
-
-.job-info, .employer-info, .job-description, .job-requirements, .job-benefits, .candidates-section, .admin-actions {
-    margin-bottom: 20px;
-    padding: 15px;
-    background-color: #f8f9fa;
-    border-radius: 5px;
-}
-
-.candidates-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-
-.candidates-table th, .candidates-table td {
-    padding: 10px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-.candidates-table th {
-    background-color: #f2f2f2;
-}
-
-</style>
-
-<script>
-    // View candidate details
-    document.querySelectorAll('.view-candidate-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const candidateId = this.getAttribute('data-candidate-id');
-            // Navigate to candidate detail page
-            window.location.href = `/admin_candidate_detail/${candidateId}/`;
-        });
-    });
-    
-    // Edit job
-    document.querySelector('.edit-job').addEventListener('click', function() {
-        const jobId = this.getAttribute('data-job-id');
-        window.location.href = `/admin_edit_job/${jobId}/`;
-    });
-    
-    // Delete job
-    document.querySelector('.delete-job').addEventListener('click', function() {
-        if (confirm('Are you sure you want to delete this job? This action cannot be undone.')) {
-            const jobId = this.getAttribute('data-job-id');
-            // Send delete request
-            fetch(`/admin_delete_job/${jobId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => {
-                if (response.ok) {
-                    window.location.href = '{% url "admin_job_listings" %}';
-                } else {
-                    alert('Failed to delete. Please try again.');
-                }
-            });
-        }
-    });
-
-    // Function to get CSRF token
-    function getCSRFToken() {
-        return document.querySelector('[name=csrfmiddlewaretoken]').value;
-    }
-
-    // Approve Job functionality
-    document.querySelectorAll('.approve-job').forEach(button => {
-        button.addEventListener('click', function() {
-            const jobId = this.getAttribute('data-job-id'); // Get the job ID from the button's data attribute
-            
-            if (confirm('Are you sure you want to approve this job?')) {
-                // Send approve request to update job status
-                fetch('/update-job-status/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCSRFToken(),  // Ensure CSRF protection
-                    },
-                    body: JSON.stringify({
-                        job_id: jobId,
-                        status: 'approved'  // Set the new status as 'approved'
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Update the job status in the UI to 'Approved'
-                        const statusLabel = document.getElementById('status-' + jobId);  // Find the status label
-                        if (statusLabel) {
-                            statusLabel.innerText = 'Approved';  // Change status text to 'Approved'
-                            statusLabel.className = 'status-label status-approved';  // Apply the 'approved' style class
-                        }
-
-                        // Hide the approve button after approval
-                        const approveButton = document.querySelector('.approve-job[data-job-id="' + jobId + '"]');
-                        if (approveButton) {
-                            approveButton.style.display = 'none';  // Hide approve button after it's pressed
-                        }
-                        
-                        alert('Job has been approved successfully!');
-                    } else {
-                        alert("Error updating job status. Please try again.");
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while approving the job.');
-                });
-            }
-        });
-    });
-
-
-    
-    // Close/reopen job
-    {% if job.status == 'Open' %}
-    document.querySelector('.close-job').addEventListener('click', function() {
-        if (confirm('Are you sure you want to close this job?')) {
-            const jobId = this.getAttribute('data-job-id');
-            // Send close request
-            fetch(`/admin_toggle_job_status/${jobId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ status: 'Closed' })
-            })
-            .then(response => {
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    alert('Operation failed. Please try again.');
-                }
-            });
-        }
-    });
-    {% else %}
-    document.querySelector('.reopen-job').addEventListener('click', function() {
-        if (confirm('Are you sure you want to reopen this job?')) {
-            const jobId = this.getAttribute('data-job-id');
-            // Send reopen request
-            fetch(`/admin_toggle_job_status/${jobId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ status: 'Open' })
-            })
-            .then(response => {
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    alert('Operation failed. Please try again.');
-                }
-            });
-        }
-    });
-    {% endif %}
-</script>
+{% block extra_js %}
+<script src="{% static 'js/admin_job_detail.js' %}"></script>
 {% endblock %} 

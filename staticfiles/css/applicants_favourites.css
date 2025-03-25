@@ -1,0 +1,140 @@
+/* General Styling */
+
+/* Ensure the root takes the full height */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f4f4f4;
+}
+
+/* Navbar */
+.navbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background-color: #0073e6;
+    color: white;
+}
+
+/* Left & Right Sections */
+.left-section, .right-section {
+    display: flex;
+    align-items: center;
+}
+
+.right-section {
+    flex-direction: row;
+}
+
+/* Button Styles */
+.filter-button, .nav-link {
+    background-color: white;
+    color: #0073e6;
+    padding: 10px 15px;
+    margin: 5px;
+    border: 1px solid #0073e6;
+    cursor: pointer;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.filter-button:hover, 
+.nav-link:hover {
+    background-color: #005bb5;
+    color: white;
+}
+
+/* Page Header */
+.page-header {
+    font-size: 2rem;
+    color: #333;
+    margin: 20px 0;
+    text-align: center;
+}
+
+/* Job Listings Container */
+.job-listings {
+    width: 90%;
+    max-width: 960px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+/* Job Card Styling */
+.job-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.job-info {
+    flex: 1; /* Ensure job information takes up the majority of the space */
+}
+
+.job-info h2 {
+    color: #0073e6;
+    margin: 0 0 10px 0;
+    font-size: 1.5em;
+}
+
+.job-info p {
+    margin: 5px 0;
+    color: #333;
+    font-size: 1em;
+}
+
+/* Favorite Star Styling */
+.favorite-star {
+    font-size: 0.8rem !important; 
+    color: #ccc;
+    cursor: pointer;
+    transition: color 0.3s ease, transform 0.2s ease;
+}
+
+.favorite-star:hover {
+    color: #ffd700;
+    transform: scale(1.1);
+}
+
+.favorite-star.active {
+    color: #ffd700;
+}
+
+/* -------------------------------------------
+   NEW: Rectangular "View Details" Button
+   ------------------------------------------- */
+.details-btn {
+    background-color: #007BFF !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 4px !important; /* Slightly rounded rectangular corners */
+    padding: 8px 20px !important;
+    font-size: 1rem !important;
+    cursor: pointer !important;
+    text-decoration: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.details-btn:hover {
+    background-color: #0056b3 !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.details-btn:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5) !important;
+}

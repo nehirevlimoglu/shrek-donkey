@@ -6,19 +6,32 @@ from datetime import date, time
 class InterviewModelTest(TestCase):
 
     def setUp(self):
-        self.user = User.objects.create(username="john_doe", email="john@example.com")
-        self.employer = Employer.objects.create(username="tech_hub", email="contact@techhub.com", company_name="TechHub")
+        self.user = User.objects.create_user(username="john_doe", email="john@example.com", password="password123")
+
+        # Employer must have a linked user instance
+        self.employer_user = User.objects.create_user(username="tech_hub_user", email="contact@techhub.com", password="password123")
+        self.employer = Employer.objects.create(
+            user=self.employer_user,  # <- This is required
+            username="tech_hub",
+            email="contact@techhub.com",
+            company_name="TechHub",
+            company_location="San Francisco",
+            industry="Tech"
+        )
+
         self.job = Job.objects.create(
             employer=self.employer,
             title="Software Engineer",
             company_name="TechHub",
             location="San Francisco"
         )
+
         self.candidate = Candidate.objects.create(
             user=self.user,
             job=self.job,
             application_status="Pending"
         )
+
         self.interview = Interview.objects.create(
             candidate=self.candidate,
             job=self.job,
@@ -26,6 +39,7 @@ class InterviewModelTest(TestCase):
             time=time(14, 30),
             interview_link="https://zoom.com/meeting123"
         )
+
 
     def test_create_interview(self):
         """Test interview instance creation."""

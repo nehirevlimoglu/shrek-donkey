@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from tutorials.models.employer_models import Job
+from tutorials.models.employer_models import Job, JobTitle
 from tutorials.models.applicants_models import Applicant  
 
 class JobPosition(models.Model):
@@ -12,26 +12,10 @@ class JobPosition(models.Model):
     minimum_criteria = models.TextField()
     desirable_criteria = models.TextField()
     location = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.title
-
-'''
-class JobPosition(models.Model):
-    employer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="job_posts")
-    title = models.CharField(max_length=200)
-    company_name = models.CharField(max_length=200)
-    mission = models.TextField()
-    description = models.TextField()
-    minimum_criteria = models.TextField()
-    desirable_criteria = models.TextField()
-    location = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.title
-'''
 
 class JobSeekerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

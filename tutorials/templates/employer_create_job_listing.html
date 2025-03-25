@@ -4,113 +4,161 @@
 {% block title %}Create Job Listing | Swamp Hiring{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/employer_create_job_listing.css' }}">
+<link rel="stylesheet" href="{% static 'css/employer_create_job_listing.css' %}">
 {% endblock %}
 
 {% block content %}
-    <div class="job-form-container">
-        <h2>Create a New Job Listing</h2>
-
-        <!-- Success Message -->
+<div class="create-job-container">
+    <div class="card">
+        <div class="card-header">
+            <h2>Create a New Job Listing</h2>
+            <p>Fill out the details below to post a new job listing.</p>
+        </div>
+        
+        <!-- Success Messages -->
         {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-            {% endfor %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="alert alert-success">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
         {% endif %}
 
-        <form method="POST">
+        <form method="POST" class="job-listing-form">
             {% csrf_token %}
 
-            <div class="form-group">
-                <label for="title">Job Title</label>
-                <input type="text" id="title" name="title" required>
+            <!-- Row 1: Job Title & Position -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="title">Job Title <span class="required">*</span></label>
+                    <input type="text" id="title" name="title" required placeholder="e.g. Senior Web Developer">
+                </div>
+                <div class="form-group">
+                    <label for="position">Position <span class="required">*</span></label>
+                    <select id="position" name="position">
+                        <option value="">Loading positions...</option>
+                        <!-- If you have dynamic positions, they can be populated here -->
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="position">Position</label>
-                <select id="position" name="position">
-                    <option value="">Loading positions...</option>  <!-- Default loading text -->
-                </select>
+            <!-- Row 2: Company & Location -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="company_name">Company Name <span class="required">*</span></label>
+                    <input type="text" id="company_name" name="company_name" 
+                           value="{{ request.user.employer.company_name|default:'' }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="location">Location <span class="required">*</span></label>
+                    <input type="text" id="location" name="location" 
+                           value="{{ request.user.employer.company_location|default:'' }}" required>
+                </div>
             </div>
 
-            <!-- 🔹 Company Name (Now Editable) -->
-            <div class="form-group">
-                <label for="company_name">Company Name</label>
-                <input type="text" id="company_name" name="company_name" 
-                       value="{{ request.user.employer.company_name|default:'' }}" 
-                       required>
+            <!-- Row 3: Job Type & Salary -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="job_type">Job Type <span class="required">*</span></label>
+                    <select id="job_type" name="job_type" required>
+                        <option value="Full Time">Full-Time</option>
+                        <option value="Part Time">Part-Time</option>
+                        <option value="Internship">Internship</option>
+                        <option value="Apprenticeship">Apprenticeship</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="salary">Salary</label>
+                    <input type="number" id="salary" name="salary" placeholder="e.g. 50000">
+                </div>
             </div>
 
-            <!-- 🔹 Location (Now Editable) -->
-            <div class="form-group">
-                <label for="location">Location</label>
-                <input type="text" id="location" name="location" 
-                       value="{{ request.user.employer.company_location|default:'' }}" 
-                       required>
+            <!-- Row 4: Description (full width) -->
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="description">Job Description <span class="required">*</span></label>
+                    <textarea id="description" name="description" rows="4" 
+                              placeholder="Describe the role, responsibilities, and day-to-day tasks."
+                              required></textarea>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="job_type">Job Type</label>
-                <select id="job_type" name="job_type">
-                    <option value="Full Time">Full-Time</option>
-                    <option value="Part Time">Part-Time</option>
-                    <option value="Internship">Internship</option>
-                    <option value="Apprenticeship">Apprenticeship</option>
-                </select>
+            <!-- Row 5: Requirements (full width) -->
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="requirements">Requirements <span class="required">*</span></label>
+                    <textarea id="requirements" name="requirements" rows="4" 
+                              placeholder="List required skills, experience, or qualifications."
+                              required></textarea>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="salary">Salary (Optional)</label>
-                <input type="number" id="salary" name="salary">
+            <!-- Row 6: Benefits & Application Deadline -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="benefits">Benefits</label>
+                    <textarea id="benefits" name="benefits" rows="4" 
+                              placeholder="e.g. Health insurance, remote work options, etc."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="application_deadline">Application Deadline</label>
+                    <input type="date" id="application_deadline" name="application_deadline">
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="description">Job Description</label>
-                <textarea id="description" name="description" rows="4" required></textarea>
+            <!-- Row 7: Contact Email (full width) -->
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="contact_email">Contact Email <span class="required">*</span></label>
+                    <input type="email" id="contact_email" name="contact_email" 
+                           value="{{ request.user.employer.email|default:'' }}" required 
+                           placeholder="e.g. hr@company.com">
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="requirements">Requirements</label>
-                <textarea id="requirements" name="requirements" rows="4" required></textarea>
+            <!-- New Row: Required Discipline (Optional) -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="required_discipline">Required Discipline:</label>
+                    <select id="required_discipline" name="required_discipline" class="form-control">
+                        <option value="">-- Select Discipline --</option>
+                        <option value="bachelors">Bachelors</option>
+                        <option value="masters">Masters</option>
+                        <option value="phd">PhD</option>
+                        <option value="diploma">Diploma</option>
+                        <option value="associate">Associate Degree</option>
+                        <option value="certificate">Certificate</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="benefits">Benefits (Optional)</label>
-                <textarea id="benefits" name="benefits" rows="4"></textarea>
-            </div>
+            <div class="form-row" id="required-experience-container">
+                <div class="form-group">
+                    <label for="required_experience">Required Work Experience (Years):</label>
+                    <input type="number" step="0.1" id="required_experience" name="required_experience" placeholder="e.g. 3">
+                </div>
+            </div>            
 
-            <div class="form-group">
-                <label for="application_deadline">Application Deadline</label>
-                <input type="date" id="application_deadline" name="application_deadline">
+            <!-- Submit Button -->
+            <div class="form-row">
+                <button type="submit" class="submit-btn">Create Job</button>
             </div>
-
-            <!-- 🔹 Contact Email (Now Editable) -->
-            <div class="form-group">
-                <label for="contact_email">Contact Email</label>
-                <input type="email" id="contact_email" name="contact_email" 
-                       value="{{ request.user.employer.email|default:'' }}" 
-                       required>
-            </div>
-
-            <button type="submit" class="big-button">Create Job</button>
         </form>
     </div>
+</div>
 
-    <!-- Include JavaScript file -->
-    <script src="{% static 'js/load_job_titles.js' %}"></script>
+<!-- Include any JS file you need for loading job titles, etc. -->w
+<script src="{% static 'js/load_job_titles.js' %}"></script>
 
-    <!-- Auto-hide success message -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            setTimeout(function() {
-                let alerts = document.querySelectorAll('.alert');
-                alerts.forEach(alert => alert.style.display = 'none');
-            }, 4000);  // Hide after 4 seconds
-        });
-    </script>
+<script>
+    // Auto-hide success messages after 4 seconds
+    document.addEventListener("DOMContentLoaded", function() {
+        setTimeout(function() {
+            let alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => alert.style.display = 'none');
+        }, 4000);
+    });
+</script>
 {% endblock %}

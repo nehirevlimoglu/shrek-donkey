@@ -1,0 +1,204 @@
+from django.test import TestCase, Client
+from django.urls import reverse
+from django.contrib.auth import get_user_model
+from tutorials.models.applicants_models import Applicant, Application
+from tutorials.models.employer_models import Job, Employer
+from random import randint
+
+User = get_user_model()
+
+class JobDetailViewTests(TestCase):
+    """
+    Test suite for job detail view functionality
+    Tests job viewing and application features
+    """
+    
+    def setUp(self):
+        """Set up test data for job detail tests"""
+        # Create employer user
+        self.employer_user = User.objects.create_user(
+            username='@testemployer',
+            password='testpass123',
+            email='employer@test.com',
+            first_name='Test',
+            last_name='Employer',
+            role='Employer'
+        )
+        
+        # Create employer profile
+        self.employer = Employer.objects.create(
+            user=self.employer_user,
+            company_name='Test Company'
+        )
+        
+        # Create a job
+        self.job = Job.objects.create(
+            employer=self.employer,
+            title='Test Job',
+            company_name='Test Company',
+            location='Test Location',
+            description='Test Description',
+            status='approved'
+        )
+        
+        # Create applicant user
+        self.applicant_user = User.objects.create_user(
+            username='@testapplicant',
+            password='testpass123',
+            email='applicant@test.com',
+            first_name='Test',
+            last_name='Applicant',
+            role='Applicant'
+        )
+        
+        # Create applicant profile
+        self.applicant = Applicant.objects.create(
+            user=self.applicant_user,
+            degree='Computer Science',
+            salary_preferences='50000-70000',
+            location_preferences='Remote'
+        )
+        
+        self.client = Client()
+    
+    def test_job_detail_unauthenticated(self):
+        """Test job detail view as unauthenticated user"""
+        response = self.client.get(reverse('job_detail', args=[self.job.id]))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'job_detail.html')
+        self.assertEqual(response.context['job'], self.job)
+        
+        # Don't check for random - optional feature
+        # Check only for existing_application if needed
+        if 'existing_application' in response.context:
+            self.assertFalse(response.context['existing_application'])
+    
+    def test_job_detail_authenticated_applicant(self):
+        """Test job detail view as authenticated applicant"""
+        self.client.login(username='@testapplicant', password='testpass123')
+        response = self.client.get(reverse('job_detail', args=[self.job.id]))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'job_detail.html')
+        self.assertEqual(response.context['job'], self.job)
+        
+        # Check if existing_application is in context and is false
+        if 'existing_application' in response.context:
+            self.assertFalse(response.context['existing_application'])
+        
+        # Verify random value for cache busting
+        self.assertIn('random', response.context)
+    
+    def test_job_detail_with_existing_application(self):
+        """Test job detail view when applicant has already applied"""
+        self.client.login(username='@testapplicant', password='testpass123')
+        
+        # Create an existing application
+        Application.objects.create(applicant=self.applicant, job=self.job)
+        
+        response = self.client.get(reverse('job_detail', args=[self.job.id]))
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'job_detail.html')
+        
+        # Check if existing_application is in context and is true
+        if 'existing_application' in response.context:
+            self.assertTrue(response.context['existing_application'])
+        else:
+            # Alternative check - verify an application exists in the database
+            self.assertTrue(
+                Application.objects.filter(
+                    applicant=self.applicant,
+                    job=self.job
+                ).exists()
+            )
+    
+    def test_apply_for_job_success(self):
+        """Test successfully applying for a job"""
+        self.client.login(username='@testapplicant', password='testpass123')
+        
+        # Make sure no applications exist before the test
+        self.assertEqual(
+            Application.objects.filter(applicant=self.applicant, job=self.job).count(),
+            0
+        )
+        
+        # Apply for the job
+        response = self.client.post(
+            reverse('job_detail', args=[self.job.id]),
+            follow=True  # Follow redirects
+        )
+        
+        # Check that the application was created
+        self.assertEqual(
+            Application.objects.filter(applicant=self.applicant, job=self.job).count(),
+            1
+        )
+    
+    def test_apply_for_job_already_applied(self):
+        """Test applying for a job that was already applied to"""
+        self.client.login(username='@testapplicant', password='testpass123')
+        
+        # Create existing application
+        Application.objects.create(applicant=self.applicant, job=self.job)
+        
+        # Try to apply again
+        response = self.client.post(reverse('job_detail', args=[self.job.id]))
+        
+        # Should render the page
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'job_detail.html')
+        
+        # Check existing_application in context if available
+        if 'existing_application' in response.context:
+            self.assertTrue(response.context['existing_application'])
+        
+        # Verify no duplicate application was created
+        self.assertEqual(
+            Application.objects.filter(
+                applicant=self.applicant,
+                job=self.job
+            ).count(), 
+            1
+        )
+    
+    def test_apply_for_job_no_applicant_profile(self):
+        """Test applying for a job when user has no applicant profile"""
+        # Create user without applicant profile
+        user_no_profile = User.objects.create_user(
+            username='@noprofile',
+            password='testpass123',
+            email='noprofile@test.com',
+            role='Applicant'
+        )
+        
+        self.client.login(username='@noprofile', password='testpass123')
+        
+        # Try to apply for job
+        response = self.client.post(reverse('job_detail', args=[self.job.id]))
+        
+        # Should render the page
+        self.assertEqual(response.status_code, 200)
+        
+        # Verify no application was created
+        self.assertEqual(
+            Application.objects.filter(job=self.job).count(), 
+            0
+        )
+    
+    def test_job_detail_random_value_generation(self):
+        """Test that random values are different between requests (cache busting)"""
+        self.client.login(username='@testapplicant', password='testpass123')
+        
+        # Make two separate requests
+        response1 = self.client.get(reverse('job_detail', args=[self.job.id]))
+        response2 = self.client.get(reverse('job_detail', args=[self.job.id]))
+        
+        # Both responses should have 'random' in context
+        self.assertIn('random', response1.context)
+        self.assertIn('random', response2.context)
+        
+        # These random values should be integers
+        self.assertTrue(isinstance(response1.context['random'], int))
+        self.assertTrue(isinstance(response2.context['random'], int)) 

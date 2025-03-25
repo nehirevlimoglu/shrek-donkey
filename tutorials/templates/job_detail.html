@@ -4,32 +4,24 @@
 {% block title %}Job Details | Swamp Hiring{% endblock %}
 
 {% block content %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/job_detail.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'css/job_detail.css' %}">
 
-    <div class="job-detail-container">
-        <h1>{{ job.title }}</h1>
-        <p><strong>Company:</strong> {{ job.company_name }}</p>
-        <p><strong>Location:</strong> {{ job.location }}</p>
-        <p><strong>Salary:</strong> ${{ job.salary }}</p>
-        <p><strong>Job Type:</strong> {{ job.job_type }}</p>
-        <p><strong>Description:</strong> {{ job.description }}</p>
+<div class="job-detail-container">
+    <h1>{{ job.title }}</h1>
+    <p><strong>Company:</strong> {{ job.company_name }}</p>
+    <p><strong>Location:</strong> {{ job.location }}</p>
+    <p><strong>Salary:</strong> ${{ job.salary }}</p>
+    <p><strong>Job Type:</strong> {{ job.job_type }}</p>
+    <p><strong>Description:</strong> {{ job.description }}</p>
 
-        <div class="button-container">
-            <!-- "Back to Jobs" link -->
-            <a href="{% url 'applicants-home-page' %}" class="btn-primary">Back to Jobs</a>
-
-            <!-- Conditionally show a disabled button if already applied -->
-            {% if existing_application %}
-                <p id="already-applied-msg" style="font-style: italic;">You have already applied for this job</p>
-            {% else %}
-                <form method="POST" action="{% url 'apply_for_job' job.id %}" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-primary" id="apply-btn">Apply Now</button>
-                </form>
-            {% endif %}
-        </div>
+    <div class="button-container">
+        <a href="{% url 'applicants-home-page' %}" class="btn-primary">Back to Jobs</a>
+        
+        {% if existing_application %}
+            <p class="already-applied-msg">You have already applied for this job.</p>
+        {% else %}
+        <a href="{% url 'apply_for_job' job.id %}">Apply Now</a>
+        {% endif %}
     </div>
-
-    <!-- JavaScript that handles the “Apply” click/response -->
-    <script src="{% static 'js/job_application.js' %}?v={{ random }}"></script>
+</div>
 {% endblock %}

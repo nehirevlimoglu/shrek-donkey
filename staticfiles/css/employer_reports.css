@@ -1,0 +1,123 @@
+/* General Styling for Reports Page */
+html, body {
+    overflow-y: auto; /* Enable vertical scrolling */
+    height: 100vh;
+}
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.reports-overview {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.report-card {
+    background: #FFFFFF;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    flex: 1;
+    margin: 10px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #E2E8F0;
+    min-width: 200px;
+    margin-bottom: 50px; /* Increased bottom margin to create more space */
+}
+
+.report-card h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #1A202C;
+}
+
+.report-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #1558B5;
+}
+
+.detailed-reports {
+    margin-top: 80px; /* Increased top margin to create more space */
+}
+
+.detailed-reports h2 {
+    margin-bottom: 30px; /* Increased bottom margin */
+}
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px; /* Increased top margin */
+}
+
+table th, table td {
+    padding: 20px; /* Increased padding for more spacing */
+    text-align: left;
+}
+
+table th {
+    background: #E2E8F0;
+    color: #1A202C;
+    font-weight: bold;
+}
+
+table td {
+    background: #FFFFFF;
+    color: #1A202C;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+/* Hover Effect for Rows */
+table tbody tr:hover {
+    background: #F1F3F5;
+}
+
+/* Chart Container */
+.chart-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin-top: 40px;
+    margin-bottom: 80px; /* Adjusted bottom margin to create more space */
+    width: 100%;
+}
+
+/* Chart Card Styling */
+.chart-card {
+    background: #FFFFFF;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #E2E8F0;
+    width: 45%;   /* Width percentage */
+    max-width: 600px;  /* Ensure the card doesn't exceed a certain size */
+    height: 400px;  /* Set a fixed height for the chart card */
+    overflow: hidden;  /* Prevent chart from overflowing the container */
+    text-align: center;
+}
+
+/* Ensure canvas fills the parent container */
+.chart-card canvas {
+    width: 100% !important;  /* Ensure the canvas fills the container */
+    height: 100% !important;  /* Ensure the height of the canvas is equal to the card height */
+    max-width: 100%;
+}
+
+/* Chart Card Heading */
+.chart-card h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #1A202C;
+}
+
+#applicantsChart, #interviewsChart {
+    height: 400px; 
+  }

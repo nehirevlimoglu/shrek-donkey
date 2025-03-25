@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Employer Notifications | Swamp Hiring{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/employer_notifications.css' %}">
+
+<h2 class="notifications-heading">📬 Your Notifications</h2>
+
+<div class="notifications-container">
+    {% if notifications %}
+        {% for notification in notifications %}
+            <div class="notification-card {% if not notification.is_read %}unread{% endif %}" id="notification-{{ notification.id }}">
+                <div class="notification-text">
+                    <strong>{{ notification.title }}</strong>
+                    <p>{{ notification.message }}</p>
+                    <small>{{ notification.created_at|date:"M d, Y H:i" }}</small>
+                </div>
+                <div class="notification-action">
+                    {% if not notification.is_read %}
+                        <button class="read-btn" data-notification-id="{{ notification.id }}">Read</button>
+                    {% else %}
+                        <span class="seen-text">✔ Seen</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No notifications yet.</p>
+    {% endif %}
+</div>
+
+<script src="{% static 'js/employer_notifications.js' %}"></script>
+{% endblock %}

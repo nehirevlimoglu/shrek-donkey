@@ -1,0 +1,66 @@
+.confirmation-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirmation-content {
+    background-color: #ffffff;
+    padding: 20px 24px;
+    max-width: 360px;
+    width: 90%;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.confirmation-content h2 {
+    font-size: 1.25rem;
+    margin-bottom: 10px;
+}
+
+.confirmation-content p {
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+    line-height: 1.4;
+}
+
+.confirmation-content button {
+    padding: 8px 14px;
+    margin: 0 6px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+#confirm-button {
+    background-color: #28a745;
+    color: white;
+}
+
+#confirm-button:hover {
+    background-color: #218838;
+}
+
+.confirmation-content button:last-child {
+    background-color: #dc3545;
+    color: white;
+}
+
+.confirmation-content button:last-child:hover {
+    background-color: #c82333;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+}

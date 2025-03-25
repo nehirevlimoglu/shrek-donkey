@@ -1,13 +1,21 @@
 # tutorials/forms/applicants_forms.py
 
 from django import forms
-from tutorials.models.applicants_models import Applicant, Application
-from tutorials.models.employer_models import JobTitle
+from tutorials.models.applicants_models import Applicant, Application, JobTitle
+from tutorials.models.employer_models import JobTitle, Job
 from django.core.exceptions import ValidationError
 
-
-
 class ApplicantForm(forms.ModelForm):
+    DEGREE_CHOICES = [
+        ('', 'Select Degree'),
+        ('bachelors', 'Bachelors'),
+        ('masters', 'Masters'),
+        ('phd', 'PhD'),
+        ('diploma', 'Diploma'),
+        ('associate', 'Associate Degree'),
+        ('certificate', 'Certificate'),
+    ]
+
     first_name = forms.CharField(
         label="First Name",
         max_length=150,
@@ -20,9 +28,14 @@ class ApplicantForm(forms.ModelForm):
         required=True,
         widget=forms.TextInput(attrs={"class": "form-control"}),
     )
+    degree = forms.ChoiceField(
+        choices=DEGREE_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={"class": "form-control"})
+    )
     job_preferences = forms.ModelMultipleChoiceField(
         queryset=JobTitle.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.SelectMultiple(attrs={'class': 'form-control'}),
         required=False
     )
 
@@ -33,11 +46,8 @@ class ApplicantForm(forms.ModelForm):
     def clean_cv(self):
         cv = self.cleaned_data.get('cv')
         if cv:
-            # Check file size
             if cv.size > self.MAX_FILE_SIZE:
                 raise forms.ValidationError('File size must be under 5MB')
-            
-            # Check file type
             if hasattr(cv, 'content_type') and cv.content_type not in self.ALLOWED_FILE_TYPES:
                 raise forms.ValidationError('Only PDF and Word documents are allowed')
             return cv  # Add this line to return the validated file
@@ -53,9 +63,7 @@ class ApplicantForm(forms.ModelForm):
             "location_preferences",
         ]
         widgets = {
-            "degree": forms.TextInput(attrs={"class": "form-control"}),
             "salary_preferences": forms.TextInput(attrs={"class": "form-control"}),
-            "job_preferences": forms.Textarea(attrs={"class": "form-control", "rows": 3}),
             "location_preferences": forms.TextInput(attrs={"class": "form-control"}),
             "cv": forms.FileInput(attrs={"class": "form-control"}),
         }
@@ -64,31 +72,36 @@ class ApplicantForm(forms.ModelForm):
         user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
         if user:
-            # Prepopulate first_name and last_name from the User model
             self.fields["first_name"].initial = user.first_name
             self.fields["last_name"].initial = user.last_name
 
+            
+
     def save(self, commit=True):
         applicant = super().save(commit=False)
-        
-        # Ensure that the user is saved along with the applicant details
+
         if applicant.user:
             user = applicant.user
             user.first_name = self.cleaned_data["first_name"]
             user.last_name = self.cleaned_data["last_name"]
             if commit:
-                user.save()  # Save the updated User model
+                user.save()
 
         if commit:
-            applicant.save()  # Save the Applicant model
+            applicant.save()
+            self.save_m2m()  # ✅ This is what actually saves job_preferences
 
         return applicant
+
+
+
 
 
 # ✅ Custom validator to enforce PDF file uploads only
 def validate_pdf(value):
     if not value.name.endswith(".pdf"):
         raise ValidationError("❌ Only PDF files are allowed for resumes!")
+        
 
 class ApplicationForm(forms.ModelForm):
     # Personal Information
@@ -102,36 +115,78 @@ class ApplicationForm(forms.ModelForm):
     resume = forms.FileField(
         required=True, 
         widget=forms.FileInput(attrs={"class": "form-control"}), 
-        validators=[validate_pdf]  # Enforce PDF validation
+        validators=[validate_pdf]
     )
     
     cover_letter = forms.FileField(
         required=False, 
         widget=forms.FileInput(attrs={"class": "form-control"}), 
-        validators=[validate_pdf]  
+        validators=[validate_pdf]
     )
 
-    # ✅ Make Education Fields Optional (Fix for blocking issue)
+    # Education
     school = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     degree = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
-    discipline = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
-    start_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
-    end_date = forms.DateField(widget=forms.SelectDateWidget(years=range(1980, 2030)), required=False)
+    
+    DISCIPLINE_CHOICES = [
+        ('bachelors', 'Bachelors'),
+        ('masters', 'Masters'),
+        ('phd', 'PhD'),
+        ('diploma', 'Diploma'),
+        ('associate', 'Associate Degree'),
+        ('certificate', 'Certificate'),
+    ]
+    discipline = forms.ChoiceField(
+        choices=DISCIPLINE_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={"class": "form-control"})
+    )
 
-    # ✅ Keep Other Fields the Same
+    start_date = forms.DateField(required=False, widget=forms.SelectDateWidget(years=range(1980, 2030)))
+    end_date = forms.DateField(required=False, widget=forms.SelectDateWidget(years=range(1980, 2030)))
+
+    # 🔥 Work Experience (INDIVIDUAL FIELDS)
+    work_job_title = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    work_employer = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
+    work_start_date = forms.DateField(required=False, widget=forms.SelectDateWidget(years=range(1980, 2030)))
+    work_end_date = forms.DateField(required=False, widget=forms.SelectDateWidget(years=range(1980, 2030)))
+    job_description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"class": "form-control", "rows": 4})
+    )
+
+    # Current Job
     current_job_title = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     current_employer = forms.CharField(max_length=100, required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     linkedin_profile = forms.URLField(required=False, widget=forms.URLInput(attrs={"class": "form-control"}))
     portfolio_website = forms.URLField(required=False, widget=forms.URLInput(attrs={"class": "form-control"}))
+
+    # Skills and Extra
+    skills = forms.CharField(
+        max_length=500, 
+        required=False, 
+        widget=forms.TextInput(attrs={
+            "class": "form-control", 
+            "placeholder": "Enter skills separated by commas (e.g., Python, Django, Machine Learning)"
+        })
+    )
 
     how_did_you_hear = forms.ChoiceField(
         choices=[("linkedin", "LinkedIn"), ("website", "Company Website"), ("referral", "Referral"), ("other", "Other")],
         required=True, widget=forms.Select(attrs={"class": "form-control"})
     )
 
-    sponsorship_needed = forms.ChoiceField(choices=[("yes", "Yes"), ("no", "No")], required=True, widget=forms.Select(attrs={"class": "form-control"}))
+    sponsorship_needed = forms.ChoiceField(
+        choices=[("yes", "Yes"), ("no", "No")], 
+        required=True, 
+        widget=forms.Select(attrs={"class": "form-control"})
+    )
 
-    confirm_information = forms.BooleanField(required=True, label="I confirm all information is accurate.", widget=forms.CheckboxInput())
+    confirm_information = forms.BooleanField(
+        required=True, 
+        label="I confirm all information is accurate.", 
+        widget=forms.CheckboxInput()
+    )
 
     MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
     ALLOWED_FILE_TYPES = ['application/pdf', 'application/msword', 
@@ -140,11 +195,12 @@ class ApplicationForm(forms.ModelForm):
     class Meta:
         model = Application
         fields = [
-            'first_name', 'last_name', 'email', 'phone', 'address',
-            'resume', 'cover_letter', 'school', 'degree', 'discipline',
-            'start_date', 'end_date', 'current_job_title', 'current_employer',
-            'linkedin_profile', 'portfolio_website', 'how_did_you_hear',
-            'sponsorship_needed', 'confirm_information'
+            "first_name", "last_name", "email", "phone", "address", "resume", "cover_letter",
+            "skills",
+            "school", "degree", "discipline", "start_date", "end_date",
+            "work_job_title", "work_employer", "work_start_date", "work_end_date", "job_description",  # ✅ Added fields
+            "current_job_title", "current_employer", "linkedin_profile", "portfolio_website",
+            "how_did_you_hear", "sponsorship_needed", "confirm_information",
         ]
 
     def clean_resume(self):
@@ -156,7 +212,7 @@ class ApplicationForm(forms.ModelForm):
             
             # Check file type
             if hasattr(resume, 'content_type') and resume.content_type not in self.ALLOWED_FILE_TYPES:
-                raise forms.ValidationError('Resume must be a PDF or Word document')
+                raise forms.ValidationError('Only PDF files are allowed')
         return resume
 
     def clean_cover_letter(self):
@@ -168,5 +224,75 @@ class ApplicationForm(forms.ModelForm):
             
             # Check file type
             if hasattr(cover_letter, 'content_type') and cover_letter.content_type not in self.ALLOWED_FILE_TYPES:
-                raise forms.ValidationError('Cover letter must be a PDF or Word document')
+                raise forms.ValidationError('Only PDF files are allowed')
         return cover_letter
+
+
+class ApplicantEditForm(forms.ModelForm):
+    # First and last name (from the related User model)
+    first_name = forms.CharField(
+        max_length=30, required=False, label='First Name'
+    )
+    last_name = forms.CharField(
+        max_length=30, required=False, label='Last Name'
+    )
+    
+    degree = forms.CharField(
+        max_length=255, required=False, label='Degree'
+    )
+    salary_preferences = forms.CharField(
+        max_length=255, required=False, label='Salary Preferences'
+    )
+    location_preferences = forms.CharField(
+        max_length=255, required=False, label='Location Preferences'
+    )
+    cv = forms.FileField(
+        required=False, label='Upload CV'
+    )
+    job_preferences = forms.ModelMultipleChoiceField(
+        queryset=Job.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label='Job Preferences'
+    )
+
+    class Meta:
+        model = Applicant
+        fields = [
+            'degree',
+            'salary_preferences',
+            'job_preferences',
+            'location_preferences',
+            'cv',
+        ]
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)  # capture the user instance
+        super().__init__(*args, **kwargs)
+
+        # Pre-fill user-related fields if a user is passed
+        if self.user:
+            self.fields['first_name'].initial = self.user.first_name
+            self.fields['last_name'].initial = self.user.last_name
+
+    def save(self, commit=True):
+        applicant = super().save(commit=False)
+
+        # Save user first and last name if present
+        if self.user:
+            first_name = self.cleaned_data.get('first_name')
+            last_name = self.cleaned_data.get('last_name')
+
+            if first_name:
+                self.user.first_name = first_name
+            if last_name:
+                self.user.last_name = last_name
+
+            if commit:
+                self.user.save()
+
+        if commit:
+            applicant.save()
+            self.save_m2m()
+
+        return applicant

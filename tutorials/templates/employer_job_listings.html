@@ -4,47 +4,53 @@
 {% block title %}Job Listings | Swamp Hiring{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/employer_job_listings.css' %}">
+<link rel="stylesheet" href="{% static 'css/employer_job_listings.css' %}?v=3">
 {% endblock %}
 
 {% block content %}
 <section class="job-listings">
-    <h2>Job Listings</h2>
+    <h2 class="page-heading-left">Job Listings</h2>
 
-    <div class="job-listings-container">
-        {% if jobs %}
+    <div class="job-scroll-area">
+        <div class="job-grid">
             {% for job in jobs %}
-                <div class="job-listing-card" onclick="toggleDetails('{{ job.id }}')">
-                    <div class="job-header">
-                        <p>
-                            <strong class="job-title">{{ job.title }}</strong> - {{ job.company_name }}
-                        </p>
-                        <span id="toggle-icon-{{ job.id }}" class="toggle-icon">▼</span>
-                    </div>
-
-                    <div id="job-details-{{ job.id }}" class="job-details">
-                        <p><strong>Location:</strong> {{ job.location }}</p>
-                        <p><strong>Job Type:</strong> {{ job.job_type }}</p>
-                        <p><strong>Salary:</strong> {{ job.salary|default:"Not specified" }}</p>
-                        <p><strong>Description:</strong> {{ job.description }}</p>
-                        <p><strong>Requirements:</strong> {{ job.requirements }}</p>
-                        <p><strong>Benefits:</strong> {{ job.benefits|default:"None specified" }}</p>
-                        <p><strong>Application Deadline:</strong> {{ job.application_deadline|default:"No deadline" }}</p>
-                        <p><strong>Contact Email:</strong> {{ job.contact_email }}</p>
-                        <!-- New Job Status Section -->
-                        <p><strong>Status:</strong> 
-                            <span class="job-status {% if job.status == 'approved' %}status-approved{% elif job.status == 'rejected' %}status-rejected{% else %}status-pending{% endif %}">
-                                {{ job.get_status_display }}
-                            </span>
-                        </p>
+                <div class="job-card">
+                    <h3 class="job-title">{{ job.title }}</h3>
+                    <p><strong>Company:</strong> {{ job.company_name }}</p>
+                    <p><strong>Location:</strong> {{ job.location }}</p>
+                    <p><strong>Job Type:</strong> {{ job.job_type }}</p>
+                    <p><strong>Salary:</strong> {{ job.salary|default:"Not specified" }}</p>
+                    <p><strong>Description:</strong> {{ job.description }}</p>
+                    <p><strong>Requirements:</strong> {{ job.requirements }}</p>
+                    <p><strong>Benefits:</strong> {{ job.benefits|default:"None specified" }}</p>
+                    <p><strong>Application Deadline:</strong> {{ job.application_deadline|default:"No deadline" }}</p>
+                    <p><strong>Contact Email:</strong> {{ job.contact_email }}</p>
+                    <p><strong>Status:</strong>
+                        <span class="job-status 
+                            {% if job.status == 'approved' %}status-approved
+                            {% elif job.status == 'rejected' %}status-rejected
+                            {% else %}status-pending{% endif %}">
+                            {{ job.get_status_display }}
+                        </span>
+                    </p>
+    
+                    <div class="matched-candidates">
+                        <h4>Matched Candidates</h4>
+                        {% if job.matched_candidates %}
+                            <ul>
+                                {% for cand, score in job.matched_candidates %}
+                                    <li>
+                                        <a href="{% url 'applicant_profile' cand.id %}">{{ cand.user.username }}</a>
+                                        (Score: {{ score|floatformat:2 }})
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No matched candidates yet.</p>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}
-        {% else %}
-            <p>No jobs posted yet.</p>
-        {% endif %}
-    </div>
+    </div>    
 </section>
-
-<script src="{% static 'js/job_listings.js' %}"></script>
 {% endblock %}
