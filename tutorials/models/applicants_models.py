@@ -3,6 +3,7 @@ from tutorials.models.user_model import User
 from tutorials.models.employer_models import Job
 from tutorials.models.employer_models import JobTitle 
 
+
 class Applicant(models.Model):
     """ Stores applicant information, linked to a User """
     user = models.OneToOneField(User, on_delete=models.CASCADE)

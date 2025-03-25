@@ -138,18 +138,16 @@
                             <input type="text" class="form-control" id="salary_preferences" name="salary_preferences" value="{{ applicant.salary_preferences|default_if_none:'' }}">
                         </div>
 
-                        <div class="mb-3">
-                            <label for="job_preferences" class="form-label">Job Preferences</label>
-                            <select name="job_preferences" id="job_preferences" class="form-select" multiple>
-                                {% for job in form.fields.job_preferences.queryset %}
-                                    <option value="{{ job.pk }}"
-                                        {% if job in form.initial.job_preferences %}
-                                            selected
-                                        {% endif %}
-                                    >{{ job.title }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                        <select name="job_preferences" id="job_preferences" class="form-select" multiple>
+                            {% for job in form.fields.job_preferences.queryset %}
+                                <option value="{{ job.pk }}"
+                                    {% if job.pk in form.initial.job_preferences %}
+                                        selected
+                                    {% endif %}
+                                >{{ job.title }}</option>
+                            {% endfor %}
+                        </select>
+
                         
 
                         <div class="mb-3">

@@ -92,6 +92,8 @@ class CustomPasswordChangeForm(PasswordChangeForm):
     class Meta:
         model = User
         fields = ['old_password', 'new_password1', 'new_password2']
+
+        
 class EmployerProfileForm(forms.ModelForm):
     # Include optional user fields with Bootstrap styling
     first_name = forms.CharField(

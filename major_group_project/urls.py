@@ -12,7 +12,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from tutorials.views.views import log_in, log_out, sign_up, job_matching_view
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile, applicants_analytics, apply_for_job, job_detail, applicants_application
-from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications,  update_job_status
+from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications,  update_job_status, admin_settings
 from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_calendar, employer_candidates, get_interviews, delete_account, employer_notifications, get_employer_events, review_application, applicant_profile, schedule_interview, accept_candidate, reject_candidate
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile, applicants_analytics
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications, admin_applications_view, admin_notifications_count, generate_admin_notification, mark_notification_as_read, mark_all_notifications_as_read, delete_notification, delete_all_notifications, generate_test_notifications
@@ -112,6 +112,7 @@ urlpatterns = [
     path('match-candidates/<int:job_id>/', job_matching_view, name='match_candidates'),
 
     path('toggle-favorite/', toggle_favorite, name='toggle_favorite'),
+    path('admin_settings/', admin_settings, name='admin_settings'),
     
     ]
 

@@ -258,3 +258,15 @@ body {
 .btn-primary:hover { background: #1558b3; }
 .btn-secondary:hover { background: #596679; }
 .btn-danger:hover { background: #c53030; }
+
+.notification-content {
+    flex: 1; /* let this section expand */
+  }
+  
+  .notification-actions {
+    margin-left: auto; /* pushes actions to the far right */
+    display: flex;
+    flex-direction: column; /* keep your two buttons stacked (if that's what you want) */
+    align-items: flex-end;  /* or center, if you'd prefer them centered vertically */
+  }
+  

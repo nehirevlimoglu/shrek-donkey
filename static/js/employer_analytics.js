@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }]
             },
             options: {
-                responsive: true,
+                responsive: false,
                 maintainAspectRatio: true,
                 aspectRatio: 2, // Set a custom aspect ratio (width:height = 2:1)
                 plugins: {
@@ -70,7 +70,6 @@ document.addEventListener("DOMContentLoaded", function () {
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
-                aspectRatio: 2, // Set a custom aspect ratio (width:height = 2:1)
                 plugins: {
                     legend: { position: "top" },
                     tooltip: { enabled: true }

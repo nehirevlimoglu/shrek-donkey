@@ -5,12 +5,25 @@ from libgravatar import Gravatar
 from tutorials.models.user_model import User
 from django.utils import timezone
 
-class Admin(User):
-    phone_validator = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
+
+class Admin(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    username = models.CharField(max_length=150, unique=True)
+    email = models.EmailField(unique=True, null=True, blank=True)  # allow blank during migration
+    first_name = models.CharField(max_length=150, null=True, blank=True)
+    last_name = models.CharField(max_length=150, null=True, blank=True)
+    
+    phone_validator = RegexValidator(
+        regex=r'^\+?1?\d{9,15}$',
+        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed."
+    )
     phone_number = models.CharField(validators=[phone_validator], max_length=15, blank=True, null=True)
 
     def __str__(self):
         return self.username
+
+
+
 
 class Notification(models.Model):
     # Notification type choices

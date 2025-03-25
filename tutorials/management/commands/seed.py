@@ -1,13 +1,14 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
-from tutorials.models.employer_models import Employer, Job, Candidate, Interview, JobTitle
 from datetime import date, time, timedelta
-from tutorials.models.user_model import User
-from tutorials.models.employer_models import Employer
-from tutorials.models.applicants_models import Applicant
 from faker import Faker
 import random
+
+from tutorials.models.user_model import User
+from tutorials.models.employer_models import Employer, Job, Candidate, Interview, JobTitle
+from tutorials.models.applicants_models import Applicant
+from tutorials.models.admin_models import Admin
 
 User = get_user_model()
 
@@ -24,7 +25,6 @@ user_fixtures = [
 ]
 
 class Command(BaseCommand):
-
     """Automatically seeds Employers, Admins, and Applicants into the database."""
 
     USER_COUNT = 25
@@ -85,11 +85,11 @@ class Command(BaseCommand):
         last_name = self.faker.last_name()
         email = self.create_email(first_name, last_name)
 
+        # Ensure unique email
         while User.objects.filter(email=email).exists():
             first_name = self.faker.first_name()
             last_name = self.faker.last_name()
             email = self.create_email(first_name, last_name)
-
 
         username = self.create_username(first_name, last_name)
 
@@ -108,7 +108,6 @@ class Command(BaseCommand):
             print(f"⚠️ Error creating user: {e}")
 
     def create_user(self, data):
-        """Creates a user and links Employers/Applicants separately"""
         user, created = User.objects.get_or_create(
             username=data['username'],
             defaults={
@@ -118,26 +117,30 @@ class Command(BaseCommand):
                 "last_name": data['last_name'],
                 "role": data['role'],
                 "is_active": True,
-                "is_staff": data['role'] == "Admin",  # ✅ Set is_staff=True for admins
-                "is_superuser": data['role'] == "Admin"  # ✅ Set is_superuser=True for admins
+                "is_staff": data['role'] == "Admin",
+                "is_superuser": data['role'] == "Admin"
             }
         )
         if created:
             print(f"Created User: {user.username} (role={user.role})")
 
+        # Create role-specific profiles
         if user.role == 'Employer':
             self.create_employer_profile(user)
         elif user.role == 'Applicant':
             self.create_applicant_profile(user)
+        elif user.role == 'Admin':
+            self.create_admin_profile(user)
 
     def create_employer_profile(self, user):
-        # Check if an Employer record already exists for this user
+        """Creates an Employer profile with a fake website."""
         if not Employer.objects.filter(user=user).exists():
             Employer.objects.create(
                 user=user,
-                username=user.username,  # Use the unique username from the User
-                email=user.email,        # Use the user's email
+                username=user.username,
+                email=user.email,
                 company_name=f"{user.first_name} {user.last_name} Corp",
+                company_website=self.faker.url(),  # Populate the new website field
                 company_location=self.faker.city(),
                 industry="Tech",
                 company_size=random.randint(1, 500),
@@ -146,40 +149,55 @@ class Command(BaseCommand):
                 is_verified=True
             )
             print(f"Created Employer profile for {user.username}")
-            
+
     def create_applicant_profile(self, user):
+        """Creates an Applicant profile with a CV and sets job preferences."""
         if not Applicant.objects.filter(user=user).exists():
             applicant = Applicant.objects.create(
                 user=user,
                 degree="Computer Science",
                 salary_preferences="$50,000-$70,000",
-                location_preferences="Remote"
+                location_preferences="Remote",
+                # Provide a placeholder file path for CV (FileField)
+                cv="uploads/cv/dummy_cv.pdf"
             )
-            # ✅ Only set ManyToMany after creation
-            # You can look up JobTitle objects and set them here
+            # Set job preferences (ManyToMany)
             job_titles = JobTitle.objects.filter(title__icontains="Software")[:3]
             applicant.job_preferences.set(job_titles)
+
             print(f"Created Applicant profile for {user.username}")
+
+    def create_admin_profile(self, user):
+        """Creates an Admin profile with a fake phone number."""
+        if not Admin.objects.filter(user=user).exists():
+            Admin.objects.create(
+                user=user,
+                username=user.username,
+                email=user.email,
+                first_name=user.first_name,
+                last_name=user.last_name,
+                phone_number=self.faker.phone_number()  # Populate phone number
+            )
+            print(f"Created Admin profile for {user.username}")
 
     # ---------------------------
     # Create Jobs, Candidates, Interviews
     # ---------------------------
     def create_jobs(self):
-        fake = Faker()
         for employer in Employer.objects.all():
-            for i in range(3):
-                title = fake.job()
+            for _ in range(3):
+                title = self.faker.job()
                 job = Job.objects.create(
                     employer=employer,
                     title=title,
                     company_name=employer.company_name,
-                    location=fake.city(),
+                    location=self.faker.city(),
                     job_type="Full Time",
-                    salary=fake.random_int(min=30000, max=150000),
+                    salary=self.faker.random_int(min=30000, max=150000),
                     description=f"Job description for {title}",
                     requirements="Sample requirements",
                     benefits="Some benefits",
-                    contact_email=employer.user.email,  # Use the linked User's email
+                    contact_email=employer.user.email,
                 )
                 print(f"Created Job '{job.title}' for employer {employer.user.username}")
 
@@ -190,7 +208,7 @@ class Command(BaseCommand):
             if not jobs:
                 break
             job = random.choice(jobs)
-            candidate = Candidate.objects.create(
+            Candidate.objects.create(
                 user=user,
                 job=job,
                 resume=None,
@@ -215,19 +233,25 @@ class Command(BaseCommand):
     def list_all_users(self):
         print("\n🔹 **Employers (OneToOne)**:")
         for employer in Employer.objects.all():
-            print(f"  ✅ {employer.user.username} | {employer.company_name}")
+            print(f"  ✅ {employer.user.username} | {employer.company_name} | Website: {employer.company_website}")
 
         print("\n🔹 **Admins:**")
         for admin in User.objects.filter(role="Admin"):
             print(f"  ✅ {admin.username} | {admin.email}")
+            # Optionally show phone
+            try:
+                admin_profile = Admin.objects.get(user=admin)
+                print(f"     Phone: {admin_profile.phone_number}")
+            except Admin.DoesNotExist:
+                print("     ❌ No admin profile found")
 
         print("\n🔹 **Applicants:**")
         for applicant in User.objects.filter(role="Applicant"):
             print(f"  ✅ {applicant.username} | {applicant.email}")
-            # Also print the associated Applicant profile
             try:
                 profile = Applicant.objects.get(user=applicant)
                 print(f"     Degree: {profile.degree}")
+                print(f"     CV: {profile.cv}")
             except Applicant.DoesNotExist:
                 print("     ❌ No applicant profile found")
 

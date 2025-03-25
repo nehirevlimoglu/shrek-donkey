@@ -1,10 +1,80 @@
 [
-    "Teacher", "Personal Assistant", "Data Analyst",
-    "Marketing Manager", "Product Designer", "Sales Representative",
-    "Customer Support Specialist", "Mechanical Engineer", "Electrical Engineer",
-    "Civil Engineer", "Doctor", "Nurse", "Pharmacist", "Accountant",
-    "Graphic Designer", "Content Writer", "SEO Specialist", "HR Manager",
-    "Project Manager", "Data Scientist", "AI Researcher", "Security Analyst",
-    "Business Analyst", "Event Planner", "Construction Worker", "Plumber",
-    "Chef", "UX/UI Designer", "Administrative Assistant", "Product Manager"
+  
+    "Teacher", "Assistant Professor", "Professor", "Substitute Teacher", "Special Education Teacher",
+    "Librarian", "Tutor", "Academic Advisor", "Education Coordinator", "Curriculum Developer",
+
+    
+    "Receptionist", "Office Manager", "Administrative Assistant", "Executive Assistant",
+    "Virtual Assistant", "Data Entry Clerk", "Clerk", "Scheduler", "Document Controller",
+
+
+    "Software Engineer", "Frontend Developer", "Backend Developer", "Full Stack Developer",
+    "DevOps Engineer", "QA Tester", "Automation Engineer", "Cybersecurity Analyst",
+    "Data Scientist", "AI Researcher", "Machine Learning Engineer", "Cloud Architect",
+    "Database Administrator", "Network Administrator", "IT Support Specialist", "System Administrator",
+    "Solutions Architect", "Site Reliability Engineer", "Blockchain Developer", "Penetration Tester",
+
+
+    "Graphic Designer", "UX Designer", "UI Designer", "Animator", "Video Editor",
+    "Photographer", "Art Director", "Fashion Designer", "Interior Designer", "Motion Graphics Designer",
+    "Brand Strategist", "Creative Director", "Illustrator", "Copywriter", "Storyboard Artist",
+
+
+    "Marketing Manager", "Content Strategist", "Social Media Manager", "SEO Specialist",
+    "Email Marketing Specialist", "Digital Marketing Analyst", "PPC Specialist",
+    "Public Relations Specialist", "Media Buyer", "Communications Manager",
+
+
+    "Accountant", "Financial Analyst", "Auditor", "Payroll Specialist", "Bookkeeper",
+    "Loan Officer", "Risk Analyst", "Actuary", "Business Analyst", "Investment Banker",
+    "Venture Capital Associate", "Real Estate Agent", "Compliance Officer", "Treasury Analyst",
+
+   
+    "Lawyer", "Paralegal", "Legal Assistant", "Corporate Counsel", "Contract Specialist",
+    "Judge", "Court Clerk", "Litigation Support Specialist", "Legal Secretary", "Mediator",
+
+
+    "Doctor", "Nurse", "Paramedic", "Physician Assistant", "Surgeon", "Dentist",
+    "Pharmacist", "Radiologist", "Anesthesiologist", "Optometrist", "Psychologist",
+    "Therapist", "Speech Therapist", "Occupational Therapist", "Chiropractor", "Dietitian",
+    "Lab Technician", "Medical Assistant", "Medical Receptionist", "Veterinarian",
+
+
+    "Sales Representative", "Account Executive", "Business Development Manager",
+    "Sales Manager", "Inside Sales Rep", "Field Sales Agent", "Telemarketer",
+    "Customer Success Manager", "Retail Associate", "Store Manager",
+
+  
+    "HR Manager", "Recruiter", "Talent Acquisition Specialist", "HR Coordinator",
+    "Training and Development Specialist", "Benefits Specialist", "Compensation Analyst",
+
+
+    "Hotel Manager", "Front Desk Agent", "Housekeeper", "Chef", "Line Cook",
+    "Sous Chef", "Waiter", "Bartender", "Barista", "Concierge", "Event Planner",
+    "Tour Guide", "Flight Attendant", "Travel Agent", "Cruise Director",
+
+
+    "Operations Manager", "Logistics Coordinator", "Warehouse Associate",
+    "Inventory Manager", "Forklift Operator", "Supply Chain Analyst", "Procurement Manager",
+    "Dispatcher", "Fleet Manager", "Import/Export Coordinator",
+
+
+    "Electrician", "Plumber", "Carpenter", "Welder", "Mason", "HVAC Technician",
+    "Auto Mechanic", "Crane Operator", "Heavy Equipment Operator", "Elevator Technician",
+    "Painter", "Roofer", "Drywall Installer", "Boilermaker", "Glazier", "Framer",
+
+
+    "Police Officer", "Firefighter", "Security Guard", "Correctional Officer",
+    "Border Patrol Agent", "Military Officer", "Public Health Inspector", "Customs Officer",
+
+
+    "Environmental Engineer", "Wildlife Biologist", "Agronomist", "Zoologist",
+    "Conservation Officer", "Farmer", "Greenhouse Technician", "Fisheries Technician",
+
+
+    "Interpreter", "Translator", "Voice Actor", "Actor", "Musician", "DJ", "Sound Engineer",
+    "Game Designer", "Game Tester", "App Store Reviewer", "Drone Operator", "YouTuber",
+    "Podcaster", "Professional Coach", "Career Counselor", "Ethical Hacker", "Statistician",
+    "Urban Planner", "Archaeologist", "Anthropologist", "Sociologist", "Philosopher",
+    "Museum Curator", "Archivist", "Genealogist", "Astrophysicist", "Astronomer"
 ]

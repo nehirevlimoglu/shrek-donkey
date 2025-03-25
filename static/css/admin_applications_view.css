@@ -1,3 +1,12 @@
+/* -------------------------------------------------------------------
+   admin_applications_view.css (Duplicates removed)
+   Only unique classes or overrides specific to the Applications View.
+------------------------------------------------------------------- */
+
+/* 
+   1. STATS CONTAINER & STAT CARD 
+   (Not found in admin_base.css or admin_home_page.css)
+*/
 .stats-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -7,9 +16,9 @@
 
 .stat-card {
     background-color: #fff;
-    border-radius: 10px;
+    border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     text-align: center;
     transition: transform 0.3s ease;
 }
@@ -21,19 +30,24 @@
 .stat-card h3 {
     font-size: 2rem;
     margin: 10px 0;
-    color: #4a6cf7;
+    color: #1A73E8; 
 }
 
 .stat-card p {
-    color: #6b7280;
+    color: #555;
     margin: 0;
 }
 
+/* 
+   2. FILTERS CONTAINER 
+   (Filters + search box + filter dropdown)
+*/
 .filters-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    padding: 10px;
     flex-wrap: wrap;
     gap: 15px;
 }
@@ -46,56 +60,79 @@
 .search-box input {
     width: 100%;
     padding: 10px 15px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
     font-size: 14px;
 }
 
 .filter-dropdown select {
     padding: 10px 15px;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
     font-size: 14px;
-    background-color: white;
+    background-color: #fff;
+}
+
+/* 
+   3. APPLICATIONS TABLE (unique container + refined styling)
+   We assume the generic table styling is in admin_home_page.css,
+   so here we only keep special container or .applications-table overrides.
+*/
+.applications-table-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto 20px auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    max-height: 60vh; /* if you want scrollable table */
+    overflow-y: auto;
 }
 
 .applications-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
-    background-color: white;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.applications-table th, 
-.applications-table td {
-    padding: 15px;
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb;
+/* Make the thead background slightly different, bold headers */
+.applications-table thead {
+    background-color: #f8f9fa;
 }
 
 .applications-table th {
-    background-color: #f9fafb;
-    font-weight: 600;
-    color: #374151;
+    padding: 15px;
+    text-align: left;
+    font-weight: 700; 
+    color: #1A202C;
+    border-bottom: 1px solid #ddd;
 }
 
-.applications-table tr:last-child td {
-    border-bottom: none;
+.applications-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    color: #1A202C;
 }
 
 .applications-table tr:hover {
     background-color: #f9fafb;
 }
 
+.applications-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* 
+   4. STATUS BADGES (unique to applications?)
+*/
 .status-badge {
     padding: 5px 10px;
     border-radius: 20px;
     font-size: 12px;
     font-weight: 500;
     display: inline-block;
+    text-align: center;
 }
 
 .status-pending {
@@ -118,6 +155,9 @@
     color: #B91C1C;
 }
 
+/* 
+   5. PAGINATION (unique or specialized)
+*/
 .pagination {
     display: flex;
     justify-content: center;
@@ -125,12 +165,14 @@
     gap: 10px;
 }
 
-.pagination a, .pagination .disabled, .pagination .current {
+.pagination a,
+.pagination .disabled,
+.pagination .current {
     display: inline-block;
     padding: 8px 12px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #ddd;
     border-radius: 4px;
-    color: #4b5563;
+    color: #1A202C;
     text-decoration: none;
     transition: all 0.3s ease;
     min-width: 40px;
@@ -139,13 +181,13 @@
 
 .pagination a:hover {
     background-color: #f9fafb;
-    border-color: #4a6cf7;
+    border-color: #1A73E8;
 }
 
 .pagination .current {
-    background-color: #4a6cf7;
+    background-color: #1A73E8;
     color: white;
-    border-color: #4a6cf7;
+    border-color: #1A73E8;
 }
 
 .pagination .disabled {
@@ -156,7 +198,7 @@
 .pagination .ellipsis {
     display: inline-block;
     padding: 8px 12px;
-    color: #4b5563;
+    color: #1A202C;
 }
 
 .pagination-info {
@@ -166,6 +208,9 @@
     font-size: 14px;
 }
 
+/* 
+   6. EMPTY STATE
+*/
 .empty-state {
     text-align: center;
     padding: 50px 20px;
@@ -175,5 +220,29 @@
 .empty-state h3 {
     font-size: 1.5rem;
     margin-bottom: 10px;
-    color: #374151;
-} 
+    color: #1A202C;
+}
+
+/* 1) Remove underline on the "View Details" button */
+.view-btn {
+    text-decoration: none !important;
+    font-weight: 500; /* or whatever you prefer for the button text weight */
+}
+
+.view-btn:hover {
+    text-decoration: none !important;
+}
+
+/* 2) Make table headers bold */
+.applications-table th {
+    font-weight: 700 !important; /* Force bold headers */
+}
+
+/* 3) If your main page heading is an <h1> (e.g. "Applications Management"): */
+.content h1 {
+    font-weight: 700 !important; 
+}
+
+.content h2 {
+    font-weight: 700 !important;
+  }

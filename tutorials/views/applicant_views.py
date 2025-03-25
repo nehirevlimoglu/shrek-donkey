@@ -131,26 +131,24 @@ def applicants_notifications(request):
     return render(request, 'applicants_notifications.html', {'notifications': notifications})
 
 
-
 @login_required
 def applicants_account(request):
-    tab = request.GET.get('tab', 'profile')  # default is profile
-    edit_mode = request.GET.get('edit') == 'true'
+    tab = request.GET.get('tab', 'profile')
     applicant = request.user.applicant
-
     form = None
 
     if tab == 'edit_profile':
-        form = ApplicantEditForm(instance=applicant, user=request.user)
         if request.method == 'POST':
             form = ApplicantEditForm(request.POST, request.FILES, instance=applicant, user=request.user)
             if form.is_valid():
                 form.save()
                 messages.success(request, "Profile updated successfully.")
                 return redirect('applicants-account')
-    
+        else:
+            form = ApplicantEditForm(instance=applicant, user=request.user)
+            selected_job_ids = list(applicant.job_preferences.values_list('id', flat=True))
+
     elif tab == 'password':
-        form = CustomPasswordChangeForm(user=request.user)
         if request.method == 'POST':
             form = CustomPasswordChangeForm(user=request.user, data=request.POST)
             if form.is_valid():
@@ -158,10 +156,10 @@ def applicants_account(request):
                 update_session_auth_hash(request, user)
                 messages.success(request, "Password changed successfully.")
                 return redirect('applicants-account')
+        else:
+            form = CustomPasswordChangeForm(user=request.user)
 
-    elif tab == 'profile':
-        # No form needed — just display info using user and applicant context
-        pass  # nothing to do here, just let it fall through to context
+    # 'profile' tab just displays context
 
     context = {
         'tab': tab,
@@ -170,6 +168,7 @@ def applicants_account(request):
         'user': request.user,
     }
     return render(request, 'applicants_account.html', context)
+
 
 
 @login_required

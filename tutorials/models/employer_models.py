@@ -7,10 +7,6 @@ from django.utils import timezone
 import json
 
 
-
-
-
-
 class Employer(models.Model):
     # Link to the User model
     user = models.OneToOneField(User, on_delete=models.CASCADE)
