@@ -1,3 +1,5 @@
+/* employer_candidates.css */
+
 /* Import the Poppins font */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
@@ -9,13 +11,11 @@
     font-family: 'Poppins', sans-serif;
 }
 
-body {
+/* Global Styles */
+html, body {
+    min-height: 100vh;
+    overflow-y: auto;
     background: #F8F9FA;
-    color: #1A202C;
-    display: flex;
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
 }
 
 /* Main Content */
@@ -57,70 +57,10 @@ header {
     flex-direction: column;
     gap: 20px;
     width: 100%;
+    padding: 20px;
 }
 
-/* Table Styling - Matches Home Page */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-table th, table td {
-    padding: 15px;
-    text-align: left;
-}
-
-table th {
-    background: #E2E8F0;
-    color: #1A202C;
-}
-
-table td {
-    background: #FFFFFF;
-    color: #1A202C;
-    border-bottom: 1px solid #E2E8F0;
-}
-
-/* Candidate Profile Link */
-.view-profile {
-    color: #1A73E8;
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.view-profile:hover {
-    text-decoration: underline;
-}
-
-/* Status Badges */
-.status {
-    padding: 6px 12px;
-    font-size: 14px;
-    font-weight: bold;
-    border-radius: 8px;
-}
-
-.status-pending {
-    background: #FDE68A;
-    color: #92400E;
-}
-
-.status-interview {
-    background: #A7F3D0;
-    color: #065F46;
-}
-
-.status-hired {
-    background: #93C5FD;
-    color: #1E40AF;
-}
-
-.status-rejected {
-    background: #FCA5A5;
-    color: #991B1B;
-}
-
+/* Filtering Form */
 .filter-form {
     display: flex;
     gap: 1rem;
@@ -148,6 +88,119 @@ table td {
     background-color: #135ABC;
 }
 
+/* Pill Select */
+.pill-select {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    padding: 8px 16px;
+    font-size: 1rem;
+    color: #333;
+    min-width: 120px;
+    transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0.5 1L5 5L9.5 1' stroke='%23999' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 10px 6px;
+    cursor: pointer;
+}
+
+.pill-select:hover {
+    border-color: #007BFF;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+}
+
+.pill-select:focus {
+    outline: none;
+    border-color: #007BFF;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+}
+
+/* Filter Button */
+.filter-btn {
+    background-color: #007BFF !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 25px !important;
+    padding: 8px 20px !important;
+    font-size: 1rem !important;
+    cursor: pointer !important;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.filter-btn:hover {
+    background-color: #0056b3 !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.filter-btn:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5) !important;
+}
+
+/* Details Button */
+.details-btn {
+    background-color: #007BFF !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 4px 10px !important;
+    font-size: 0.9rem !important;
+    cursor: pointer !important;
+    text-decoration: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+.details-btn:hover {
+    background-color: #f0f0f0 !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.details-btn:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Table Styling */
+.candidates-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.candidates-table th,
+.candidates-table td {
+    padding: 15px;
+    text-align: left;
+}
+
+.candidates-table th {
+    background: #E2E8F0;
+    color: #1A202C;
+}
+
+.candidates-table td {
+    background: #FFFFFF;
+    color: #1A202C;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+/* Candidate Profile Link */
+.view-profile {
+    color: #1A73E8;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.view-profile:hover {
+    text-decoration: underline;
+}
+
+
+
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -155,7 +208,6 @@ table td {
         margin-left: 0;
         padding: 20px;
     }
-
     .sidebar {
         width: 100%;
         height: auto;
@@ -164,8 +216,7 @@ table td {
         flex-direction: row;
         justify-content: space-between;
     }
-
-    table {
+    .candidates-table {
         display: block;
         overflow-x: auto;
         white-space: nowrap;
