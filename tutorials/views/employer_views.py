@@ -37,6 +37,7 @@ def employer_home_page(request):
 
         # ✅ Fetch notifications
         notifications = EmployerNotification.objects.filter(employer=employer).order_by('-created_at')
+        notifications.update(is_read=True)
 
         # ✅ Fetch recent applicants (only those who applied to this employer's jobs)
         recent_applicants = Candidate.objects.filter(
