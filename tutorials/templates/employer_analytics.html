@@ -1,10 +1,10 @@
-{% extends 'employer_base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Employer Reports | Swamp Hiring{% endblock %}
 {% block content %}
 <head>
-    <link rel="stylesheet" href="{% static 'css/employer_reports.css' %}">
+    <link rel="stylesheet" href="{% static 'css/employer_analytics.css' %}">
 </head>
 
     <header>
@@ -34,12 +34,15 @@
         <div class="chart-card">
             <h3>Applicants Per Job</h3>
             <canvas id="applicantsChart"></canvas>
+            <p class="chart-note">*for the last 5 listings</p>
         </div>
         <div class="chart-card">
             <h3>Interviews Per Job</h3>
             <canvas id="interviewsChart"></canvas>
+            <p class="chart-note">*for the last 5 listings</p>
         </div>
     </section>
+    
 
     <section class="detailed-reports">
         <h2>Detailed Hiring Insights</h2>

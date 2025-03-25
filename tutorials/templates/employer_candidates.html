@@ -12,11 +12,82 @@
             overflow-y: auto;
             background: #F8F9FA;
         }
+        
         /* Allow the candidates section to expand naturally */
         .candidates-section {
             max-height: none;
             overflow-y: visible;
             padding: 20px;
+        }
+        
+        /* --- PILL STYLES (same as Applicants Home Page) --- */
+        .pill-select {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 25px;
+            padding: 8px 16px;
+            font-size: 1rem;
+            color: #333;
+            min-width: 120px;
+            transition: border-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0.5 1L5 5L9.5 1' stroke='%23999' stroke-width='1.5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 10px 6px;
+            cursor: pointer;
+        }
+        .pill-select:hover {
+            border-color: #007BFF;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+        }
+        .pill-select:focus {
+            outline: none;
+            border-color: #007BFF;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+        }
+
+        /* Pill-shaped filter button */
+        .filter-btn {
+            background-color: #007BFF !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 25px !important;
+            padding: 8px 20px !important;
+            font-size: 1rem !important;
+            cursor: pointer !important;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
+        }
+        .filter-btn:hover {
+            background-color: #0056b3 !important;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+        }
+        .filter-btn:focus {
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5) !important;
+        }
+
+        /* Details button styling (same as applicants home page) */
+        .details-btn {
+            background-color: #007BFF !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 4px !important;
+            padding: 4px 10px !important;
+            font-size: 0.9rem !important;
+            cursor: pointer !important;
+            text-decoration: none;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease !important;
+        }
+        .details-btn:hover {
+            background-color: #f0f0f0 !important;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+        }
+        .details-btn:focus {
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.3) !important;
         }
     </style>
 {% endblock %}
@@ -25,10 +96,10 @@
     <section class="candidates-section">
         <h2>Job Candidates</h2>
 
-        <!-- ✅ Filtering Form -->
-        <form method="GET" action="{% url 'employer_candidates' %}" class="filter-form">
+        <!-- Filtering Form -->
+        <form method="GET" action="{% url 'employer_candidates' %}" class="filter-form" style="display: flex; gap: 1rem; align-items: center;">
             <label for="job">Job Position:</label>
-            <select name="job" id="job">
+            <select name="job" id="job" class="pill-select">
                 <option value="">All Positions</option>
                 {% for job in jobs %}
                     <option value="{{ job.id }}" {% if request.GET.job == job.id|stringformat:"s" %}selected{% endif %}>
@@ -38,7 +109,7 @@
             </select>
 
             <label for="status">Status:</label>
-            <select name="status" id="status">
+            <select name="status" id="status" class="pill-select">
                 <option value="">All Statuses</option>
                 {% for status_code, status_label in statuses %}
                     <option value="{{ status_code }}" {% if request.GET.status == status_code %}selected{% endif %}>
@@ -47,11 +118,10 @@
                 {% endfor %}
             </select>
 
-            <label for="degree">Degree:</label>
-            <input type="text" name="degree" id="degree" placeholder="Enter Degree" value="{{ request.GET.degree|default:'' }}">
+            <!-- Removed the Degree filter here -->
 
             <label for="discipline">Discipline:</label>
-            <select name="discipline" id="discipline">
+            <select name="discipline" id="discipline" class="pill-select">
                 <option value="">All Disciplines</option>
                 <option value="bachelors" {% if request.GET.discipline == 'bachelors' %}selected{% endif %}>Bachelors</option>
                 <option value="masters" {% if request.GET.discipline == 'masters' %}selected{% endif %}>Masters</option>
@@ -61,12 +131,11 @@
                 <option value="certificate" {% if request.GET.discipline == 'certificate' %}selected{% endif %}>Certificate</option>
             </select>
 
-
-            <button type="submit" class="btn-filter">Apply Filters</button>
+            <button type="submit" class="filter-btn">Apply Filters</button>
         </form>
 
         {% if candidates %}
-            <table class="candidates-table">
+            <table class="candidates-table" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
                 <thead>
                     <tr>
                         <th>Name</th>
@@ -90,13 +159,17 @@
                             </td>
                             <td>
                                 {% if candidate.resume %}
-                                    <a href="{{ candidate.resume.url }}" target="_blank">View Resume</a>
+                                    <a href="{{ candidate.resume.url }}" target="_blank" class="btn btn-primary details-btn">View Resume</a>
                                 {% else %}
                                     No Resume
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{% url 'applicant_profile' candidate.id %}" class="btn-review" data-review-button="true">Review</a>
+                                <a href="{% url 'applicant_profile' candidate.id %}" 
+                                   class="btn btn-primary details-btn" 
+                                   data-review-button="true">
+                                   Review
+                                </a>
                             </td>
                         </tr>
                     {% empty %}
@@ -106,7 +179,6 @@
                     {% endfor %}
                 </tbody>
             </table>
-        
         {% else %}
             <p class="no-candidates">No candidates have applied yet.</p>
         {% endif %}
