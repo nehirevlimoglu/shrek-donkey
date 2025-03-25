@@ -31,17 +31,19 @@
     </div>
 </section>
 
-<section class="chart-container">
-    <!-- Pie Chart -->
+<!-- Pie Chart Section -->
+<section class="chart-container centered-chart">
     <div class="chart-card">
         <h3>Acceptance Breakdown</h3>
         <div class="chart-wrapper">
             <canvas id="offerChart"></canvas>
         </div>
-    </div>    
+    </div>
+</section>
 
-    <!-- Application Details -->
-    <div class="chart-card" style="width: 100%;">
+<!-- Application Details Table Section -->
+<section class="application-table-container">
+    <div class="table-card">
         <h3>Application Details</h3>
         <table>
             <thead>
@@ -49,24 +51,30 @@
                     <th>Job Title</th>
                     <th>Company</th>
                     <th>Interview Scheduled</th>
-                    <th>Application Status</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
                 {% for application in applications %}
                 <tr>
                     <td>{{ application.job.title }}</td>
-                    <td>{{ application.job.company }}</td>
-                    <td>{% if application.status == "interviewed" %}Yes{% else %}No{% endif %}</td>
+                    <td>{{ application.job.employer.company_name|default:application.job.company_name }}</td>
+                    <td>
+                        {% if application.interview_date and application.interview_time %}
+                            {{ application.interview_date }} {{ application.interview_time }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
                     <td>
                         {% if application.status == "hired" %}
                             Hired
                         {% elif application.status == "rejected" %}
                             Rejected
                         {% else %}
-                            Pending
+                            Under Review
                         {% endif %}
-                    </td>                                    
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
