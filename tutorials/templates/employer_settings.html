@@ -4,16 +4,20 @@
 {% block title %}Employer Settings | Swamp Hiring{% endblock %}
 
 {% block extra_css %}
+<!-- You can reuse the same admin CSS or keep a separate employer_settings.css
+     but ensure it has the same card/list-group styling classes. -->
 <link rel="stylesheet" href="{% static 'css/employer_settings.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="settings-container">
+    <!-- Page header / Title -->
     <div class="page-header mb-4">
         <h2><i class="bi bi-gear-fill me-2"></i>Employer Settings</h2>
         <p class="text-muted">Manage your profile and preferences</p>
     </div>
 
+    <!-- Display any success/error messages -->
     {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -22,7 +26,6 @@
             </div>
         {% endfor %}
     {% endif %}
-
     {% if error %}
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             {{ error }}
@@ -30,36 +33,47 @@
         </div>
     {% endif %}
 
+    <!-- Main row: Left side "Settings Menu", Right side content -->
     <div class="row">
+        <!-- LEFT: Settings Menu -->
         <div class="col-md-3 mb-4">
             <div class="card">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">Settings Menu</h5>
                 </div>
                 <div class="list-group list-group-flush">
-                    <a href="?tab=profile" class="list-group-item list-group-item-action {% if tab == 'profile' %}active{% endif %}">
+                    <a href="?tab=profile" 
+                       class="list-group-item list-group-item-action {% if tab == 'profile' %}active{% endif %}">
                         <i class="bi bi-person-fill me-2"></i> Profile
                     </a>
-                    <a href="?tab=edit_profile" class="list-group-item list-group-item-action {% if tab == 'edit_profile' %}active{% endif %}">
+                    <a href="?tab=edit_profile" 
+                       class="list-group-item list-group-item-action {% if tab == 'edit_profile' %}active{% endif %}">
                         <i class="bi bi-pencil-fill me-2"></i> Change Profile Settings
                     </a>
-                    <a href="?tab=password" class="list-group-item list-group-item-action {% if tab == 'password' %}active{% endif %}">
+                    <a href="?tab=password" 
+                       class="list-group-item list-group-item-action {% if tab == 'password' %}active{% endif %}">
                         <i class="bi bi-lock-fill me-2"></i> Change Password
                     </a>
                 </div>
             </div>
 
+            <!-- Show user avatar & info in a card -->
             <div class="card mt-4">
                 <div class="card-body text-center">
-                    <img src="{{ user.gravatar }}" alt="Avatar" class="rounded-circle img-fluid mb-3" style="width: 120px;">
+                    <img src="{{ user.gravatar }}" 
+                         alt="Avatar" 
+                         class="rounded-circle img-fluid mb-3" 
+                         style="width: 120px;">
                     <h5>{{ user.get_full_name }}</h5>
                     <p class="text-muted mb-0">{{ user.email }}</p>
                 </div>
             </div>
         </div>
 
-        <!-- Employer Profile View -->
+        <!-- RIGHT: Tabbed Content (Profile, Edit Profile, Password) -->
         <div class="col-md-9">
+            
+            <!-- Employer Profile View -->
             <div class="card {% if tab != 'profile' %}d-none{% endif %}" id="profile-tab">
                 <div class="card-header bg-light">
                     <h5 class="mb-0"><i class="bi bi-person-fill me-2"></i>Employer Profile</h5>
@@ -73,7 +87,9 @@
                     <p><strong>Location:</strong> {{ employer.company_location|default:"—" }}</p>
                     <p><strong>Website:</strong>
                         {% if employer.company_website %}
-                            <a href="{{ employer.company_website }}" target="_blank">{{ employer.company_website }}</a>
+                            <a href="{{ employer.company_website }}" target="_blank">
+                                {{ employer.company_website }}
+                            </a>
                         {% else %}
                             <span class="text-muted">Not provided</span>
                         {% endif %}
@@ -84,12 +100,13 @@
             <!-- Edit Profile Tab -->
             <div class="card {% if tab != 'edit_profile' %}d-none{% endif %}" id="edit-profile-tab">
                 <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-pencil-fill me-2"></i>Edit Company Profile</h5>
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil-fill me-2"></i>Edit Company Profile
+                    </h5>
                 </div>
                 <div class="card-body">
                     <form method="POST" enctype="multipart/form-data" class="p-3">
                         {% csrf_token %}
-
                         {% if form.errors %}
                             <div class="alert alert-danger">
                                 {% for field in form %}
@@ -153,7 +170,9 @@
             <!-- Password Change Tab -->
             <div class="card {% if tab != 'password' %}d-none{% endif %}" id="password-tab">
                 <div class="card-header bg-light">
-                    <h5 class="mb-0"><i class="bi bi-lock-fill me-2"></i>Change Password</h5>
+                    <h5 class="mb-0">
+                        <i class="bi bi-lock-fill me-2"></i>Change Password
+                    </h5>
                 </div>
                 <div class="card-body">
                     <form method="POST" name="change_password">
@@ -186,8 +205,9 @@
                     </form>
                 </div>
             </div>
-        </div>
-    </div>
+
+        </div> <!-- end col-md-9 -->
+    </div> <!-- end row -->
 </div>
 {% endblock %}
 
