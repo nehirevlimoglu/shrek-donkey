@@ -14,25 +14,42 @@ class AdminJobReviewTests(TestCase):
         """Set up test data for job review tests"""
         # Create admin user
         self.admin_user = User.objects.create_user(
-            username='testadmin',
+            username='@testadmin',  # Add @ prefix to match validator
             password='testpass123',
             email='admin@test.com',
             role='Admin'
         )
         
+        # Create employer user and employer profile
+        self.employer_user = User.objects.create_user(
+            username='@testemployer',  # Add @ prefix to match validator
+            password='testpass123',
+            email='employer@test.com',
+            role='Employer'
+        )
+        
+        self.employer = Employer.objects.create(
+            user=self.employer_user,
+            company_name='Test Company',
+            company_location='Test Location',
+            industry='Tech'
+        )
+        
         # Create test jobs with different statuses
         self.pending_job = Job.objects.create(
+            employer=self.employer,  # Add employer
             title="Pending Job",
             company_name="Test Company",
             location="Test Location",
             salary=50000,
             job_type="Full Time",
+            description="Test job description",  # Add required field
             status="pending"
         )
         
         # Set up test client and login as admin
         self.client = Client()
-        self.client.login(username='testadmin', password='testpass123')
+        self.client.login(username='@testadmin', password='testpass123')
     
     def test_job_listings_view(self):
         """Test viewing job listings page"""

@@ -14,9 +14,9 @@ class AdminHomePageTests(TestCase):
     
     def setUp(self):
         """Set up test data for home page tests"""
-        # Create admin user
+        # Create admin user with correct username format
         self.admin_user = User.objects.create_user(
-            username='testadmin',
+            username='@testadmin',  # Add @ to match validator
             password='testpass123',
             email='admin@test.com',
             role='Admin'
@@ -25,7 +25,7 @@ class AdminHomePageTests(TestCase):
         # Create some regular users with different last login times
         for i in range(5):
             user = User.objects.create_user(
-                username=f'testuser{i}',
+                username=f'@testuser{i}',  # Add @ to match validator
                 password='testpass123',
                 email=f'user{i}@test.com',
                 role='User'
@@ -59,7 +59,7 @@ class AdminHomePageTests(TestCase):
         
         # Set up test client and login as admin
         self.client = Client()
-        self.client.login(username='testadmin', password='testpass123')
+        self.client.login(username='@testadmin', password='testpass123')
     
     def create_test_candidates(self):
         """Create test candidates with various statuses"""
@@ -100,17 +100,14 @@ class AdminHomePageTests(TestCase):
         
         # Test access with non-admin user
         non_admin = User.objects.create_user(
-            username='nonadmin',
+            username='@nonadmin',
             password='testpass123',
+            email='nonadmin@test.com',
             role='User'
         )
-        self.client.login(username='nonadmin', password='testpass123')
-        try:
-            response = self.client.get(reverse('admin_home_page'))
-            self.assertEqual(response.status_code, 302)  # Should redirect
-        except NoReverseMatch:
-            # If login URL is not configured, test will still pass
-            pass
+        self.client.login(username='@nonadmin', password='testpass123')
+        response = self.client.get(reverse('admin_home_page'))
+        self.assertEqual(response.status_code, 403)  # Should be forbidden, not redirect
     
     def test_active_users_calculation(self):
         """Test calculation of active users within last week"""

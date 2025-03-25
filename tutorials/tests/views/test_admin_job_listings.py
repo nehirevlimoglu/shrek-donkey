@@ -7,6 +7,11 @@ from tutorials.models.admin_models import Admin
 from datetime import timedelta
 from django.db.models import Q
 import json
+import logging
+from unittest.mock import patch
+
+# Set up logger for tests
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
@@ -17,7 +22,7 @@ class AdminJobListingsTests(TestCase):
         """Set up test data for job listings tests"""
         # Create admin user - Admin model likely extends User
         self.admin_user = User.objects.create_user(
-            username='testadmin',
+            username='@testadmin',
             password='testpass123',
             email='admin@test.com',
             role='Admin'  # Make sure role is set to Admin
@@ -25,7 +30,7 @@ class AdminJobListingsTests(TestCase):
         
         # Create employer for test jobs
         self.employer_user = User.objects.create_user(
-            username='testemployer',
+            username='@testemployer',
             password='testpass123',
             email='employer@test.com',
             role='Employer'
@@ -38,9 +43,9 @@ class AdminJobListingsTests(TestCase):
         # Create test jobs with different statuses and dates
         self.create_test_jobs()
         
-        # Set up test client and login as admin
+        # Set up test client and login as admin with correct username
         self.client = Client()
-        self.client.login(username='testadmin', password='testpass123')
+        self.client.login(username='@testadmin', password='testpass123')
 
     def create_test_jobs(self):
         """Create test jobs with various statuses and deadlines"""
@@ -205,7 +210,8 @@ class AdminJobListingsTests(TestCase):
             for i in range(len(jobs)-1)
         )) 
 
-    def test_edit_job(self):
+    @patch('tutorials.views.admin_views.logger')
+    def test_edit_job(self, mock_logger):
         """Test editing job functionality"""
         # Initial job data
         job = Job.objects.create(
@@ -290,10 +296,10 @@ class AdminJobListingsTests(TestCase):
                 Candidate.objects.create(
                     job=self.open_job,
                     user=User.objects.create_user(
-                        username=f'candidate_{status}_{i}',
+                        username=f'@candidate_{status}_{i}',
                         first_name=f'First{i}',
                         last_name=f'Last{i}',
-                        email=f'candidate_{status}_{i}@test.com',  # Make email unique
+                        email=f'candidate_{status}_{i}@test.com',
                         password='testpass123'
                     ),
                     application_status=status,
@@ -349,7 +355,8 @@ class AdminJobListingsTests(TestCase):
             for i in range(len(applications)-1)
         )) 
 
-    def test_toggle_job_status(self):
+    @patch('tutorials.views.admin_views.logger')
+    def test_toggle_job_status(self, mock_logger):
         """Test toggling job status between open and closed"""
         # Create a test job with future deadline (open)
         job = Job.objects.create(
@@ -368,11 +375,11 @@ class AdminJobListingsTests(TestCase):
             content_type='application/json'
         )
         
-        # Check response
+        # Check response - Updated to expect {'status': 'success'}
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.content), {'status': 'success'})
         
-        # Verify job deadline was updated to current date
+        # Verify job deadline was updated
         job.refresh_from_db()
         self.assertEqual(job.application_deadline, timezone.now().date())
 
@@ -384,7 +391,7 @@ class AdminJobListingsTests(TestCase):
             content_type='application/json'
         )
         
-        # Check response
+        # Check response - Updated to expect {'status': 'success'}
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.content), {'status': 'success'})
         

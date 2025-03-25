@@ -11,9 +11,9 @@ class AdminNotificationsTests(TestCase):
     
     def setUp(self):
         """Set up test data for notifications tests"""
-        # Create admin user with test credentials
+        # Create admin user with test credentials - Add @ prefix
         self.admin_user = User.objects.create_user(
-            username='testadmin',
+            username='@testadmin',  # Fixed: Added @ prefix
             password='testpass123',
             email='admin@test.com',
             role='Admin'
@@ -41,10 +41,9 @@ class AdminNotificationsTests(TestCase):
             is_read=True
         )
         
-        # Initialize test client
+        # Initialize test client and login with correct username
         self.client = Client()
-        # Log in as admin user
-        self.client.login(username='testadmin', password='testpass123')
+        self.client.login(username='@testadmin', password='testpass123')  # Fixed: Added @ prefix
     
     def test_notifications_page_load(self):
         """Test if notifications page loads correctly with filters"""
@@ -90,6 +89,8 @@ class AdminNotificationsTests(TestCase):
         self.unread_notification.refresh_from_db()
         # Verify notification is now marked as read
         self.assertTrue(self.unread_notification.is_read)
+        # Verify response format
+        self.assertEqual(response.json(), {'status': 'success'})
 
     def test_mark_all_notifications_as_read(self):
         """Test marking all notifications as read"""
@@ -104,6 +105,8 @@ class AdminNotificationsTests(TestCase):
         ).count()
         # Verify no unread notifications remain
         self.assertEqual(unread_count, 0)
+        # Verify response format
+        self.assertEqual(response.json(), {'status': 'success'})
 
     def test_delete_notification(self):
         """Test soft deleting a notification"""
@@ -117,6 +120,8 @@ class AdminNotificationsTests(TestCase):
         self.unread_notification.refresh_from_db()
         # Verify notification is marked as deleted
         self.assertTrue(self.unread_notification.is_deleted)
+        # Verify response format
+        self.assertEqual(response.json(), {'status': 'success'})
 
     def test_notification_creation(self):
         """Test notification creation utility function"""
@@ -139,4 +144,11 @@ class AdminNotificationsTests(TestCase):
         # Verify notification type
         self.assertEqual(notification.notification_type, 'job')
         # Verify notification priority
-        self.assertEqual(notification.priority, 'high') 
+        self.assertEqual(notification.priority, 'high')
+        self.assertFalse(notification.is_read)
+
+    def test_notification_count(self):
+        """Test getting unread notification count"""
+        response = self.client.get(reverse('admin_notifications_count'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'count': 1}) 
