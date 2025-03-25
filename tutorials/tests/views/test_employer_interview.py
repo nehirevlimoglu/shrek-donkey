@@ -2,12 +2,13 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now, timedelta
-from tutorials.models.employer_models import Employer, Job, Candidate, Interview
+from tutorials.models.employer_models import Employer, Job, Candidate, Interview, EmployerEvent
 from tutorials.models.applicants_models import Applicant, ApplicantNotification
 from tutorials.forms.employer_forms import InterviewForm
 from django.contrib.messages import get_messages
 from django.utils import timezone
 import datetime
+from unittest.mock import patch
 
 User = get_user_model()
 
@@ -236,7 +237,83 @@ class EmployerInterviewTests(TestCase):
         ).exists()
         self.assertTrue(new_interview)
 
-    
+    def test_create_interview_event_success(self):
+        """Test successful creation of an interview event"""
+        self.client.force_login(self.employer_user)
+        
+        # Create a candidate first
+        candidate = Candidate.objects.create(
+            user=self.applicant_user,
+            job=self.job,  # Use the job from setUp
+            first_name="John",
+            last_name="Doe"
+        )
+
+        # Update the candidate ID in the view or pass it as a parameter
+        response = self.client.post(
+            reverse('create_interview_event'),
+            {'candidate_id': candidate.id}  # Pass candidate ID in POST data
+        )
+        
+        # Check redirect - updated to match new redirect target
+        self.assertRedirects(response, reverse('employer_calendar'))
+        
+        # Verify event was created
+        event = EmployerEvent.objects.first()
+        self.assertIsNotNone(event)
+        self.assertTrue(event.title.startswith("Interview - "))
+        self.assertEqual(event.employer, self.employer)
+        
+        # Check event timing
+        tomorrow = timezone.now() + timezone.timedelta(days=1)
+        self.assertEqual(event.start.date(), tomorrow.date())
+        self.assertEqual(event.start.hour, 10)
+        self.assertEqual(event.start.minute, 0)
+        self.assertEqual(event.end.hour, 11)
+        self.assertEqual(event.end.minute, 0)
+
+    def test_create_interview_event_no_auth(self):
+        """Test interview event creation without authentication"""
+        self.client.logout()
+        response = self.client.post(reverse('create_interview_event'))
+        self.assertEqual(response.status_code, 302)  # Should redirect to login
+        self.assertFalse(EmployerEvent.objects.exists())
+
+    def test_create_interview_event_no_candidate(self):
+        """Test interview event creation when candidate doesn't exist"""
+        self.client.force_login(self.employer_user)
+        
+        response = self.client.post(
+            reverse('create_interview_event'),
+            {'candidate_id': 99999}  # Non-existent ID
+        )
+        
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(EmployerEvent.objects.exists())
+
+    def test_create_interview_event_creation_error(self):
+        """Test handling of event creation errors"""
+        self.client.force_login(self.employer_user)
+        
+        # Create a valid candidate
+        candidate = Candidate.objects.create(
+            user=self.applicant_user,
+            job=self.job,
+            first_name="John",
+            last_name="Doe"
+        )
+        
+        # Mock EmployerEvent.objects.create to raise an exception
+        with patch('tutorials.models.employer_models.EmployerEvent.objects.create') as mock_create:
+            mock_create.side_effect = Exception("Database error")
+            
+            response = self.client.post(
+                reverse('create_interview_event'),
+                {'candidate_id': candidate.id}
+            )
+            
+            self.assertEqual(response.status_code, 500)
+            self.assertFalse(EmployerEvent.objects.exists())
 
     def test_get_interviews_employer_not_found(self):
         """Test getting interviews when employer profile doesn't exist"""

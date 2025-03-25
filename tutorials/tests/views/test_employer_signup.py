@@ -17,7 +17,6 @@ class EmployerSignUpViewTests(TestCase):
         self.valid_employer_data = {
             'username': '@newemployer',
             'email': 'employer@test.com',
-            'confirm_email': 'employer@test.com',
             'password1': 'testpass123',
             'password2': 'testpass123',
             'role': 'Employer',
@@ -59,13 +58,11 @@ class EmployerSignUpViewTests(TestCase):
         
         response = self.client.post(self.signup_url, invalid_data)
         
+        # Should stay on signup page with error
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'sign_up.html')
+        self.assertFormError(response, 'form', 'role', "Only employers can sign up here.")
         self.assertFalse(User.objects.exists())
-        self.assertEqual(
-            response.context['form'].errors['role'][0],
-            "Only employers can sign up here."
-        )
 
     def test_form_validation_errors(self):
         """Test various form validation errors"""
@@ -103,18 +100,17 @@ class EmployerSignUpViewTests(TestCase):
 
     def test_employer_profile_creation_failure(self):
         """Test handling of employer profile creation failure"""
+        # Mock Employer.objects.create to raise an exception
         with patch('tutorials.models.employer_models.Employer.objects.create') as mock_create:
             mock_create.side_effect = Exception("Database error")
             
             response = self.client.post(self.signup_url, self.valid_employer_data)
             
+            # Should stay on signup page with error
             self.assertEqual(response.status_code, 200)
             self.assertTemplateUsed(response, 'sign_up.html')
+            self.assertFormError(response, 'form', None, "Failed to create employer profile. Please try again.")
             self.assertFalse(User.objects.exists())
-            self.assertIn(
-                "Failed to create employer profile. Please try again.",
-                response.context['form'].errors['__all__']
-            )
 
     def test_missing_required_fields(self):
         """Test signup with missing required fields"""
@@ -157,15 +153,14 @@ class EmployerSignUpViewTests(TestCase):
 
     def test_database_error_handling(self):
         """Test handling of database errors during user creation"""
-        with patch('django.contrib.auth.models.User.save') as mock_save:
+        # Mock User.save to raise an exception
+        with patch.object(User, 'save') as mock_save:
             mock_save.side_effect = Exception("Database error")
             
             response = self.client.post(self.signup_url, self.valid_employer_data)
             
+            # Should stay on signup page with error
             self.assertEqual(response.status_code, 200)
             self.assertTemplateUsed(response, 'sign_up.html')
-            self.assertFalse(User.objects.exists())
-            self.assertIn(
-                "Failed to create employer profile. Please try again.",
-                response.context['form'].errors['__all__']
-            ) 
+            self.assertFormError(response, 'form', None, "Failed to create employer profile. Please try again.")
+            self.assertFalse(User.objects.exists()) 
