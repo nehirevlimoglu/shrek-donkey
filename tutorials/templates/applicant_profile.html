@@ -8,7 +8,14 @@
 {% endblock %}
 
 {% block content %}
-<h1>Applicant Profile</h1>
+<div class="applicant-profile-container">
+
+    <!-- Back to Candidates at the top -->
+    <div class="top-back-link">
+        <a href="{% url 'employer_candidates' %}" class="btn-secondary">← Back to Candidates</a>
+    </div>
+
+    <h1>Applicant Profile</h1>
 
 <!-- Personal Details -->
 <section class="section">
@@ -114,31 +121,31 @@
     <p><strong>Need Sponsorship?</strong> {{ application.sponsorship_needed|yesno:"Yes,No" }}</p>
 </section>
 
+<h2>Application Status</h2>
+<div class="status-chip">
+    <span class="chip {% if candidate.application_status == 'Hired' %}chip-accepted{% elif candidate.application_status == 'Rejected' %}chip-rejected{% else %}chip-pending{% endif %}">
+        {{ candidate.application_status|default:"Pending" }}
+    </span>
+</div>
+
+<!-- Application Status & Actions -->
 <!-- Application Status & Actions -->
 <section class="section actions">
-    <h2>Application Status</h2>
-    <div class="status-chip">
-        <span class="chip {% if candidate.application_status == 'Hired' %}chip-accepted{% elif candidate.application_status == 'Rejected' %}chip-rejected{% else %}chip-pending{% endif %}">
-            {{ candidate.application_status|default:"Pending" }}
-        </span>
-    </div>
-
     {% if candidate.application_status == "Pending" %}
-        <div class="action-buttons">
-            <button class="btn-accept"
-                onclick="confirmAction('accept', '{{ candidate.user.get_full_name }}', '{{ candidate.job.title }}')">
-                Accept
-            </button>
-            <button class="btn-reject"
-                onclick="confirmAction('reject', '{{ candidate.user.get_full_name }}', '{{ candidate.job.title }}')">
-                Reject
-            </button>
-        </div>
+    <div class="left-buttons">
+        <button class="btn-accept"
+            onclick="confirmAction('accept', '{{ candidate.user.get_full_name }}', '{{ candidate.job.title }}')">
+            Accept
+        </button>
+        <button class="btn-reject"
+            onclick="confirmAction('reject', '{{ candidate.user.get_full_name }}', '{{ candidate.job.title }}')">
+            Reject
+        </button>
         <a href="{% url 'schedule_interview' candidate.id %}" class="btn-primary">Schedule Interview</a>
+    </div>
     {% endif %}
-
-    <a href="{% url 'employer_candidates' %}" class="btn-secondary">Back to Candidates</a>
 </section>
+
 
 <!-- Confirmation Modal -->
 <div id="confirmation-modal" class="confirmation-modal" style="display: none;">
