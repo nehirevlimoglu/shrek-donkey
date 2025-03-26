@@ -40,7 +40,8 @@ class ApplicantAnalyticsTests(TestCase):
             location_preferences='Remote'
         )
 
-        self.job_title = JobTitle.objects.create(title="Software Engineer")
+        # Use get_or_create to avoid unique constraint issues
+        self.job_title, created = JobTitle.objects.get_or_create(title="Software Engineer")
 
         self.jobs = []
         for i in range(5):
@@ -59,7 +60,7 @@ class ApplicantAnalyticsTests(TestCase):
 
         candidate = Candidate.objects.create(
             user=self.applicant_user,
-            job=self.jobs[1],  # Assuming this job had the 'interviewed' status
+            job=self.jobs[1],
             application_status="Interview",
             first_name="Test",
             last_name="Applicant"
@@ -74,6 +75,7 @@ class ApplicantAnalyticsTests(TestCase):
 
         self.client = Client()
         self.client.login(username='@testapplicant', password='testpass123')
+
 
     def create_test_applications(self):
         statuses = ['pending', 'interviewed', 'hired', 'rejected']
