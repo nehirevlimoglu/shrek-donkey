@@ -23,12 +23,16 @@ class AdminJobListingsViewTests(TestCase):
             password="password123",
             role="Admin"
         )
-        # Create an Admin instance using only the fields your model accepts.
-        # (Adjust fields as necessary.)
+        
+        # Create an Admin instance using the admin_user
         self.admin_instance = Admin.objects.create(
+            user=self.admin_user,
             username="adminuser_admin",
             email="admin_admin@example.com"
         )
+    
+    # ... rest of your setUp code ...
+
         
         # For testing, create some jobs:
         # Open job (deadline in future)
