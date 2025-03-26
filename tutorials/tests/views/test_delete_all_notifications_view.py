@@ -1,68 +1,100 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from django.utils import timezone
 from django.contrib.auth import get_user_model
-
-from tutorials.models.admin_models import Notification  # Adjust the import path as needed
+from tutorials.models.admin_models import Notification
+from django.http import JsonResponse
 
 User = get_user_model()
 
-class DeleteAllNotificationsViewTests(TestCase):
+class DeleteAllNotificationsTests(TestCase):
     def setUp(self):
         self.client = Client()
-        # Create an admin user that passes the is_admin check.
+
+        # Create an admin user
         self.admin_user = User.objects.create_user(
-            username="adminuser",
-            email="admin@example.com",
-            password="password123",
-            role="Admin",
+            username='adminuser',
+            email='admin@example.com',
+            password='adminpass',
+            role='Admin',
             is_staff=True,
             is_superuser=True
         )
+
+        # Create another user (non-admin)
+        self.other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='otherpass',
+            role='Employer'
+        )
+
+        # Create notifications for both users
+        Notification.objects.create(
+            recipient=self.admin_user,
+            title='Admin Note 1',
+            message='Hello',
+            is_read=False,
+            is_deleted=False
+        )
+        Notification.objects.create(
+            recipient=self.other_user,
+            title='Other Note',
+            message='Hey',
+            is_read=False,
+            is_deleted=False
+        )
+
+        # Define the URL (adjust if named differently)
+        self.url = reverse("admin_clear_all_notifications")
+
+
+    def test_delete_all_notifications_success(self):
         self.client.force_login(self.admin_user)
-        
-        # Create several notifications that are not deleted.
-        self.notifications = []
-        for i in range(5):
-            notif = Notification.objects.create(
-                title=f"Notification {i+1}",
-                message="Test message",
-                recipient=self.admin_user,  # ✅ important for filtering correctly
-                notification_type="general",
-                priority="medium",
-                is_read=False,
-                is_deleted=False,
-                created_at=timezone.now()
-            )
-            self.notifications.append(notif)
-        
-        # URL for the view (updated name)
-        self.url = reverse("clear_all_notifications")
-
-    def test_redirect_if_not_logged_in(self):
-        """Test that non-logged-in users are redirected."""
-        self.client.logout()
         response = self.client.post(self.url)
-        expected_redirect = reverse("log_in") + "?next=" + self.url
-        self.assertRedirects(response, expected_redirect)
+        self.assertEqual(response.status_code, 200)
 
-    def test_invalid_method_get(self):
-        """Test that GET request is not allowed (405 Method Not Allowed)."""
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(data["count"], 2)
+
+        # ✅ Confirm all admin’s notifications were deleted
+        for n in Notification.objects.filter(recipient=self.admin_user):
+            self.assertTrue(n.is_deleted)
+
+        # ✅ Confirm other user's notifications were untouched
+        for n in Notification.objects.filter(recipient=self.other_user):
+            self.assertFalse(n.is_deleted)
+
+
+    def test_delete_all_notifications_requires_post(self):
+        self.client.force_login(self.admin_user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 405)
 
-    def test_delete_all_notifications_successful(self):
-        """Test that a valid POST request soft deletes all notifications and returns JSON success."""
-        # Before POST, ensure notifications are not deleted.
-        active_count = Notification.objects.filter(is_deleted=False, recipient=self.admin_user).count()
-        self.assertEqual(active_count, 5)
+    def test_redirects_if_not_admin(self):
+        self.client.force_login(self.other_user)
+        response = self.client.post(self.url)
+        # Because of @user_passes_test, should redirect to login
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/log_in", response.url)
+
+    def test_handles_exception_and_returns_500(self):
+        self.client.force_login(self.admin_user)
+
+        # Patch the queryset update to raise an exception
+        original_filter = Notification.objects.filter
+
+        def exploding_filter(*args, **kwargs):
+            raise Exception("DB exploded")
+
+        Notification.objects.filter = exploding_filter
 
         response = self.client.post(self.url)
-        self.assertEqual(response.status_code, 200)
-        
-        json_data = response.json()
-        self.assertTrue(json_data.get("success"))
+        self.assertEqual(response.status_code, 500)
+        self.assertJSONEqual(response.content, {
+            "success": False,
+            "error": "DB exploded"
+        })
 
-        # Verify that all notifications are now marked as deleted.
-        remaining = Notification.objects.filter(is_deleted=False, recipient=self.admin_user).count()
-        self.assertEqual(remaining, 0)
+        # Restore
+        Notification.objects.filter = original_filter
