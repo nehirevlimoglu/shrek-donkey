@@ -365,7 +365,7 @@ function setupNotificationActions() {
 }
 
 function updateNotificationCount() {
-    fetch('/admin/notification-count/')
+    fetch('/admin_notifications/count/')
         .then(response => response.json())
         .then(data => {
             const countBadge = document.getElementById('notificationCountBadge');
