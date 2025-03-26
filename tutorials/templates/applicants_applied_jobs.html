@@ -36,24 +36,32 @@
                                 <td>{{ application.job.title }}</td>
                                 <td>{{ application.job.company_name }}</td>
                                 <td>{{ application.job.location }}</td>
-                                <td>${{ application.job.salary }}</td>
+                                <td>
+                                    {% if application.job.salary %}
+                                        ${{ application.job.salary }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>                                                                
                                 <td>{{ application.job.job_type }}</td>
                                 <td>
-                                    {% if application.status == "under_review" %}
-                                        <span class="badge under-review">Under Review</span>
-                                    {% elif application.status == "interviewed" %}
-                                        <span class="badge interviewed">Interviewed</span>
-                                    {% elif application.status == "hired" %}
-                                        <span class="badge hired">Hired</span>
-                                    {% else %}
-                                        <span class="badge pending">Rejected</span>
-                                    {% endif %}
-                                </td>
+                                    {% with application.status|lower as status %}
+                                        {% if status == "under_review" %}
+                                            Under Review
+                                        {% elif status == "interviewed" %}
+                                            Interview Scheduled
+                                        {% elif status == "hired" %}
+                                            Hired
+                                        {% elif status == "rejected" %}
+                                            Rejected
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>                                                                                                                                                                                                                                                            
                                 <td>
                                     <!-- 4) Use the same 'details-btn' class from the first page -->
-                                    <a href="{% url 'job_detail' application.job.id %}" class="details-btn">
-                                        View
-                                    </a>
+                                    <a href="{% url 'job_detail' application.job.id %}?next=applied" class="details-btn">View</a>
                                 </td>
                             </tr>
                         {% endfor %}
