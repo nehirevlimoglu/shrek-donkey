@@ -49,8 +49,8 @@ def employer_home_page(request):
         # ✅ Fetch Analytics Data
         total_jobs = Job.objects.filter(employer=employer).count()
         active_listings = Job.objects.filter(
-            employer=employer, 
-            application_deadline__gte=now()  # ✅ Only count jobs with valid deadlines
+            employer=employer,
+            status='approved'
         ).count()
         total_applicants = Candidate.objects.filter(job__employer=employer).count()  # ✅ Fix: Count applicants for employer's jobs
 
