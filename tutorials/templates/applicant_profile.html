@@ -148,14 +148,18 @@
 
 
 <!-- Confirmation Modal -->
+<!-- Confirmation Modal (Reused for both Confirm & Error states) -->
 <div id="confirmation-modal" class="confirmation-modal" style="display: none;">
     <div class="confirmation-content">
-        <h2 id="confirmation-title"></h2>
-        <p id="confirmation-message"></p>
-        <button id="confirm-button" onclick="confirmActionFinal()">Yes, Proceed</button>
-        <button onclick="closeModal()">Cancel</button>
+      <h2 id="confirmation-title"></h2>
+      <p id="confirmation-message"></p>
+      <!-- "Yes, Proceed" button - ID is important -->
+      <button id="confirm-button" onclick="confirmActionFinal()">Yes, Proceed</button>
+      <!-- "Cancel" button - ID is important -->
+      <button id="cancel-button" onclick="closeModal()">Cancel</button>
     </div>
-</div>
+  </div>
+  
 {% endblock %}
 
 {% block extra_js %}

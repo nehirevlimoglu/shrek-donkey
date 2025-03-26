@@ -51,21 +51,22 @@ urlpatterns = [
     path('create_job_listings/', create_job_listings, name='create_job_listings'),
     path('employer_analytics/', view_employer_analytics, name='employer_analytics'),
     path("jobs/<int:job_id>/", job_detail_view, name="employer_job_detail"),
+    
 
     path('jobs/<int:pk>/edit/', edit_job_view, name='job_edit'),
     path('employer_settings/', employer_settings, name='employer_settings'),
     path('create-job/', create_job_listings, name='employer_create_job_listing'),
     path('candidates/', employer_candidates, name='employer_candidates'),
     path('interviews/', employer_calendar, name='employer_calendar'),
-    path('admin_job_listings', admin_job_listings, name='admin_job_listings'),
+    path('admin_job_listings/', admin_job_listings, name='admin_job_listings'),
+
     path('admin_notifications/', admin_notifications, name='admin_notifications'),
     path('admin_notifications/count/', admin_notifications_count, name='admin_notifications_count'),
     path('admin_notifications/generate/', generate_admin_notification, name='admin_notifications_generate'),
     path('admin_notifications/generate_test/', generate_test_notifications, name='admin_notifications_generate_test'),
     path('admin_notifications/mark_read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
-    path('admin_notifications/mark_all_read/', mark_all_notifications_as_read, name='mark_all_notifications_as_read'),
     path('admin_notifications/delete/<int:notification_id>/', delete_notification, name='delete_notification'),
-    path('admin_notifications/delete_all/', delete_all_notifications, name='delete_all_notifications'),
+    path('clear-all-notifications/', delete_all_notifications, name='clear_all_notifications'),
     path('admin_applications_view/', admin_applications_view, name='admin_applications_view'),
     path('employer_home_page', employer_home_page, name='employer_home_page'),
     path('create_job_listings', create_job_listings, name='create_job_listings'),
@@ -80,6 +81,9 @@ urlpatterns = [
     path('employer_settings/', employer_settings, name='employer_settings'),
     path('employer_notifications/', employer_notifications, name='employer_notifications'),
     path('mark-notification-read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
+    path('admin/mark-all-notifications-read/', mark_all_notifications_as_read, name='mark_all_notifications_as_read'),
+
+
     path('create-job/', create_job_listings, name='employer_create_job_listing'),
     path('candidates/', employer_candidates, name='employer_candidates'),
 

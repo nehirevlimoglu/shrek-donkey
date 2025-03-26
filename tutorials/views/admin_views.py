@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout, update_session_auth
 from django.contrib.auth.decorators import user_passes_test
 from tutorials.models.admin_models import Admin
 from tutorials.models.admin_models import Notification, NotificationPreference
-from tutorials.models.employer_models import EmployerNotification
+from tutorials.models.employer_models import EmployerNotification, Interview
 from django.http import JsonResponse, HttpResponse
 from tutorials.models.user_model import User
 from django.db.models import Count, Q
@@ -227,8 +227,8 @@ def mark_notification_as_read(request, notification_id):
 @user_passes_test(is_admin)
 @require_POST
 def mark_all_notifications_as_read(request):
-    """Mark all notifications as read"""
-    Notification.objects.filter(is_read=False).update(is_read=True)
+    print("HIT MARK ALL VIEW")
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
     return JsonResponse({'status': 'success'})
 
 @user_passes_test(is_admin)
@@ -240,12 +240,13 @@ def delete_notification(request, notification_id):
     notification.save()
     return JsonResponse({'status': 'success'})
 
+
 @user_passes_test(is_admin)
 @require_POST
 def delete_all_notifications(request):
-    """Soft delete all notifications"""
-    Notification.objects.all().update(is_deleted=True)
-    return JsonResponse({'status': 'success'})
+    """Soft delete notifications for the logged-in admin only"""
+    Notification.objects.filter(recipient=request.user).update(is_deleted=True)
+    return JsonResponse({'success': True})
 
 
 @user_passes_test(is_admin)
@@ -538,10 +539,10 @@ def admin_applications_view(request):
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', 'all')
     
-    # Base query
+    # Base query for applications
     applications_query = Candidate.objects.all().select_related('user', 'job')
     
-    # Apply search filter
+    # Apply search filter if provided
     if search_query:
         applications_query = applications_query.filter(
             Q(user__username__icontains=search_query) | 
@@ -551,23 +552,23 @@ def admin_applications_view(request):
             Q(job__company_name__icontains=search_query)
         )
     
-    # Apply status filter
+    # Apply status filter if not 'all'
     if status_filter != 'all':
         applications_query = applications_query.filter(application_status=status_filter)
     
-    # Order by application date (newest first)
+    # Order applications by application_date descending
     applications_query = applications_query.order_by('-application_date')
     
     # Get statistics
     total_applications = Candidate.objects.count()
     pending_applications = Candidate.objects.filter(application_status='Pending').count()
-    interview_applications = Candidate.objects.filter(application_status='Interview').count()
+    total_interviews = Interview.objects.count()  # Count all interviews
     hired_applications = Candidate.objects.filter(application_status='Hired').count()
     rejected_applications = Candidate.objects.filter(application_status='Rejected').count()
-    
-    # Pagination - show 5 applications per page for better pagination testing
+
+    # Pagination: show 5 applications per page
     page = request.GET.get('page', 1)
-    paginator = Paginator(applications_query, 5)  # Show 5 applications per page
+    paginator = Paginator(applications_query, 5)
     
     try:
         applications_page = paginator.page(page)
@@ -582,10 +583,11 @@ def admin_applications_view(request):
         'status_filter': status_filter,
         'total_applications': total_applications,
         'pending_applications': pending_applications,
-        'interview_applications': interview_applications,
+        'interview_applications': total_interviews,  # Use this key in your template
         'hired_applications': hired_applications,
         'rejected_applications': rejected_applications,
     })
+
 
 @user_passes_test(is_admin)
 def get_candidate_info(request, candidate_id):

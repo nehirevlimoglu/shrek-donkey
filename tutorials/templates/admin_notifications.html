@@ -68,11 +68,36 @@
     </form>
 </div>
 
-<div class="notifications-stats">
-    <span class="stats-item">Total: <strong>{{ total_count }}</strong></span>
-    <span class="stats-item">Unread: <strong>{{ unread_count }}</strong></span>
-    <span class="stats-item">Feedback: <strong>{{ feedback_count|default:0 }}</strong></span>
-</div>
+        <div class="notifications-stats">
+            <span class="stats-item">Total: <strong>{{ total_count }}</strong></span>
+            <span class="stats-item">Unread: <strong>{{ unread_count }}</strong></span>
+            <span class="stats-item">Feedback: <strong>{{ feedback_count|default:0 }}</strong></span>
+        </div>
+
+        <div id="confirmClearModal" class="modal-overlay" style="display: none;">
+            <div class="modal-box">
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to delete all notifications? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button id="confirmClearYes" class="btn btn-danger">Yes, Delete All</button>
+                <button id="confirmClearNo" class="btn btn-secondary">Cancel</button>
+            </div>
+            </div>
+        </div>
+
+        <!-- Custom Confirmation Modal -->
+        <div id="confirmModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close" id="confirmModalClose">&times;</span>
+                <h2 id="confirmModalTitle"></h2>
+                <p id="confirmModalMessage"></p>
+                <div class="confirm-actions">
+                    <button id="confirmModalYes" class="update-btn">Confirm</button>
+                    <button id="confirmModalNo" class="update-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+
 
 <div class="notifications-list">
     {% if notifications %}
@@ -140,6 +165,8 @@
         </div>
         {% endfor %}
 
+        
+
         {% if notifications.has_other_pages %}
         <div class="pagination">
             {% if notifications.has_previous %}
@@ -162,7 +189,8 @@
     {% else %}
         <p class="no-notifications">No notifications available</p>
     {% endif %}
-</div>
+        
+    </div>
 {% endblock %}
 
 {% block extra_js %}
