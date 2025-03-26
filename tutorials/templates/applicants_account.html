@@ -4,7 +4,7 @@
 {% block title %}Applicant Settings | Swamp Hiring{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/admin_settings.css' %}">
+<link rel="stylesheet" href="{% static 'css/applicants_settings.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -88,7 +88,7 @@
                         <a href="{{ applicant.cv.url }}" target="_blank">Download CV</a>
                     {% else %}
                         <span class="text-muted">No CV uploaded.</span>
-                    {% endif %}
+                {% endif %}
                 </p>
             </div>
         </div>

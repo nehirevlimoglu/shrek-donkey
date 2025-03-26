@@ -22,6 +22,8 @@ from django.views.decorators.http import require_POST
 from tutorials.helpers import clear_feedback_messages
 
 
+
+
 @applicant_only
 @login_required
 def applicants_home_page(request):
@@ -139,6 +141,7 @@ def applicants_account(request):
     tab = request.GET.get('tab', 'profile')
     applicant = request.user.applicant
     form = None
+   
 
     if tab == 'edit_profile':
         if request.method == 'POST':
