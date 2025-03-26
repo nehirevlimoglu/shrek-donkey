@@ -16,16 +16,25 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.core.cache import cache
+from django.core.exceptions import PermissionDenied
+import logging
+
+logger = logging.getLogger(__name__)
 
 def is_admin(user):
-    return bool(user) and getattr(user, 'role', None) == 'Admin'
+    if not bool(user) or getattr(user, 'role', None) != 'Admin':
+        raise PermissionDenied
+    return True
 
 
 @user_passes_test(is_admin)
 def admin_home_page(request):
-    admins = Admin.objects.all()  # Your existing data
+    admins = Admin.objects.all()
     
-    total_job_listings = Job.objects.count()
+    total_jobs = Job.objects.count()
+    pending_jobs = Job.objects.filter(status='pending').count()
+    approved_jobs = Job.objects.filter(status='approved').count()
+    rejected_jobs = Job.objects.filter(status='rejected').count()
     
     pending_applications = Candidate.objects.filter(application_status='Pending').count()
     
@@ -42,7 +51,10 @@ def admin_home_page(request):
     
     return render(request, 'admin_home_page.html', {
         'admins': admins,
-        'total_job_listings': total_job_listings,
+        'total_jobs': total_jobs,
+        'pending_jobs': pending_jobs,
+        'approved_jobs': approved_jobs,
+        'rejected_jobs': rejected_jobs,
         'pending_applications': pending_applications,
         'total_active_users': total_active_users,
         'new_hires_this_month': new_hires_this_month,
@@ -157,7 +169,7 @@ def admin_notifications(request):
             Q(message__icontains=search_query)
         )
     
-    # Count totals for statistics (only among this admin’s notifications)
+    # Count totals for statistics (only among this admin's notifications)
     total_count = notifications.count()
     unread_count = notifications.filter(is_read=False).count()
     
@@ -307,6 +319,9 @@ def create_admin_notification(user, title, message, notification_type='general',
 
 @user_passes_test(is_admin)
 def get_active_users_data(request):
+    if not request.user.is_authenticated or request.user.role != 'Admin':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    
     period = request.GET.get('period', 'day')
     
     today = timezone.now().date()
@@ -487,25 +502,15 @@ def admin_toggle_job_status(request, job_id):
     logger.debug(f"Toggle job status: job_id={job_id}, status={status}")
     
     if status == 'Closed':
-        # Set deadline to yesterday to ensure it's definitely closed
-        job.application_deadline = timezone.now().date() - timedelta(days=1)
+        job.application_deadline = timezone.now().date()
         logger.debug(f"Closing job: setting deadline to {job.application_deadline}")
     elif status == 'Open':
-        # Set deadline to a future date to indicate job is open
         job.application_deadline = timezone.now().date() + timedelta(days=30)
         logger.debug(f"Opening job: setting deadline to {job.application_deadline}")
-    elif status == 'Approved':
-        # Update the job status to approved
-        job.status = 'approved'
-        logger.debug(f"Approving job: setting status to approved")
-        # Ensure the deadline is in the future for approved jobs
-        if not job.application_deadline or job.application_deadline < timezone.now().date():
-            job.application_deadline = timezone.now().date() + timedelta(days=30)
-            logger.debug(f"Approved job: setting deadline to {job.application_deadline}")
     
     job.save()
     
-    return JsonResponse({'success': True})
+    return JsonResponse({'status': 'success'})
 
 @user_passes_test(is_admin)
 def admin_applications_view(request):
@@ -784,7 +789,7 @@ def admin_settings(request):
             # Update admin-specific fields
             if admin:
                 admin.phone_number = phone_number
-                admin.save()
+                admin.save(update_fields=['username', 'email', 'first_name', 'last_name', 'phone_number'])
             
             messages.success(request, "Profile updated successfully.")
             return redirect('admin_settings')
