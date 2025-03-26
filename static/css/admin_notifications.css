@@ -285,11 +285,12 @@ body {
     background: rgba(0,0,0,0.4);
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
+    padding-top: 200px; /* adjust this value to control how far down it sits */    
     z-index: 9999;
-  }
-  
-  .modal-box {
+}
+
+.modal-box {
     background: white;
     padding: 20px 30px;
     border-radius: 8px;
@@ -297,7 +298,9 @@ body {
     max-width: 400px;
     text-align: center;
     box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-  }
+    margin-left: auto;
+    margin-right: auto;
+}
   
   .modal-actions {
     display: flex;
