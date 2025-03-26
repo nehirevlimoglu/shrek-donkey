@@ -452,14 +452,15 @@ def admin_job_detail(request, job_id):
             )
             logger.debug(f"[admin_job_detail] EmployerNotification created for job '{job.title}' to employer '{employer.user.username}'")
 
+    referer = request.META.get('HTTP_REFERER', '')
+
     return render(request, 'admin_job_detail.html', {
         'job': job,
         'candidates': candidates,
         'employer': employer,
         'candidate_count': candidates.count(),
+        'referer': referer,
     })
-
-
 
 
 @user_passes_test(is_admin)

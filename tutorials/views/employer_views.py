@@ -465,43 +465,34 @@ def calculate_duration(start_date, end_date):
 
 @login_required
 def applicant_profile(request, applicant_id):
-    """View full applicant details for an employer."""
     try:
-        # Get the candidate instance (used in employer views)
         candidate = Candidate.objects.get(id=applicant_id)
     except Candidate.DoesNotExist:
         return HttpResponse("Candidate does not exist.", status=404)
-    
+
     try:
-        # Retrieve the Applicant instance linked to the candidate's user
         applicant_obj = Applicant.objects.get(user=candidate.user)
     except Applicant.DoesNotExist:
         return HttpResponse("Applicant profile not found.", status=404)
-    
+
+    # If you have an Application model
     try:
-        # Retrieve the Application instance for this applicant and job
         application = Application.objects.get(applicant=applicant_obj, job=candidate.job)
     except Application.DoesNotExist:
-        application = None  # Handle as needed
-    
-    # Add duration info to each work experience entry if available.
-    if application and application.work_experience:
-        for work in application.work_experience:
-            work['duration'] = calculate_duration(work.get('work_start_date'), work.get('work_end_date'))
-    
-    # Handle status update submissions.
-    if request.method == "POST":
-        new_status = request.POST.get("status")
-        if new_status in ["Pending", "Interview", "Hired", "Rejected"]:
-            candidate.application_status = new_status
-            candidate.save()
-            messages.success(request, "Application status updated successfully!")
-        return redirect("applicant_profile", applicant_id=candidate.id)
-    
-    return render(request, "applicant_profile.html", {
-        "candidate": candidate,
-        "application": application
-    })
+        application = None
+
+    # Grab the latest interview (by date/time) if it exists
+    latest_interview = candidate.interviews.order_by('-date', '-time').first()
+
+    return render(
+        request,
+        "applicant_profile.html",
+        {
+            "candidate": candidate,
+            "application": application,
+            "latest_interview": latest_interview,  # <-- pass in
+        }
+    )
 
 @csrf_exempt
 @login_required

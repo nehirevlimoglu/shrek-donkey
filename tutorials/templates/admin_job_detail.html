@@ -10,7 +10,11 @@
 {% block content %}
 <div class="job-detail-container">
     <div class="back-link">
-        <a href="{% url 'admin_job_listings' %}">← Back to Job Listings</a>
+        {% if 'admin_applications_view' in referer %}
+            <a href="{% url 'admin_applications_view' %}">← Back to Candidates</a>
+        {% else %}
+            <a href="{% url 'admin_job_listings' %}">← Back to Job Listings</a>
+        {% endif %}
     </div>
     
     <div class="job-header">

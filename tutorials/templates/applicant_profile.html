@@ -121,27 +121,64 @@
     <p><strong>Need Sponsorship?</strong> {{ application.sponsorship_needed|yesno:"Yes,No" }}</p>
 </section>
 
+<!-- Application Status -->
 <h2>Application Status</h2>
 <div class="status-chip">
-    <span class="chip {% if candidate.application_status == 'Hired' %}chip-accepted{% elif candidate.application_status == 'Rejected' %}chip-rejected{% else %}chip-pending{% endif %}">
+    <span class="chip
+        {% if candidate.application_status == 'Hired' %}chip-accepted
+        {% elif candidate.application_status == 'Rejected' %}chip-rejected
+        {% else %}chip-pending
+        {% endif %}">
         {{ candidate.application_status|default:"Pending" }}
     </span>
 </div>
 
 <!-- Application Status & Actions -->
-<!-- Application Status & Actions -->
-<section class="section actions">
-    {% if candidate.application_status == "Pending" %}
+    <!-- If there's already an interview, show the details in a box -->
+    {% if latest_interview %}
+      <div class="scheduled-info-box">
+        <h3>Interview Scheduled</h3>
+        <p><strong>Date:</strong> {{ latest_interview.date }}</p>
+        <p><strong>Time:</strong> {{ latest_interview.time }}</p>
+        <p><strong>Link:</strong>
+          {% if latest_interview.interview_link %}
+            <a href="{{ latest_interview.interview_link }}" target="_blank">
+              {{ latest_interview.interview_link }}
+            </a>
+          {% else %}
+            Not Provided
+          {% endif %}
+        </p>
+        <p><strong>Notes:</strong> {{ latest_interview.notes|default:"None" }}</p>
+      </div>
+    {% endif %}
+  
+    <!-- The three action buttons (Accept, Reject, Schedule/Reschedule) -->
     <div class="left-buttons">
+      {% if candidate.application_status == "Pending" %}
         <button class="btn-accept"
-            onclick="confirmAction('accept', '{{ candidate.user.get_full_name }}', '{{ candidate.job.title }}')">
-            Accept
+          onclick="confirmAction('accept', '{{ candidate.user.get_full_name }}', '{{ candidate.job.title }}')">
+          Accept
         </button>
         <button class="btn-reject"
-            onclick="confirmAction('reject', '{{ candidate.user.get_full_name }}', '{{ candidate.job.title }}')">
-            Reject
+          onclick="confirmAction('reject', '{{ candidate.user.get_full_name }}', '{{ candidate.job.title }}')">
+          Reject
         </button>
-        <a href="{% url 'schedule_interview' candidate.id %}" class="btn-primary">Schedule Interview</a>
+      {% endif %}
+  
+      {% if latest_interview %}
+        <!-- If an interview exists, show “Reschedule Interview” -->
+        <a href="{% url 'reschedule_interview' latest_interview.pk %}"
+           class="btn-warning">
+           Reschedule Interview
+        </a>
+      {% else %}
+        <!-- Otherwise show “Schedule Interview” -->
+        <a href="{% url 'schedule_interview' candidate.id %}"
+           class="btn-primary">
+           Schedule Interview
+        </a>
+      {% endif %}
     </div>
     {% endif %}
 </section>

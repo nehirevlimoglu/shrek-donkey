@@ -1,12 +1,3 @@
-/* -------------------------------------------------------------------
-   admin_applications_view.css (Duplicates removed)
-   Only unique classes or overrides specific to the Applications View.
-------------------------------------------------------------------- */
-
-/* 
-   1. STATS CONTAINER & STAT CARD 
-   (Not found in admin_base.css or admin_home_page.css)
-*/
 .stats-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
