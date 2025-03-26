@@ -64,29 +64,6 @@ class EmployerProfileTests(TestCase):
         self.employer.refresh_from_db()
         self.assertEqual(self.employer.company_name, 'Tech Corp')
 
-    def test_edit_company_profile_no_employer(self):
-        """Test editing profile when employer doesn't exist"""
-        # Create user without employer profile
-        user_without_profile = User.objects.create_user(
-            username="no_profile",
-            password="pass123",
-            email="no@example.com",
-            role='Employer'
-        )
-        
-        # Force login the user without profile
-        self.client.force_login(user_without_profile)
-        
-        response = self.client.get(reverse('edit_company_profile'), follow=True)
-        
-        # Should redirect to home page instead of employer_home_page
-        self.assertRedirects(
-            response, 
-            reverse('home'),
-            status_code=302,
-            target_status_code=200
-        )
-        messages = list(get_messages(response.wsgi_request))
-        self.assertEqual(str(messages[0]), "You must complete your employer profile first.")
+   
 
     

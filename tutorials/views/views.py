@@ -27,8 +27,8 @@ def csrf_failure(request, reason=""):
     # Add error message
     messages.error(request, f"Form submission failed (CSRF validation error): {reason}")
     
-    # Render login page and force set new CSRF cookie
-    response = render(request, 'log_in.html')
+    # Render login page and force set new CSRF cookie with 403 status
+    response = render(request, 'log_in.html', status=403)
     response.set_cookie('csrftoken', request.META.get('CSRF_COOKIE', ''), samesite=None)
     return response
 

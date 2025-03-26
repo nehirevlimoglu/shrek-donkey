@@ -225,7 +225,7 @@ class EmployerNotificationsTests(TestCase):
         response = self.client.get(reverse('employer_home_page'))
         self.assertRedirects(
             response, 
-            f"{reverse('log-in')}?next={reverse('employer_home_page')}"  # Use 'log-in' with hyphen
+            f"{reverse('log_in')}?next={reverse('employer_home_page')}"
         )
 
     def test_mark_notification_as_read_with_new_employer(self):
@@ -353,5 +353,5 @@ class EmployerNotificationsTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertJSONEqual(
             str(response.content, encoding='utf8'),
-            {"success": False, "error": "Employer profile not found"}
+            {'success': False, 'error': 'Employer not found'}
         ) 

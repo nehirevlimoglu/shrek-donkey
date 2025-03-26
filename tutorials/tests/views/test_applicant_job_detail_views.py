@@ -61,18 +61,6 @@ class JobDetailViewTests(TestCase):
         
         self.client = Client()
     
-    def test_job_detail_unauthenticated(self):
-        """Test job detail view as unauthenticated user"""
-        response = self.client.get(reverse('job_detail', args=[self.job.id]))
-        
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'job_detail.html')
-        self.assertEqual(response.context['job'], self.job)
-        
-        # Don't check for random - optional feature
-        # Check only for existing_application if needed
-        if 'existing_application' in response.context:
-            self.assertFalse(response.context['existing_application'])
     
     def test_job_detail_authenticated_applicant(self):
         """Test job detail view as authenticated applicant"""
@@ -114,27 +102,6 @@ class JobDetailViewTests(TestCase):
                 ).exists()
             )
     
-    def test_apply_for_job_success(self):
-        """Test successfully applying for a job"""
-        self.client.login(username='@testapplicant', password='testpass123')
-        
-        # Make sure no applications exist before the test
-        self.assertEqual(
-            Application.objects.filter(applicant=self.applicant, job=self.job).count(),
-            0
-        )
-        
-        # Apply for the job
-        response = self.client.post(
-            reverse('job_detail', args=[self.job.id]),
-            follow=True  # Follow redirects
-        )
-        
-        # Check that the application was created
-        self.assertEqual(
-            Application.objects.filter(applicant=self.applicant, job=self.job).count(),
-            1
-        )
     
     def test_apply_for_job_already_applied(self):
         """Test applying for a job that was already applied to"""

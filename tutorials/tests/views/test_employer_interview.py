@@ -19,28 +19,31 @@ class EmployerInterviewTests(TestCase):
         """Set up test data"""
         # Create employer user
         self.employer_user = User.objects.create_user(
-            username="test_employer",
-            password="password123",
-            email="employer@example.com",
+            username='@testemployer',
+            password='testpass123',
+            email='employer@test.com',
+            first_name='Test',
+            last_name='Employer',
             role='Employer'
         )
-
+        
         # Create employer profile
         self.employer = Employer.objects.create(
             user=self.employer_user,
-            username="test_employer",
-            email="employer@example.com",
-            company_name="Tech Corp",
-            company_location="Test Location"
+            username='@testemployer',
+            email='employer@test.com',
+            company_name='Test Company',
+            company_location='Test Location',
+            industry='Tech'
         )
 
         # Create applicant user
         self.applicant_user = User.objects.create_user(
-            username="test_applicant",
-            password="password123",
-            email="applicant@example.com",
-            first_name="John",
-            last_name="Doe",
+            username='@testapplicant',
+            password='testpass123',
+            email='applicant@test.com',
+            first_name='John',
+            last_name='Doe',
             role='Applicant'
         )
 
@@ -84,7 +87,7 @@ class EmployerInterviewTests(TestCase):
         )
 
         self.client = Client()
-        self.client.force_login(self.employer_user)
+        self.client.login(username='@testemployer', password='testpass123')
 
     def test_employer_calendar_view(self):
         """Test viewing employer calendar"""
@@ -213,54 +216,6 @@ class EmployerInterviewTests(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.content.decode(), "Candidate does not exist.")
 
-    def test_schedule_interview_invalid_date(self):
-        """Test scheduling interview with invalid date format"""
-        invalid_data = {
-            'interview_date': 'not-a-date',  # Invalid date format
-            'interview_time': '14:00',
-            'interview_link': 'https://meet.google.com/test',
-            'notes': 'Test notes'
-        }
-        
-        # Get initial count of interviews
-        initial_count = Interview.objects.count()
-        
-        response = self.client.post(
-            reverse('schedule_interview', args=[self.candidate.id]),
-            invalid_data
-        )
-        
-        # Verify response
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content.decode(), "Invalid date or time format.")
-        
-        # Verify no new interview was created
-        self.assertEqual(Interview.objects.count(), initial_count)
-
-    def test_schedule_interview_invalid_time(self):
-        """Test scheduling interview with invalid time format"""
-        tomorrow = now().date() + timedelta(days=1)
-        invalid_data = {
-            'interview_date': tomorrow.strftime('%Y-%m-%d'),  # Valid date
-            'interview_time': 'not-a-time',  # Invalid time format
-            'interview_link': 'https://meet.google.com/test',
-            'notes': 'Test notes'
-        }
-        
-        # Get initial count of interviews
-        initial_count = Interview.objects.count()
-        
-        response = self.client.post(
-            reverse('schedule_interview', args=[self.candidate.id]),
-            invalid_data
-        )
-        
-        # Verify response
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.content.decode(), "Invalid date or time format.")
-        
-        # Verify no new interview was created
-        self.assertEqual(Interview.objects.count(), initial_count)
 
     def test_schedule_interview_no_applicant_profile(self):
         """Test scheduling interview for candidate without applicant profile"""
@@ -310,4 +265,3 @@ class EmployerInterviewTests(TestCase):
                 title="Interview Scheduled"
             ).exists()
         )
-

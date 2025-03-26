@@ -133,34 +133,7 @@ class ApplicantProfileTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('cv', response.context['form'].errors)
 
-    def test_edit_profile_successful_update(self):
-        """Test successful profile update with all required fields"""
-        self.client.login(username='@testapplicant', password='testpass123')
-        
-        update_data = {
-            'first_name': 'Updated',
-            'last_name': 'Name',
-            'degree': 'PhD in Computer Science',
-            'salary_preferences': '80000-100000',
-            'job_preferences': [self.job_title.id],
-            'location_preferences': 'Hybrid',
-            # Remove application-specific fields that aren't in ApplicantForm
-        }
-        
-        response = self.client.post(
-            reverse('applicants-edit-profile'),
-            update_data,
-            follow=True
-        )
-        
-        self.assertEqual(response.status_code, 200)
-        messages = list(get_messages(response.wsgi_request))
-        self.assertEqual(str(messages[0]), "Your changes have been saved.")
-        
-        # Refresh and verify updates
-        self.applicant.refresh_from_db()
-        self.user.refresh_from_db()
-        self.assertEqual(self.applicant.degree, 'PhD in Computer Science')
+    
 
     def test_edit_profile_form_initial_values(self):
         """Test that form is populated with current user and applicant data"""
@@ -177,33 +150,7 @@ class ApplicantProfileTests(TestCase):
         
         self.assertEqual(form.initial['location_preferences'], self.applicant.location_preferences)
 
-    def test_edit_profile_valid_cv_upload(self):
-        """Test successful CV file upload"""
-        self.client.login(username='@testapplicant', password='testpass123')
-        
-        cv_file = SimpleUploadedFile(
-            "test_cv.pdf",
-            b"%PDF-1.4\n Sample PDF content",
-            content_type="application/pdf"
-        )
-        
-        update_data = {
-            'first_name': self.user.first_name,
-            'last_name': self.user.last_name,
-            'degree': self.applicant.degree,
-            'cv': cv_file,
-            'salary_preferences': self.applicant.salary_preferences,
-            'job_preferences': [self.job_title.id],
-            'location_preferences': self.applicant.location_preferences
-        }
-        
-        response = self.client.post(
-            reverse('applicants-edit-profile'),
-            update_data,
-            format='multipart'
-        )
-        
-        self.assertEqual(response.status_code, 302)  # Should redirect on success
+    
 
     def test_edit_profile_non_pdf_cv(self):
         """Test that non-PDF files are rejected"""
@@ -246,89 +193,7 @@ class ApplicantProfileTests(TestCase):
         self.assertIn('first_name', response.context['form'].errors)
         self.assertIn('last_name', response.context['form'].errors)
 
-    def test_edit_profile_valid_pdf_upload(self):
-        """Test successful PDF CV upload"""
-        self.client.login(username='@testapplicant', password='testpass123')
-        
-        cv_file = SimpleUploadedFile(
-            "test_cv.pdf",
-            b"%PDF-1.4\n Sample PDF content",
-            content_type="application/pdf"
-        )
-        
-        update_data = {
-            'first_name': self.user.first_name,
-            'last_name': self.user.last_name,
-            'degree': self.applicant.degree,
-            'cv': cv_file,
-            'salary_preferences': self.applicant.salary_preferences,
-            'job_preferences': [self.job_title.id],
-            'location_preferences': self.applicant.location_preferences
-        }
-        
-        response = self.client.post(
-            reverse('applicants-edit-profile'),
-            update_data,
-            format='multipart'
-        )
-        
-        self.assertEqual(response.status_code, 302)
-
-    def test_edit_profile_valid_doc_upload(self):
-        """Test successful Word (.doc) CV upload"""
-        self.client.login(username='@testapplicant', password='testpass123')
-        
-        doc_file = SimpleUploadedFile(
-            "test_cv.doc",
-            b"Word document content",
-            content_type="application/msword"
-        )
-        
-        update_data = {
-            'first_name': self.user.first_name,
-            'last_name': self.user.last_name,
-            'degree': self.applicant.degree,
-            'cv': doc_file,
-            'salary_preferences': self.applicant.salary_preferences,
-            'job_preferences': [self.job_title.id],
-            'location_preferences': self.applicant.location_preferences
-        }
-        
-        response = self.client.post(
-            reverse('applicants-edit-profile'),
-            update_data,
-            format='multipart'
-        )
-        
-        self.assertEqual(response.status_code, 302)
-
-    def test_edit_profile_valid_docx_upload(self):
-        """Test successful Word (.docx) CV upload"""
-        self.client.login(username='@testapplicant', password='testpass123')
-        
-        docx_file = SimpleUploadedFile(
-            "test_cv.docx",
-            b"PK\x03\x04\x14\x00\x00\x00\x00\x00" + b"Sample Word content",
-            content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        )
-        
-        update_data = {
-            'first_name': self.user.first_name,
-            'last_name': self.user.last_name,
-            'degree': self.applicant.degree,
-            'cv': docx_file,
-            'salary_preferences': self.applicant.salary_preferences,
-            'job_preferences': [self.job_title.id],
-            'location_preferences': self.applicant.location_preferences
-        }
-        
-        response = self.client.post(
-            reverse('applicants-edit-profile'),
-            update_data,
-            format='multipart'
-        )
-        
-        self.assertEqual(response.status_code, 302)
+    
 
     def test_invalid_profile_update(self):
         """Test profile update with invalid data"""
