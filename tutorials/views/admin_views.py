@@ -224,12 +224,15 @@ def mark_notification_as_read(request, notification_id):
     notification.save()
     return JsonResponse({'status': 'success'})
 
-@user_passes_test(is_admin)
+@login_required
 @require_POST
 def mark_all_notifications_as_read(request):
-    print("HIT MARK ALL VIEW")
-    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
-    return JsonResponse({'status': 'success'})
+    try:
+        Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+        return JsonResponse({'success': True})
+    except Exception as e:
+        print("Error marking notifications as read:", str(e))
+        return JsonResponse({'error': 'Something went wrong'}, status=500)
 
 @user_passes_test(is_admin)
 @require_POST

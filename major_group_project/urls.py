@@ -24,7 +24,6 @@ from tutorials.views.employer_views import job_detail_view, mark_notification_as
 from tutorials import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', log_in, name='home'),
     path('log_in/', log_in, name='log_in'),  
     path('logout/', log_out, name='log-out'),
@@ -117,6 +116,8 @@ urlpatterns = [
 
     path('toggle-favorite/', toggle_favorite, name='toggle_favorite'),
     path('admin_settings/', admin_settings, name='admin_settings'),
+
+    
     
     ]
 

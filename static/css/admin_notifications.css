@@ -312,4 +312,27 @@ body {
       font-weight: 400 !important;
   }
 
+  .toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #38a169; /* green for success */
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.toast-notification.error {
+    background-color: #e53e3e;
+}
+
+.toast-notification.show {
+    opacity: 1;
+}
+
 

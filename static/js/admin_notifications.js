@@ -65,52 +65,54 @@ function setupMarkAsRead() {
         });
     }
     
-    // Mark all as read button
     const markAllReadBtn = document.getElementById('markAllReadBtn');
     if (markAllReadBtn) {
         markAllReadBtn.addEventListener('click', function(e) {
-          e.preventDefault();
-          showConfirmationModal({
-            title: 'Mark All as Read?',
-            message: 'Are you sure you want to mark all notifications as read?',
-            onConfirm: () => {
-                fetch('/admin/mark-all-notifications-read/', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCsrfToken(),
-                        'Content-Type': 'application/json'
-                    }
-                })
-                
-              .then(response => response.json())
-              .then(data => {
-                if (data.status === 'success') {
-                  document.querySelectorAll('.notification-item.unread').forEach(item => {
-                    item.classList.remove('unread');
-                    item.classList.add('read');
-      
-                    const btn = item.querySelector('.mark-read-btn');
-                    if (btn) {
-                      btn.textContent = 'Marked as read';
-                      btn.disabled = true;
-                    }
-                  });
-                  updateNotificationCount();
-                  showNotification('All notifications marked as read', 'success');
-                } else {
-                  showNotification('Failed to mark notifications as read', 'error');
+            e.preventDefault();
+            
+            fetch('/admin/mark-all-notifications-read/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                    'Content-Type': 'application/json'
                 }
-              })
-              .catch(error => {
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI for all notifications
+                    const unreadNotifications = document.querySelectorAll('.notification-item.unread');
+                    unreadNotifications.forEach(item => {
+                        item.classList.remove('unread');
+                        item.classList.add('read');
+                        
+                        // Update status indicator
+                        const statusIndicator = item.querySelector('.status-indicator');
+                        if (statusIndicator) {
+                            statusIndicator.classList.remove('unread');
+                            statusIndicator.classList.add('read');
+                        }
+                        
+                        // Update mark read buttons
+                        const markReadBtn = item.querySelector('.mark-read-btn');
+                        if (markReadBtn) {
+                            markReadBtn.textContent = 'Marked as read';
+                            markReadBtn.disabled = true;
+                        }
+                    });
+                    
+                    // Update notification count
+                    updateNotificationCount();
+                    
+                    // Show success message
+                    showNotification('All notifications marked as read', 'success');
+                }
+            })
+            .catch(error => {
                 console.error('Error:', error);
-                showNotification('Error marking as read', 'error');
-              });
-            }
-          });
+            });
         });
-      }
-      
-    
+    }
 }
 
 function setupClearAll() {
