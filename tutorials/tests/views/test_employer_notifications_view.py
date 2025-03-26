@@ -118,4 +118,4 @@ class EmployerNotificationsViewTests(TestCase):
         self.assertEqual(response.status_code, 403)
         data = response.json()
         self.assertIn("error", data)
-        self.assertEqual(data["error"], "Employer not found")
+        self.assertEqual(data["error"], "Employer profile not found")

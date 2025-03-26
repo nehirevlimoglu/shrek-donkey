@@ -29,6 +29,7 @@ class MarkAllNotificationsAsReadViewTests(TestCase):
         self.notifications = []
         for i in range(4):
             notif = Notification.objects.create(
+                recipient=self.admin_user,  # ← FIX: associate with the logged-in admin
                 title=f"Notification {i+1}",
                 message="Test message",
                 notification_type="general",
@@ -41,6 +42,7 @@ class MarkAllNotificationsAsReadViewTests(TestCase):
         
         # Also create one notification that's already read, to ensure it remains read.
         Notification.objects.create(
+            recipient=self.admin_user,  # ← also assign recipient here
             title="Notification Read",
             message="Already read message",
             notification_type="general",
@@ -49,6 +51,7 @@ class MarkAllNotificationsAsReadViewTests(TestCase):
             is_deleted=False,
             created_at=timezone.now()
         )
+
         
         # Get URL for mark_all_notifications_as_read view.
         self.url = reverse("mark_all_notifications_as_read")
@@ -75,8 +78,9 @@ class MarkAllNotificationsAsReadViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         
         json_data = response.json()
-        self.assertIn("status", json_data)
-        self.assertEqual(json_data["status"], "success")
+        self.assertIn("success", json_data)
+        self.assertTrue(json_data["success"])
+
         
         # Verify that all unread notifications are now marked as read.
         final_unread = Notification.objects.filter(is_read=False, is_deleted=False).count()

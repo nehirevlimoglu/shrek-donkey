@@ -68,7 +68,7 @@ def log_in(request):
 
 
     
-    # Force set CSRF Cookie
+    # Force set CSRF Cookies
     response = render(request, 'log_in.html')
     response.set_cookie('csrftoken', request.META.get('CSRF_COOKIE', ''), samesite='Lax')
     return response

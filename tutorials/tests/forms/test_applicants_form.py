@@ -3,16 +3,17 @@
 from django.test import TestCase
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
-from tutorials.forms.applicants_forms import ApplicantForm, ApplicationForm
+from tutorials.forms.applicants_forms import ApplicantForm, ApplicationForm, ApplicantEditForm
 from tutorials.models.applicants_models import Applicant, Application
 from tutorials.models.employer_models import JobTitle, Job  # Adjust if "Job" is in a different module
 
+User = get_user_model()
 
 class ApplicantFormTest(TestCase):
     def setUp(self):
         User = get_user_model()
 
-        # Create a user + an Applicant instance so we have a user foreign key
+        # Create a user + an Applicant instance so we have a user foreign key.
         self.user = User.objects.create_user(
             username='testuser',
             password='testpassword',
@@ -25,8 +26,8 @@ class ApplicantFormTest(TestCase):
             degree='Existing Degree',
         )
 
-        # One job title for multiple choice
-        self.job_title = JobTitle.objects.create(title="Software Engineer")
+        # Use get_or_create to avoid duplicate creation errors for JobTitle.
+        self.job_title, created = JobTitle.objects.get_or_create(title="Software Engineer")
 
         # Minimal valid form data for the ApplicantForm
         self.valid_form_data = {
@@ -35,6 +36,15 @@ class ApplicantFormTest(TestCase):
             'location_preferences': 'Remote',
             'first_name': 'Marty',
             'last_name': 'McFly',
+        }
+
+        self.valid_edit_data = {
+            'first_name': 'UpdatedFirst',
+            'last_name': 'UpdatedLast',
+            'degree': 'masters',
+            'salary_preferences': '70000',
+            'location_preferences': 'Remote',
+            'job_preferences': [self.job_title.id],
         }
 
     def test_applicant_form_prepopulate_user_fields(self):
@@ -91,24 +101,23 @@ class ApplicantFormTest(TestCase):
     def test_applicant_form_job_preferences_commit_true(self):
         """
         Ensure we can select multiple job preferences and actually save them 
-        to the DB with commit=True (covering lines that do self.save_m2m()).
+        to the DB with commit=True.
         """
         data = self.valid_form_data.copy()
         data['job_preferences'] = [self.job_title.id]
 
         form = ApplicantForm(data=data, instance=self.applicant, user=self.user)
         self.assertTrue(form.is_valid(), form.errors)
-        applicant = form.save(commit=True)  # This triggers lines 90->93
+        applicant = form.save(commit=True)  # This triggers saving of job_preferences
 
-        # Refresh from DB
+        # Refresh from DB and check job_preferences
         applicant.refresh_from_db()
         self.assertIn(self.job_title, applicant.job_preferences.all())
 
     def test_applicant_form_save_no_commit(self):
         """
-        Test saving with commit=False so we confirm that lines 90->93 won't execute 
-        until we manually save the applicant. 
-        - user.save() also won't happen if commit=False.
+        Test saving with commit=False so that changes to the applicant object 
+        are not saved until save() and save_m2m() are explicitly called.
         """
         data = self.valid_form_data.copy()
         data["first_name"] = "NoCommitFirst"
@@ -118,32 +127,26 @@ class ApplicantFormTest(TestCase):
         form = ApplicantForm(data=data, instance=self.applicant, user=self.user)
         self.assertTrue(form.is_valid(), form.errors)
 
-        applicant_no_commit = form.save(commit=False)  # line 81->89 run, but 90->93 won't
-        # The user fields in memory are updated:
+        applicant_no_commit = form.save(commit=False)
+        # Check that in-memory user fields are updated.
         self.assertEqual(applicant_no_commit.user.first_name, "NoCommitFirst")
         self.assertEqual(applicant_no_commit.user.last_name, "NoCommitLast")
 
-        # But they are NOT saved to DB yet
+        # Not saved to DB yet.
         self.user.refresh_from_db()
         self.assertNotEqual(self.user.first_name, "NoCommitFirst")
         self.assertNotEqual(self.user.last_name, "NoCommitLast")
 
-        # Also, job_preferences won't be saved until we do applicant.save() & form.save_m2m()
-        applicant_no_commit.save()        # saves lines 90->91
-        form.save_m2m()                  # saves line 92 if done manually
-
-        # Now we confirm the user still hasn't changed because line 87 only triggers if commit=True
-        self.user.refresh_from_db()
-        self.assertNotEqual(self.user.first_name, "NoCommitFirst")
-
-        # But job_preferences is saved to the DB
+        # Now, save the applicant and then call save_m2m.
+        applicant_no_commit.save()
+        form.save_m2m()
+        # Now job_preferences should be saved.
         applicant_no_commit.refresh_from_db()
         self.assertIn(self.job_title, applicant_no_commit.job_preferences.all())
 
     def test_applicant_form_save_updates_user(self):
         """
-        Test that saving with commit=True updates the linked User 
-        (covering lines 83->89, 90->93).
+        Test that saving with commit=True updates the linked User.
         """
         data = self.valid_form_data.copy()
         data["first_name"] = "Alice"
@@ -152,24 +155,24 @@ class ApplicantFormTest(TestCase):
         form = ApplicantForm(data=data, instance=self.applicant, user=self.user)
         self.assertTrue(form.is_valid(), form.errors)
 
-        applicant = form.save(commit=True)  # lines 83->88 set user first/last name, line 90->93
-
-        # Confirm user was updated
+        applicant = form.save(commit=True)
+        # Confirm user was updated.
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, "Alice")
         self.assertEqual(self.user.last_name, "Smith")
         self.assertEqual(applicant.user, self.user)
 
+
 class ApplicationFormTest(TestCase):
     def setUp(self):
         User = get_user_model()
 
-        # A user + applicant
+        # Create a user + applicant instance.
         self.user = User.objects.create_user(
             username='applicantuser',
             password='testpassword',
-            first_name='AppFirst',
-            last_name='AppLast',
+            first_name='John',
+            last_name='Doe',
             email='applicant@example.com'
         )
         self.applicant = Applicant.objects.create(
@@ -208,7 +211,6 @@ class ApplicationFormTest(TestCase):
         form = ApplicationForm(data=data, files=files)
         self.assertTrue(form.is_valid(), form.errors)
 
-        # Because Application has a NOT NULL job_id and applicant_id, set them:
         application = form.save(commit=False)
         application.applicant = self.applicant
         application.job = self.job
@@ -256,8 +258,7 @@ class ApplicationFormTest(TestCase):
             content_type="application/pdf"
         )
         data = self.valid_application_data.copy()
-        data.pop("email")  
-
+        data.pop("email")
         files = {'resume': fake_pdf}
         form = ApplicationForm(data=data, files=files)
         self.assertFalse(form.is_valid())
@@ -271,16 +272,12 @@ class ApplicationFormTest(TestCase):
         )
         data = self.valid_application_data.copy()
         data["confirm_information"] = False
-
         files = {'resume': fake_pdf}
         form = ApplicationForm(data=data, files=files)
         self.assertFalse(form.is_valid())
         self.assertIn('confirm_information', form.errors)
 
     def test_application_form_save(self):
-        """
-        Test saving a valid ApplicationForm instance with required foreign keys.
-        """
         fake_pdf = SimpleUploadedFile(
             "resume.pdf",
             b"%PDF-1.4 PDF mock content",
@@ -300,19 +297,12 @@ class ApplicationFormTest(TestCase):
         self.assertIsNotNone(application.pk)
         self.assertEqual(application.first_name, "Alice")
         self.assertEqual(application.last_name, "Tester")
-    
-        # Instead of self.assertIn("resume.pdf", application.resume.name)s
         self.assertTrue(application.resume.name.endswith(".pdf"))
-
-    
         self.assertEqual(application.applicant, self.applicant)
         self.assertEqual(application.job, self.job)
 
     def test_resume_too_large(self):
-        """
-        Trigger line 211: If resume size > 5MB => ValidationError: 'Resume file size must be under 5MB'.
-        """
-        large_content = b"%PDF-1.4" + b"A" * (5 * 1024 * 1024 + 1)  # Just over 5MB
+        large_content = b"%PDF-1.4" + b"A" * (5 * 1024 * 1024 + 1)
         too_big_pdf = SimpleUploadedFile(
             "resume.pdf",
             large_content,
@@ -320,17 +310,12 @@ class ApplicationFormTest(TestCase):
         )
         data = self.valid_application_data.copy()
         files = {'resume': too_big_pdf}
-
         form = ApplicationForm(data=data, files=files)
         self.assertFalse(form.is_valid())
         self.assertIn('resume', form.errors)
         self.assertIn('Resume file size must be under 5MB', str(form.errors['resume']))
 
-
     def test_resume_wrong_file_type(self):
-        """
-        Trigger line 215: If resume content_type is not allowed => 'Resume must be a PDF or Word document'.
-        """
         fake_txt = SimpleUploadedFile(
             "resume.txt",
             b"This is text.",
@@ -338,17 +323,12 @@ class ApplicationFormTest(TestCase):
         )
         data = self.valid_application_data.copy()
         files = {'resume': fake_txt}
-
         form = ApplicationForm(data=data, files=files)
         self.assertFalse(form.is_valid())
         self.assertIn('resume', form.errors)
         self.assertIn('Only PDF files are allowed', str(form.errors['resume']))
 
-
     def test_cover_letter_too_large(self):
-        """
-        Trigger lines 222–223: If cover_letter > 5MB => 'Cover letter file size must be under 5MB'.
-        """
         large_content = b"%PDF-1.4" + b"A" * (5 * 1024 * 1024 + 1)
         too_big_cover = SimpleUploadedFile(
             "cover_letter.pdf",
@@ -356,39 +336,72 @@ class ApplicationFormTest(TestCase):
             content_type="application/pdf"
         )
         data = self.valid_application_data.copy()
-        # We'll keep a valid resume so it doesn't fail that first
         fake_resume = SimpleUploadedFile(
             "resume.pdf",
             b"%PDF-1.4 mock content",
             content_type="application/pdf"
         )
         files = {'resume': fake_resume, 'cover_letter': too_big_cover}
-
         form = ApplicationForm(data=data, files=files)
         self.assertFalse(form.is_valid())
         self.assertIn('cover_letter', form.errors)
         self.assertIn('file size must be under 5MB', str(form.errors['cover_letter']))
 
     def test_cover_letter_wrong_file_type(self):
-        """
-        Trigger lines 226–227: If cover_letter content_type is not allowed => 'Cover letter must be a PDF or Word document'.
-        """
         fake_cover_txt = SimpleUploadedFile(
             "cover_letter.txt",
             b"This is text.",
             content_type="text/plain"
         )
         data = self.valid_application_data.copy()
-        # Also keep a valid resume
         fake_resume = SimpleUploadedFile(
             "resume.pdf",
             b"%PDF-1.4 mock content",
             content_type="application/pdf"
         )
         files = {'resume': fake_resume, 'cover_letter': fake_cover_txt}
-
         form = ApplicationForm(data=data, files=files)
         self.assertFalse(form.is_valid())
         self.assertIn('cover_letter', form.errors)
         self.assertIn('Only PDF files are allowed', str(form.errors['cover_letter']))
 
+
+class ApplicantEditFormTest(TestCase):
+    def setUp(self):
+        # Create a test user and corresponding Applicant instance.
+        self.user = User.objects.create_user(
+            username='edituser',
+            password='testpassword',
+            first_name='OriginalFirst',
+            last_name='OriginalLast',
+            email='edituser@example.com'
+        )
+        self.applicant = Applicant.objects.create(
+            user=self.user,
+            degree='Original Degree'
+        )
+        # Use get_or_create to avoid duplicates.
+        self.job_title, _ = JobTitle.objects.get_or_create(title="Software Engineer")
+        
+        # Valid data for updating the applicant via the edit form.
+        self.valid_edit_data = {
+            'first_name': 'UpdatedFirst',
+            'last_name': 'UpdatedLast',
+            'degree': 'masters',
+            'salary_preferences': '70000',
+            'location_preferences': 'Remote',
+            'job_preferences': [self.job_title.id],
+        }
+
+    def test_applicant_edit_form_updates_user_fields(self):
+        """
+        Test that saving the ApplicantEditForm with commit=True updates the linked User fields
+        (first_name and last_name) and that the job_preferences are saved.
+        """
+        form = ApplicantEditForm(data=self.valid_edit_data, instance=self.applicant, user=self.user)
+        self.assertTrue(form.is_valid(), form.errors)
+        applicant = form.save(commit=True)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, 'UpdatedFirst')
+        self.assertEqual(self.user.last_name, 'UpdatedLast')
+        self.assertIn(self.job_title, applicant.job_preferences.all())

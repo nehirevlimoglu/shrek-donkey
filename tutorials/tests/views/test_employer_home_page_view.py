@@ -33,8 +33,10 @@ class EmployerHomePageViewTests(TestCase):
             employer=self.employer,
             title="Software Engineer",
             application_deadline=now().date() + timedelta(days=10),
-            description="Looking for a great developer!"
+            description="Looking for a great developer!",
+            status="approved"  # <-- Add this line
         )
+
         self.expired_job = Job.objects.create(
             employer=self.employer,
             title="Expired Job",

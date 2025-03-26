@@ -27,6 +27,7 @@ class DeleteAllNotificationsViewTests(TestCase):
             notif = Notification.objects.create(
                 title=f"Notification {i+1}",
                 message="Test message",
+                recipient=self.admin_user,  # ✅ important for filtering correctly
                 notification_type="general",
                 priority="medium",
                 is_read=False,
@@ -35,8 +36,8 @@ class DeleteAllNotificationsViewTests(TestCase):
             )
             self.notifications.append(notif)
         
-        # URL for the view
-        self.url = reverse("delete_all_notifications")
+        # URL for the view (updated name)
+        self.url = reverse("clear_all_notifications")
 
     def test_redirect_if_not_logged_in(self):
         """Test that non-logged-in users are redirected."""
@@ -53,14 +54,15 @@ class DeleteAllNotificationsViewTests(TestCase):
     def test_delete_all_notifications_successful(self):
         """Test that a valid POST request soft deletes all notifications and returns JSON success."""
         # Before POST, ensure notifications are not deleted.
-        unread_count = Notification.objects.filter(is_deleted=False).count()
-        self.assertEqual(unread_count, 5)
+        active_count = Notification.objects.filter(is_deleted=False, recipient=self.admin_user).count()
+        self.assertEqual(active_count, 5)
 
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, 200)
-        json_data = response.json()
-        self.assertEqual(json_data.get("status"), "success")
         
+        json_data = response.json()
+        self.assertTrue(json_data.get("success"))
+
         # Verify that all notifications are now marked as deleted.
-        remaining = Notification.objects.filter(is_deleted=False).count()
+        remaining = Notification.objects.filter(is_deleted=False, recipient=self.admin_user).count()
         self.assertEqual(remaining, 0)

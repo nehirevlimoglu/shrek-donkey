@@ -227,6 +227,7 @@ class ApplicationForm(forms.ModelForm):
                 raise forms.ValidationError('Only PDF files are allowed')
         return cover_letter
 
+
 class ApplicantEditForm(forms.ModelForm):
     # First and last name (from the related User model)
     first_name = forms.CharField(

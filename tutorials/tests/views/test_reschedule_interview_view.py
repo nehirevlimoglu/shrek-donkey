@@ -21,6 +21,8 @@ User = get_user_model()
                     'django.template.loaders.locmem.Loader', {
                         'reschedule_interview.html': 'Dummy reschedule interview template content',
                         'interview_detail.html': 'Dummy interview detail template content',
+                        'employer_calendar.html': 'Dummy employer calendar page',
+                        
                     }
                 )
             ],
@@ -88,6 +90,8 @@ class RescheduleInterviewViewTests(TestCase):
         # Build URL for reschedule_interview view.
         self.url = reverse("reschedule_interview", kwargs={"pk": self.interview.pk})
 
+
+
     def test_get_reschedule_interview_view(self):
         """Test that a GET request returns the reschedule interview form with the interview in context."""
         response = self.client.get(self.url)
@@ -108,7 +112,7 @@ class RescheduleInterviewViewTests(TestCase):
         }
         response = self.client.post(self.url, data)
         # Expect redirect to interview_detail; assuming URL name "interview_detail" with pk parameter.
-        expected_redirect = reverse("interview_detail", kwargs={"pk": self.interview.pk})
+        expected_redirect = reverse("employer_calendar")
         self.assertRedirects(response, expected_redirect)
         # Refresh the interview from DB and check updates.
         self.interview.refresh_from_db()

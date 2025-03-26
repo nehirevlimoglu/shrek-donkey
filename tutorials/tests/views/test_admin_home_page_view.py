@@ -22,10 +22,9 @@ class AdminHomePageViewTests(TestCase):
             role="Admin"
         )
 
-        # Create an Admin instance using only fields accepted by your Admin model.
-        # For example, if Admin accepts 'username' and 'email':
         self.admin_instance = Admin.objects.create(
-            username="adminuser_admin",  # Ensure uniqueness if necessary
+            user=self.admin_user,  # ✅ FIXED LINE
+            username="adminuser_admin",
             email="admin_admin@example.com"
         )
 

@@ -158,6 +158,7 @@ class EmployerProfileForm(forms.ModelForm):
 
         return employer
 
+
 class RescheduleInterviewForm(forms.ModelForm):
     class Meta:
         model = Interview

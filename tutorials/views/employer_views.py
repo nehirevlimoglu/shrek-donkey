@@ -480,7 +480,23 @@ def applicant_profile(request, applicant_id):
     except Application.DoesNotExist:
         application = None
 
-    # ✅ Only get interviews that belong to this exact candidate
+    # Handle POST: update candidate status if provided and valid, then redirect.
+    if request.method == "POST":
+        new_status = request.POST.get("status")
+        valid_statuses = ["Hired", "Rejected", "Pending", "under_review"]
+        if new_status in valid_statuses:
+            candidate.application_status = new_status
+            candidate.save()
+        return redirect("applicant_profile", applicant_id=applicant_id)
+
+    # For GET: compute duration for each work_experience entry.
+    if application and application.work_experience:
+        for work in application.work_experience:
+            start = work.get("work_start_date")
+            end = work.get("work_end_date")
+            work["duration"] = calculate_duration(start, end)
+
+    # Only get interviews that belong to this exact candidate.
     latest_interview = Interview.objects.filter(candidate=candidate).order_by('-date', '-time').first()
 
     return render(
@@ -492,7 +508,6 @@ def applicant_profile(request, applicant_id):
             "latest_interview": latest_interview,
         }
     )
-    
 @csrf_exempt
 @login_required
 def mark_notification_as_read(request, notification_id):

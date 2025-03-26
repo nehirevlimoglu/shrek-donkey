@@ -1,35 +1,39 @@
-from django.test import TestCase
-from django.core.exceptions import ValidationError
-from tutorials.models.admin_models import Admin, Notification, NotificationPreference
-from tutorials.models.user_model import User
+from django.test import TestCase, Client
+from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
+from django.core.exceptions import ValidationError
+from django.contrib.messages import get_messages
+from django.db import IntegrityError
+
+from tutorials.models.admin_models import Admin, Notification, NotificationPreference
+from tutorials.models.user_model import User
+from tutorials.models.employer_models import Job, Candidate, Interview, Employer, JobTitle
+from django.contrib.auth import get_user_model
+# Import Application if needed for related tests
+# from tutorials.models.applicants_models import Application
+
+User = get_user_model()
 
 class AdminModelTest(TestCase):
     """Test cases for the Admin model."""
     
     def setUp(self):
-        # Create an Admin with all necessary fields.
-        self.admin = Admin.objects.create_user(
+        # Create an admin user using the User model's create_user
+        self.user = User.objects.create_user(
             username='@testadmin',
             email='testadmin@example.com',
             password='password123',
-            role='Admin',
+            role='Admin'
+        )
+        # Create the Admin instance with the required user field.
+        self.admin = Admin.objects.create(
+            user=self.user,
+            username='@testadmin',
+            email='testadmin@example.com',
             first_name='Test',
             last_name='Admin',
             phone_number='+1234567890'
-        )
-        # Ensure a NotificationPreference exists for this admin.
-        self.notification_pref, created = NotificationPreference.objects.get_or_create(
-            admin=self.admin,
-            defaults={
-                'job_notifications': True,
-                'application_notifications': True,
-                'user_notifications': False,
-                'system_notifications': True,
-                'email_delivery': True,
-                'dashboard_delivery': False,
-            }
         )
     
     def test_admin_creation(self):
@@ -38,9 +42,9 @@ class AdminModelTest(TestCase):
         self.assertEqual(self.admin.email, 'testadmin@example.com')
         self.assertEqual(self.admin.first_name, 'Test')
         self.assertEqual(self.admin.last_name, 'Admin')
-        self.assertEqual(self.admin.role, 'Admin')
         self.assertEqual(self.admin.phone_number, '+1234567890')
-        self.assertTrue(self.admin.check_password('password123'))
+        # Use the User method to check the password:
+        self.assertTrue(self.user.check_password('password123'))
     
     def test_admin_str_method(self):
         """Test the string representation of the Admin model."""
@@ -48,13 +52,14 @@ class AdminModelTest(TestCase):
     
     def test_admin_phone_validator(self):
         """Test the phone number validator on the Admin model."""
-        # For an invalid phone number, full_clean() should raise a ValidationError.
+        # Set an invalid phone number
         self.admin.phone_number = 'invalid'
         with self.assertRaises(ValidationError):
             self.admin.full_clean()
         
-        # For a valid phone number, full_clean() should pass without error.
+        # Set a valid phone number
         self.admin.phone_number = '+9876543210'
+        # Should not raise
         self.admin.full_clean()
 
 
@@ -62,17 +67,19 @@ class NotificationModelTest(TestCase):
     """Test cases for the Notification model."""
     
     def setUp(self):
-        # Create an admin with all required fields.
-        self.admin = Admin.objects.create_user(
+        # Create an admin user and Admin instance.
+        self.user = User.objects.create_user(
             username='testadmin',
             email='testadmin@example.com',
             password='password123',
-            role='Admin',
-            first_name='Test',
-            last_name='Admin',
-            phone_number='+1234567890'
+            role='Admin'
         )
-        # Ensure NotificationPreference exists (if needed for related functionality).
+        self.admin = Admin.objects.create(
+            user=self.user,
+            username='testadmin',
+            email='testadmin@example.com'
+        )
+        # Create a NotificationPreference instance (if used).
         self.notification_pref, created = NotificationPreference.objects.get_or_create(
             admin=self.admin,
             defaults={
@@ -86,7 +93,7 @@ class NotificationModelTest(TestCase):
         )
         # Create a Notification instance.
         self.notification = Notification.objects.create(
-            recipient=self.admin,
+            recipient=self.user,
             title='Test Notification',
             message='This is a test notification.',
             notification_type=Notification.TYPE_GENERAL,
@@ -96,7 +103,7 @@ class NotificationModelTest(TestCase):
     
     def test_notification_creation(self):
         """Ensure a Notification instance is created with the correct attributes."""
-        self.assertEqual(self.notification.recipient, self.admin)
+        self.assertEqual(self.notification.recipient, self.user)
         self.assertEqual(self.notification.title, 'Test Notification')
         self.assertEqual(self.notification.message, 'This is a test notification.')
         self.assertEqual(self.notification.notification_type, Notification.TYPE_GENERAL)
@@ -106,7 +113,7 @@ class NotificationModelTest(TestCase):
     
     def test_notification_str_method(self):
         """Test the string representation of the Notification model."""
-        expected_str = f"Test Notification - {self.admin.username}"
+        expected_str = f"Test Notification - {self.user.username}"
         self.assertEqual(str(self.notification), expected_str)
     
     def test_mark_as_read(self):
@@ -125,7 +132,7 @@ class NotificationModelTest(TestCase):
         """Ensure notifications are ordered by created_at in descending order."""
         # Create a newer notification.
         newer_notification = Notification.objects.create(
-            recipient=self.admin,
+            recipient=self.user,
             title='Newer Notification',
             message='This is a newer notification.',
             notification_type=Notification.TYPE_GENERAL,
@@ -134,7 +141,7 @@ class NotificationModelTest(TestCase):
         )
         # Create an older notification.
         older_notification = Notification.objects.create(
-            recipient=self.admin,
+            recipient=self.user,
             title='Older Notification',
             message='This is an older notification.',
             notification_type=Notification.TYPE_GENERAL,
@@ -142,8 +149,7 @@ class NotificationModelTest(TestCase):
             is_read=False,
             created_at=timezone.now() - timedelta(days=1)
         )
-        # Get all notifications; they should be ordered with the newest first.
-        notifications = Notification.objects.all()
+        notifications = list(Notification.objects.all())
         self.assertEqual(notifications[0], newer_notification)
         self.assertEqual(notifications[1], self.notification)
         self.assertEqual(notifications[2], older_notification)
@@ -153,17 +159,17 @@ class NotificationPreferenceModelTest(TestCase):
     """Test cases for the NotificationPreference model."""
     
     def setUp(self):
-        # Create an admin with all required fields.
-        self.admin = Admin.objects.create_user(
+        self.user = User.objects.create_user(
             username='@testadmin',
             email='testadmin@example.com',
             password='password123',
-            role='Admin',
-            first_name='Test',
-            last_name='Admin',
-            phone_number='+1234567890'
+            role='Admin'
         )
-        # Use get_or_create to avoid duplicate NotificationPreference creation.
+        self.admin = Admin.objects.create(
+            user=self.user,
+            username='@testadmin',
+            email='testadmin@example.com'
+        )
         self.notification_pref, created = NotificationPreference.objects.get_or_create(
             admin=self.admin,
             defaults={
@@ -175,12 +181,10 @@ class NotificationPreferenceModelTest(TestCase):
                 'dashboard_delivery': False,
             }
         )
-        
-        # If the instance already existed, ensure it has the expected values.
         if not created:
             self.notification_pref.job_notifications = True
             self.notification_pref.application_notifications = True
-            self.notification_pref.user_notifications = False  # Force this to be False.
+            self.notification_pref.user_notifications = False
             self.notification_pref.system_notifications = True
             self.notification_pref.email_delivery = True
             self.notification_pref.dashboard_delivery = False
@@ -206,7 +210,6 @@ class NotificationPreferenceModelTest(TestCase):
         """Test that updates to NotificationPreference are saved correctly."""
         old_updated = self.notification_pref.last_updated
         
-        # Update the preferences.
         self.notification_pref.job_notifications = False
         self.notification_pref.application_notifications = False
         self.notification_pref.user_notifications = True
@@ -215,7 +218,6 @@ class NotificationPreferenceModelTest(TestCase):
         self.notification_pref.dashboard_delivery = True
         self.notification_pref.save()
         
-        # Refresh the instance from the database.
         self.notification_pref.refresh_from_db()
         
         self.assertFalse(self.notification_pref.job_notifications)
