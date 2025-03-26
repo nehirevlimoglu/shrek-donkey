@@ -26,11 +26,11 @@ body {
     margin: 30px 0 20px;
 }
 
-.notifications-header h2 {
-    font-size: 35px;
-    color: #2d3748;
-    font-weight: bold;
-    margin: 0;
+.notifications-header > h2 {
+    font-size: 30px;
+    font-weight: 600; /* was 800 before */
+    color: #1A202C;
+    margin-bottom: 20px;
 }
 
 /* Action buttons */
@@ -269,7 +269,7 @@ body {
     flex: 1; /* let this section expand */
   }
   
-  .notification-actions {
+.notification-actions {
     margin-left: auto; /* pushes actions to the far right */
     display: flex;
     flex-direction: column; /* keep your two buttons stacked (if that's what you want) */
@@ -303,5 +303,10 @@ body {
     display: flex;
     justify-content: space-between;
     margin-top: 20px;
+}
+.sidebar,
+.sidebar * {
+      font-weight: 400 !important;
   }
-  
+
+

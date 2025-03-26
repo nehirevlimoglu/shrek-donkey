@@ -237,3 +237,11 @@
 .content h2 {
     font-weight: 700 !important;
   }
+
+/* Updated h2 styling to match job listings */
+.content h2 {
+    font-size: 30px;
+    font-weight: 800;
+    color: #1A202C;
+    margin-bottom: 20px;
+}
