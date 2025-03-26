@@ -47,9 +47,11 @@
         
         {% if messages %}
             {% for message in messages %}
-            <div class="login-error">{{ message }}</div>
+            {% if 'login' in message.tags %}
+                <div class="login-error">{{ message }}</div>
+            {% endif %}
             {% endfor %}
-        {% endif %}    
+        {% endif %}
 
         <form method="POST" action="{% url 'log_in' %}">
 
