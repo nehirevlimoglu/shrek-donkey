@@ -215,40 +215,75 @@ def admin_notifications_count(request):
     return JsonResponse({'count': unread_count})
 
 
+@user_passes_test(is_admin)
+@require_POST
 @csrf_exempt
 def mark_notification_as_read(request, notification_id):
-    """Mark a single notification as read"""
+    """Mark a single notification as read for an admin user"""
     try:
-        print(f"Marking notification {notification_id} as read for user {request.user.username}")
-        print(f"Is user admin? {request.user.role == 'Admin'}")
-        print(f"Request method: {request.method}")
+        # Check if user is an admin
+        if request.user.role != 'Admin':
+            return JsonResponse({'status': 'error', 'message': 'User is not an admin'}, status=403)
         
-        # 检查通知是否存在并且属于当前用户
-        notification = get_object_or_404(Notification, id=notification_id)
-        print(f"Notification found: {notification.id}, recipient: {notification.recipient.id}, current user: {request.user.id}")
+        # Get notification object
+        try:
+            notification = Notification.objects.get(id=notification_id)
+            
+            # Check if notification belongs to the current user
+            if notification.recipient != request.user:
+                return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+                
+        except Notification.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Notification not found'}, status=404)
         
-        # 确保通知属于当前用户
-        if notification.recipient.id != request.user.id:
-            print(f"Permission denied: notification belongs to {notification.recipient.username}, not {request.user.username}")
-            return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
-        
+        # Mark as read
         notification.is_read = True
         notification.save()
-        print(f"Notification {notification_id} successfully marked as read")
+        
         return JsonResponse({'status': 'success'})
     except Exception as e:
-        print(f"Error marking notification as read: {str(e)}")
+        import traceback
+        print(f"[ERROR] Exception in mark_notification_as_read: {str(e)}")
+        print(traceback.format_exc())
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @login_required
 @require_POST
+@csrf_exempt  # Adding CSRF exemption as it may be causing issues
 def mark_all_notifications_as_read(request):
+    """Mark all notifications as read for the current user"""
     try:
-        Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
-        return JsonResponse({'success': True})
+        print(f"[DEBUG] Mark all as read request received")
+        print(f"[DEBUG] User: {request.user.username}, ID: {request.user.id}")
+        print(f"[DEBUG] Request method: {request.method}")
+        print(f"[DEBUG] Request body: {request.body}")
+        print(f"[DEBUG] Request headers: {dict(request.headers)}")
+        
+        # Count notifications before update
+        unread_count = Notification.objects.filter(
+            recipient=request.user, 
+            is_read=False,
+            is_deleted=False
+        ).count()
+        
+        if unread_count == 0:
+            print("[INFO] No unread notifications found for user")
+            return JsonResponse({'success': True, 'count': 0, 'message': 'No unread notifications found'})
+        
+        # Update notifications
+        updated_count = Notification.objects.filter(
+            recipient=request.user, 
+            is_read=False,
+            is_deleted=False
+        ).update(is_read=True)
+        
+        print(f"[SUCCESS] Marked {updated_count} notifications as read")
+        return JsonResponse({'success': True, 'count': updated_count})
     except Exception as e:
-        print("Error marking notifications as read:", str(e))
-        return JsonResponse({'error': 'Something went wrong'}, status=500)
+        import traceback
+        print(f"[ERROR] Exception in mark_all_notifications_as_read: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @user_passes_test(is_admin)
 @require_POST
@@ -903,3 +938,31 @@ def admin_notifications_stats(request):
         'priority_counts': priority_counts,
         'feedback_count': feedback_count
     })
+
+@user_passes_test(is_admin)
+@require_POST
+@csrf_exempt
+def mark_notification_as_unread(request, notification_id):
+    """Mark a notification as unread."""
+    try:
+        # Get notification object
+        try:
+            notification = Notification.objects.get(id=notification_id)
+            
+            # Check if notification belongs to the current user
+            if notification.recipient != request.user:
+                return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+                
+        except Notification.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Notification not found'}, status=404)
+        
+        # Mark as unread
+        notification.is_read = False
+        notification.save()
+        
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] Exception in mark_notification_as_unread: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

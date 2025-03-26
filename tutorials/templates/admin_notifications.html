@@ -159,6 +159,8 @@
             <div class="notification-actions">
                 {% if not notification.is_read %}
                 <button class="mark-read-btn" data-id="{{ notification.id }}" title="Mark as Read">✓</button>
+                {% else %}
+                <button class="mark-unread-btn" data-id="{{ notification.id }}" title="Mark as Unread">↻</button>
                 {% endif %}
                 <button class="delete-btn" data-id="{{ notification.id }}" title="Delete">×</button>
             </div>

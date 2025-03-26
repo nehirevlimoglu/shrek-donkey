@@ -28,116 +28,110 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function setupMarkAsRead() {
-    // Mark individual notification as read
-    const markReadButtons = document.querySelectorAll('.mark-read-btn');
-    if (markReadButtons.length) {
-        markReadButtons.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const notificationId = this.dataset.id;
-                const notificationItem = document.getElementById(`notification-${notificationId}`);
-                
-                fetch(`/admin_notifications/mark_read/${notificationId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCsrfToken(),
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({})
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status == 'success') {
-                        // Update UI
-                        if (notificationItem) {
-                            notificationItem.classList.remove('unread');
-                            notificationItem.classList.add('read');
-                            
-                            const statusIndicator = notificationItem.querySelector('.status-indicator');
-                            if (statusIndicator) {
-                                statusIndicator.classList.remove('unread');
-                                statusIndicator.classList.add('read');
-                            }
-                            
-                            btn.textContent = 'Marked as read';
-                            btn.disabled = true;
-                        }
-                        
-                        // Explicitly update notification count to reflect the change
-                        updateNotificationCount();
-                        
-                        // Show a success message
-                        showNotification('Notification marked as read', 'success');
-                        
-                        // Update statistics
-                        updateNotificationStats();
-                    } else {
-                        console.error('Error marking notification as read:', data.message || 'Unknown error');
-                        showNotification(data.message || 'Error marking notification as read', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-            });
-        });
-    }
-    
-    const markAllReadBtn = document.getElementById('markAllReadBtn');
-    if (markAllReadBtn) {
-        markAllReadBtn.addEventListener('click', function(e) {
+    document.querySelectorAll('.mark-read-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
             e.preventDefault();
+            const notificationId = this.getAttribute('data-id');
+            const notificationCard = document.getElementById(`notification-${notificationId}`);
             
-            fetch('/admin/mark-all-notifications-read/', {
+            // Use fetch API instead of form submission
+            fetch(`/admin_notifications/mark_read/${notificationId}/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCsrfToken(),
                     'Content-Type': 'application/json'
-                }
+                },
+                credentials: 'same-origin'
             })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    // Update UI for all notifications
-                    const unreadNotifications = document.querySelectorAll('.notification-card.unread');
-                    console.log(`Marking ${unreadNotifications.length} notifications as read`);
-                    
-                    unreadNotifications.forEach(item => {
-                        item.classList.remove('unread');
-                        item.classList.add('read');
+                if (data.status === 'success') {
+                    // Update UI
+                    if (notificationCard) {
+                        notificationCard.classList.remove('unread');
                         
-                        // Update status indicator
-                        const statusIndicator = item.querySelector('.status-indicator');
-                        if (statusIndicator) {
-                            statusIndicator.classList.remove('unread');
-                            statusIndicator.classList.add('read');
-                        }
+                        // Replace the mark-read button with mark-unread button
+                        const markReadBtn = this;
+                        const markUnreadBtn = document.createElement('button');
+                        markUnreadBtn.className = 'mark-unread-btn';
+                        markUnreadBtn.setAttribute('data-id', notificationId);
+                        markUnreadBtn.title = 'Mark as Unread';
+                        markUnreadBtn.innerHTML = '↻';
                         
-                        // Update mark read buttons
-                        const markReadBtn = item.querySelector('.mark-read-btn');
-                        if (markReadBtn) {
-                            markReadBtn.textContent = 'Marked as read';
-                            markReadBtn.disabled = true;
+                        if (markReadBtn.parentNode) {
+                            markReadBtn.parentNode.replaceChild(markUnreadBtn, markReadBtn);
+                            
+                            // Add event listener to the new button
+                            markUnreadBtn.addEventListener('click', handleMarkUnread);
                         }
-                    });
+                    }
                     
                     // Update notification count
                     updateNotificationCount();
-                    
-                    // Show success message
-                    showNotification(`All notifications marked as read (${unreadNotifications.length})`, 'success');
-                    
-                    // Update statistics
-                    updateNotificationStats();
                 } else {
-                    console.error('Error marking all notifications as read:', data.error || 'Unknown error');
-                    showNotification(data.error || 'Error marking notifications as read', 'error');
+                    console.error('Error marking notification as read:', data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showNotification('Error marking notifications as read', 'error');
             });
+        });
+    });
+
+    document.querySelectorAll('.mark-unread-btn').forEach(button => {
+        button.addEventListener('click', handleMarkUnread);
+    });
+    
+    // Function to handle mark as unread button clicks
+    function handleMarkUnread(e) {
+        e.preventDefault();
+        const notificationId = this.getAttribute('data-id');
+        const notificationCard = document.getElementById(`notification-${notificationId}`);
+        
+        // Use fetch API
+        fetch(`/admin_notifications/mark_unread/${notificationId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrfToken(),
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Update UI
+                if (notificationCard) {
+                    notificationCard.classList.add('unread');
+                    
+                    // Replace the mark-unread button with mark-read button
+                    const markUnreadBtn = this;
+                    const markReadBtn = document.createElement('button');
+                    markReadBtn.className = 'mark-read-btn';
+                    markReadBtn.setAttribute('data-id', notificationId);
+                    markReadBtn.title = 'Mark as Read';
+                    markReadBtn.innerHTML = '✓';
+                    
+                    if (markUnreadBtn.parentNode) {
+                        markUnreadBtn.parentNode.replaceChild(markReadBtn, markUnreadBtn);
+                        
+                        // Add event listener to the new button
+                        markReadBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const id = this.getAttribute('data-id');
+                            document.querySelector(`.mark-read-btn[data-id="${id}"]`).click();
+                        });
+                    }
+                }
+                
+                // Update notification count
+                updateNotificationCount();
+            } else {
+                console.error('Error marking notification as unread:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
         });
     }
 }
@@ -289,14 +283,71 @@ function appendNotifications(notifications) {
             </div>
             <div class="notification-actions">
                 ${notification.read ? 
-                    '<button class="mark-read-btn" data-id="' + notification.id + '" disabled>Marked as read</button>' : 
-                    '<button class="mark-read-btn" data-id="' + notification.id + '">Mark as read</button>'}
+                    '<button class="mark-unread-btn" data-id="' + notification.id + '" title="Mark as Unread">↻</button>' : 
+                    '<button class="mark-read-btn" data-id="' + notification.id + '">Mark as Read</button>'}
                 ${notification.actions ? renderActions(notification.actions, notification.id) : ''}
                 <button class="delete-btn" data-id="${notification.id}">Delete</button>
             </div>
         `;
         notificationsList.appendChild(notificationItem);
     });
+    
+    // Add event listeners to new buttons
+    const newMarkReadButtons = notificationsList.querySelectorAll('.mark-read-btn');
+    if (newMarkReadButtons.length) {
+        newMarkReadButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const notificationId = this.dataset.id;
+                const notificationItem = document.getElementById(`notification-${notificationId}`);
+                
+                fetch(`/admin_notifications/mark_read/${notificationId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status == 'success') {
+                        if (notificationItem) {
+                            notificationItem.classList.remove('unread');
+                            notificationItem.classList.add('read');
+                            
+                            const statusIndicator = notificationItem.querySelector('.status-indicator');
+                            if (statusIndicator) {
+                                statusIndicator.classList.remove('unread');
+                                statusIndicator.classList.add('read');
+                            }
+                            
+                            // Replace button
+                            const markUnreadBtn = document.createElement('button');
+                            markUnreadBtn.className = 'mark-unread-btn';
+                            markUnreadBtn.dataset.id = notificationId;
+                            markUnreadBtn.title = 'Mark as Unread';
+                            markUnreadBtn.innerHTML = '↻';
+                            this.parentNode.replaceChild(markUnreadBtn, this);
+                            
+                            // Add event listener
+                            markUnreadBtn.addEventListener('click', handleMarkUnread);
+                        }
+                        
+                        updateNotificationCount();
+                        updateNotificationStats();
+                    }
+                });
+            });
+        });
+    }
+    
+    const newMarkUnreadButtons = notificationsList.querySelectorAll('.mark-unread-btn');
+    if (newMarkUnreadButtons.length) {
+        newMarkUnreadButtons.forEach(btn => {
+            btn.addEventListener('click', handleMarkUnread);
+        });
+    }
 }
 
 function renderActions(actions, notificationId) {
@@ -601,10 +652,32 @@ function displayCandidateModal(candidateData) {
 }
 
 function getCsrfToken() {
-    const cookieValue = document.cookie
+    // Method 1: Get from cookie
+    let cookieValue = document.cookie
         .split('; ')
         .find(row => row.startsWith('csrftoken='))
         ?.split('=')[1];
+    
+    // Method 2: Get from meta tag
+    if (!cookieValue) {
+        const metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) {
+            cookieValue = metaTag.getAttribute('content');
+        }
+    }
+    
+    // Method 3: Get from form
+    if (!cookieValue) {
+        const csrfInput = document.querySelector('input[name="csrfmiddlewaretoken"]');
+        if (csrfInput) {
+            cookieValue = csrfInput.value;
+        }
+    }
+    
+    if (!cookieValue) {
+        console.error("Unable to get CSRF token, this may cause request failures");
+    }
+    
     return cookieValue;
 }
 
