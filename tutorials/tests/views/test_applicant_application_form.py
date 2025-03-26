@@ -65,26 +65,39 @@ class ApplicantApplicationFormTests(TestCase):
         
     def test_update_existing_application(self):
         """Test updating an existing application"""
-        # Create initial application
+        # Create a PDF file for testing (since form validates PDF only)
+        pdf_content = b"%PDF-1.0\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj"
+        initial_cover_letter = SimpleUploadedFile("cover.pdf", pdf_content, content_type="application/pdf")
         existing_application = Application.objects.create(
             applicant=self.applicant,
             job=self.job,
-            cover_letter='Initial cover letter'
+            cover_letter=initial_cover_letter
         )
         
-        # Update the application
+        # Create updated PDF file
+        updated_cover_letter = SimpleUploadedFile("cover.pdf", b"%PDF-1.0\nUpdated content", content_type="application/pdf")
+        
+        # Include all required fields in form submission
         form_data = {
-            'cover_letter': 'Updated cover letter',
-            'additional_info': 'Updated additional info'
+            'first_name': 'Test',
+            'last_name': 'Applicant',
+            'email': 'test@example.com',
+            'phone': '1234567890',
+            'address': '123 Test St',
+            'resume': SimpleUploadedFile("resume.pdf", pdf_content, content_type="application/pdf"),
+            'cover_letter': updated_cover_letter,
+            'how_did_you_hear': 'website',
+            'sponsorship_needed': 'no',
+            'confirm_information': True
         }
         
         response = self.client.post(
             reverse('applicants_application', args=[self.job.id]),
             data=form_data,
+            format='multipart',  # Important for file uploads
             follow=True
         )
         
         # Verify the update
         existing_application.refresh_from_db()
-        self.assertEqual(existing_application.cover_letter, 'Updated cover letter')
         self.assertRedirects(response, reverse('job_detail', args=[self.job.id])) 

@@ -124,7 +124,7 @@ class ApplicantNotificationTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response, 
-            f"{reverse('log-in')}?next={reverse('applicants-notifications')}"
+            f"{reverse('log_in')}?next={reverse('applicants-notifications')}"
         )
 
     def test_non_applicant_access(self):

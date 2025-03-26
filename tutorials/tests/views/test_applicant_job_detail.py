@@ -5,6 +5,8 @@ from tutorials.models.applicants_models import Applicant, Application
 from tutorials.models.employer_models import Job, Employer
 from django.contrib.messages import get_messages
 from random import randint
+from datetime import date, timedelta
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 User = get_user_model()
 
@@ -36,17 +38,18 @@ class ApplicantJobDetailTests(TestCase):
             company_name='Test Company',
             location='Test Location',
             description='Test Description',
-            status='approved'
+            status='approved',
+            application_deadline=date.today() + timedelta(days=30)
         )
         
         self.client = Client()
         
     def test_job_detail_view_unauthenticated(self):
         """Test job detail view for unauthenticated user"""
+        # Expect redirect to login page for unauthenticated users
         response = self.client.get(reverse('job_detail', args=[self.job.id]))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'job_detail.html')
-        self.assertFalse(response.context['existing_application'])
+        self.assertEqual(response.status_code, 302)  # Changed from 200 to 302
+        self.assertRedirects(response, f'/log_in/?next=/job/{self.job.id}/')
         
     def test_job_detail_view_authenticated(self):
         """Test job detail view for authenticated applicant"""
@@ -60,10 +63,40 @@ class ApplicantJobDetailTests(TestCase):
     def test_job_detail_post_new_application(self):
         """Test submitting a new application via POST"""
         self.client.login(username='testapplicant', password='testpass123')
-        response = self.client.post(reverse('job_detail', args=[self.job.id]))
-        self.assertEqual(response.status_code, 302)  # Redirect after successful application
+        
+        # Create application data with required fields
+        application_data = {
+            'first_name': 'Test',
+            'last_name': 'Applicant',
+            'email': 'applicant@test.com',
+            'phone': '1234567890',
+            'address': '123 Test St',
+            'resume': SimpleUploadedFile(
+                "resume.pdf",
+                b"%PDF-1.0\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj",
+                content_type="application/pdf"
+            ),
+            'how_did_you_hear': 'linkedin',
+            'sponsorship_needed': 'no',
+            'confirm_information': True,
+            'skills': 'Python, Django, Testing'
+        }
+        
+        response = self.client.post(
+            reverse('apply_for_job', args=[self.job.id]),
+            application_data,
+            format='multipart'
+        )
+        
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, f"/job/{self.job.id}/?applied=true")
+        
+        # Verify application was created
         self.assertTrue(
-            Application.objects.filter(applicant=self.applicant, job=self.job).exists()
+            Application.objects.filter(
+                applicant=self.applicant,
+                job=self.job
+            ).exists()
         )
         
     def test_job_detail_post_duplicate_application(self):
@@ -147,9 +180,37 @@ class ApplicantJobDetailTests(TestCase):
         """Test successful application submission redirect"""
         self.client.login(username='testapplicant', password='testpass123')
         
-        response = self.client.post(reverse('job_detail', args=[self.job.id]))
+        # Create application data with required fields
+        application_data = {
+            'first_name': 'Test',
+            'last_name': 'Applicant',
+            'email': 'applicant@test.com',
+            'phone': '1234567890',
+            'address': '123 Test St',
+            'resume': SimpleUploadedFile(
+                "resume.pdf",
+                b"%PDF-1.0\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj",
+                content_type="application/pdf"
+            ),
+            'how_did_you_hear': 'linkedin',
+            'sponsorship_needed': 'no',
+            'confirm_information': True,
+            'skills': 'Python, Django, Testing'
+        }
         
-        self.assertRedirects(response, reverse('job_detail', args=[self.job.id]))
+        response = self.client.post(
+            reverse('apply_for_job', args=[self.job.id]),
+            application_data,
+            format='multipart'
+        )
+        
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, f"/job/{self.job.id}/?applied=true")
+        
+        # Verify application was created
         self.assertTrue(
-            Application.objects.filter(applicant=self.applicant, job=self.job).exists()
+            Application.objects.filter(
+                applicant=self.applicant,
+                job=self.job
+            ).exists()
         ) 

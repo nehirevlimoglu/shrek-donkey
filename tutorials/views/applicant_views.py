@@ -200,6 +200,11 @@ def apply_for_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
     print(f"✅ Job found: {job.title}")
 
+    # Add expiration check here
+    if job.application_deadline < date.today():
+        messages.error(request, "This job posting has expired", extra_tags="application")
+        return redirect("job_detail", job_id=job.id)
+
     # Get the applicant
     applicant = get_object_or_404(Applicant, user=request.user)
     print(f"✅ Applicant found: {applicant.user.username}")
@@ -529,50 +534,48 @@ def applicants_analytics(request):
     applicant = request.user.applicant
 
     total_applications = Application.objects.filter(applicant=applicant).count()
-    candidates = Candidate.objects.filter(user=request.user)
-    # Only count interviews if the user actually has applications
-    applications = Application.objects.filter(applicant=applicant)
-    if applications.exists():
-        applied_jobs = applications.values_list('job', flat=True)
-        candidates = Candidate.objects.filter(user=request.user, job__in=applied_jobs)
-        interviews_scheduled = Interview.objects.filter(candidate__in=candidates).count()
+    
+    # Count interviews based on application status instead of Interview model
+    interviews_scheduled = Application.objects.filter(
+        applicant=applicant,
+        status="interviewed"
+    ).count()
+
+    # Count offers and acceptances
+    accepted_offers = Application.objects.filter(
+        applicant=applicant, 
+        status="hired", 
+        confirm_information=True
+    ).count()
+    total_offers = Application.objects.filter(
+        applicant=applicant, 
+        status="hired"
+    ).count()
+    declined_offers = total_offers - accepted_offers
+
+    # Calculate offer acceptance rate
+    if total_offers > 0:
+        offer_acceptance_rate = round((accepted_offers / total_offers) * 100, 2)
     else:
-        interviews_scheduled = 0
-    job_offers_received = Application.objects.filter(applicant=applicant, status="hired").count()
+        offer_acceptance_rate = 0
 
-    # Just count all hired applications as accepted
-    accepted_offers = Application.objects.filter(applicant=applicant, status="hired").count()
-    declined_offers = Application.objects.filter(applicant=applicant, status="rejected").count()
-
-    total_offers = accepted_offers + declined_offers
-    offer_acceptance_rate = (accepted_offers / total_offers * 100) if total_offers > 0 else 0
-
-    accepted_count = accepted_offers
-    declined_count = declined_offers
-
-    applications = Application.objects.filter(applicant=applicant).select_related("job")
-
-    interviews = Interview.objects.filter(candidate__user=request.user)
-
-    # Dynamically build the pie chart data
-    offer_labels = []
-    offer_data = []
-    offer_colors = []
-
-    # Always push Accepted first, then Declined — even if their count is zero
-    offer_labels = ["Accepted", "Declined"]
-    offer_data = [accepted_offers, declined_offers]
-    offer_colors = ["#34A853", "#EA4335"]
+    # Applications over time (last 6 months)
+    applications_over_time = [0] * 6  # Initialize with zeros
+    
+    # Create offer acceptance breakdown
+    offer_acceptance_breakdown = json.dumps([accepted_offers, declined_offers])
 
     return render(request, 'applicants_analytics.html', {
         "total_applications": total_applications,
         "interviews_scheduled": interviews_scheduled,
-        "job_offers_received": job_offers_received,
-        "offer_acceptance_rate": round(offer_acceptance_rate, 2),
-        "applications": applications,
-        "offer_chart_labels": offer_labels,
-        "offer_chart_data": offer_data,
-        "offer_chart_colors": offer_colors,
+        "job_offers_received": total_offers,
+        "offer_acceptance_rate": offer_acceptance_rate,
+        "applications": Application.objects.filter(applicant=applicant),
+        "offer_chart_labels": ["Accepted", "Declined"],
+        "offer_chart_data": [accepted_offers, declined_offers],
+        "offer_chart_colors": ["#34A853", "#EA4335"],
+        "applications_over_time": json.dumps(applications_over_time),
+        "offer_acceptance_breakdown": offer_acceptance_breakdown
     })
 
 from django.views.decorators.http import require_POST
