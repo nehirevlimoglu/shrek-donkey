@@ -475,14 +475,13 @@ def applicant_profile(request, applicant_id):
     except Applicant.DoesNotExist:
         return HttpResponse("Applicant profile not found.", status=404)
 
-    # If you have an Application model
     try:
         application = Application.objects.get(applicant=applicant_obj, job=candidate.job)
     except Application.DoesNotExist:
         application = None
 
-    # Grab the latest interview (by date/time) if it exists
-    latest_interview = candidate.interviews.order_by('-date', '-time').first()
+    # ✅ Only get interviews that belong to this exact candidate
+    latest_interview = Interview.objects.filter(candidate=candidate).order_by('-date', '-time').first()
 
     return render(
         request,
@@ -490,10 +489,10 @@ def applicant_profile(request, applicant_id):
         {
             "candidate": candidate,
             "application": application,
-            "latest_interview": latest_interview,  # <-- pass in
+            "latest_interview": latest_interview,
         }
     )
-
+    
 @csrf_exempt
 @login_required
 def mark_notification_as_read(request, notification_id):
