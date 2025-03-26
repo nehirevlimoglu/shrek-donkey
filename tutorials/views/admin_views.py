@@ -215,6 +215,7 @@ def admin_notifications_count(request):
     return JsonResponse({'count': unread_count})
 
 
+@login_required
 @user_passes_test(is_admin)
 @require_POST
 def mark_notification_as_read(request, notification_id):

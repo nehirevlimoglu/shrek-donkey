@@ -171,56 +171,6 @@ def job_matching_view(request, job_id):
     })
 
 
-@login_required
-def submit_feedback(request):
-    """
-    View for allowing applicants and employers to submit feedback
-    """
-    if request.method == 'POST':
-        feedback_type = request.POST.get('feedback_type')
-        subject = request.POST.get('subject')
-        message = request.POST.get('message')
-        priority = request.POST.get('priority', 'medium')
-        
-        # Validate required fields
-        if not all([feedback_type, subject, message]):
-            messages.error(request, "All required fields must be filled out.")
-            return render(request, 'feedback_form.html')
-            
-        try:
-            # Save feedback to database
-            # Note: assuming you have a Feedback model, if not, you need to create one
-            from tutorials.models.admin_models import Notification
-            
-            # Determine user type
-            user_type = 'applicant' if hasattr(request.user, 'applicant') else 'employer'
-            
-            # Create notification
-            notification = Notification.objects.create(
-                title=f"New Feedback: {subject}",
-                message=message,
-                notification_type='feedback',
-                priority=priority,
-                sender=request.user,
-                is_read=False,
-                action_url=None,
-                feedback_type=feedback_type,
-                sender_type=user_type
-            )
-            
-            # Don't use messages framework here to avoid it appearing in other pages
-            # Instead, pass the success message directly to the template
-            return render(request, 'feedback_form.html', {
-                'success_message': 'Thank you for your feedback! We will process it as soon as possible.'
-            })
-            
-        except Exception as e:
-            print(f"Error saving feedback: {str(e)}")
-            messages.error(request, f"Error submitting feedback: {str(e)}")
-            
-    return render(request, 'feedback_form.html')
-
-
 def sign_up(request):
     if request.method == 'POST':
         form = SignUpForm(request.POST)

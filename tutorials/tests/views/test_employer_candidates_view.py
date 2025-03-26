@@ -44,7 +44,7 @@ class EmployerCandidatesViewTests(TestCase):
             application_deadline=timezone.now().date() + timedelta(days=15)
         )
         
-        # Create candidate users (applicants).
+        # Create candidate users (applicants) with discipline information.
         self.candidate_user1 = User.objects.create_user(
             username="candidate1",
             email="cand1@example.com",
@@ -66,7 +66,7 @@ class EmployerCandidatesViewTests(TestCase):
             application_date=timezone.now(),
             first_name="Alice",
             last_name="Smith",
-            degree="Bachelor"
+            discipline="bachelors"  # Lowercase discipline
         )
         self.candidate2 = Candidate.objects.create(
             user=self.candidate_user2,
@@ -75,7 +75,7 @@ class EmployerCandidatesViewTests(TestCase):
             application_date=timezone.now(),
             first_name="Bob",
             last_name="Jones",
-            degree="Master"
+            discipline="masters"  # Lowercase discipline
         )
         
         self.url = reverse("employer_candidates")
@@ -109,16 +109,16 @@ class EmployerCandidatesViewTests(TestCase):
         self.assertIn("candidates", context)
         self.assertIn("jobs", context)
         self.assertIn("statuses", context)
-        self.assertIn("degrees", context)
+        self.assertIn("disciplines", context)
         
         # There should be 2 candidates.
         self.assertEqual(context["candidates"].count(), 2)
         # Check that the jobs passed in context are the employer's jobs.
         self.assertEqual(context["jobs"].count(), 2)
-        # Degrees should be distinct and include the ones set on candidates.
-        degrees_list = list(context["degrees"])
-        self.assertIn("Bachelor", degrees_list)
-        self.assertIn("Master", degrees_list)
+        # Disciplines should be a list of tuples. Check that it includes our disciplines.
+        disciplines_list = [label for val, label in context["disciplines"]]
+        self.assertIn("Bachelors", disciplines_list)
+        self.assertIn("Masters", disciplines_list)
 
     def test_filter_by_job(self):
         """Test that filtering by a specific job returns only candidates for that job."""
@@ -137,10 +137,10 @@ class EmployerCandidatesViewTests(TestCase):
         self.assertEqual(candidates.count(), 1)
         self.assertEqual(candidates.first().application_status, "Hired")
 
-    def test_filter_by_degree(self):
-        """Test that filtering by degree returns only candidates with that degree."""
-        response = self.client.get(self.url, {"degree": "Bachelor"})
+    def test_filter_by_discipline(self):
+        """Test that filtering by discipline returns only candidates with that discipline."""
+        response = self.client.get(self.url, {"discipline": "bachelors"})
         self.assertEqual(response.status_code, 200)
         candidates = response.context["candidates"]
         self.assertEqual(candidates.count(), 1)
-        self.assertEqual(candidates.first().degree, "Bachelor")
+        self.assertEqual(candidates.first().discipline, "bachelors")

@@ -20,7 +20,7 @@ from tutorials.utils import match_candidates_to_job
 from django.http import HttpResponseForbidden
 from django.views.decorators.http import require_POST
 from tutorials.helpers import clear_feedback_messages
-
+from django.contrib.auth import update_session_auth_hash
 
 @applicant_only
 @login_required

@@ -1,23 +1,23 @@
+import json
+from datetime import timedelta
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from django.http import JsonResponse
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.messages import get_messages
 
-# Import your models and forms.
-from tutorials.models.applicants_models import Applicant, Application, ApplicantNotification
-from tutorials.models.employer_models import Job, Employer, JobTitle, WorkExperience, Candidate, EmployerNotification
-from tutorials.forms.applicants_forms import ApplicationForm
-# Import the view from the correct module.
-from tutorials.views.applicant_views import apply_for_job
+from tutorials.models.applicants_models import Applicant, Application
+from tutorials.models.employer_models import Job, Employer, JobTitle
+# Adjust the import if your notification model is needed:
+from tutorials.models.applicants_models import ApplicantNotification
 
-# Dummy functions for predictable behavior in tests.
+from tutorials.forms.applicants_forms import ApplicationForm
+
+# Dummy functions to override external functionality for tests.
 def dummy_extract_skills_nlp(text):
-    # Simply split the text by comma and strip whitespace.
     return [s.strip() for s in text.split(",") if s.strip()]
 
 def dummy_match_candidates_to_job(job_title, top_n=10):
-    # Return an empty list for simplicity.
     return []
 
 User = get_user_model()
@@ -27,13 +27,19 @@ class ApplyForJobViewTests(TestCase):
         self.client = Client()
         # Create an applicant user and associated Applicant instance.
         self.applicant_user = User.objects.create_user(
-            username='applicantuser', password='testpass', role='Applicant', email='applicant@example.com'
+            username='applicantuser', 
+            password='testpass', 
+            role='Applicant', 
+            email='applicant@example.com'
         )
         self.applicant = Applicant.objects.create(user=self.applicant_user)
         
         # Create an employer and a job.
         self.employer_user = User.objects.create_user(
-            username='employeruser', password='testpass', role='Employer', email='employer@example.com'
+            username='employeruser', 
+            password='testpass', 
+            role='Employer', 
+            email='employer@example.com'
         )
         self.employer = Employer.objects.create(user=self.employer_user, company_name='TechCorp')
         
@@ -45,28 +51,23 @@ class ApplyForJobViewTests(TestCase):
             salary=100000,
         )
         
-        # Create JobTitle instances if needed.
+        # Create JobTitle instances for the M2M field.
         self.job_title1 = JobTitle.objects.create(title='Developer')
         self.job_title2 = JobTitle.objects.create(title='Designer')
         
-        # URL for apply_for_job view.
+        # URL for the apply_for_job view.
         self.apply_url = reverse('apply_for_job', kwargs={'job_id': self.job.id})
         
-        # Monkey-patch external functions by importing from the correct module.
+        # Override external functions.
         from tutorials.views.applicant_views import apply_for_job as apply_view_module
         apply_view_module.extract_skills_nlp = dummy_extract_skills_nlp
         apply_view_module.match_candidates_to_job = dummy_match_candidates_to_job
 
-        # Optionally, if your ApplicationForm still defines file fields, you might
-        # update its __init__ to ignore them or assume they're not required.
-        # For our tests we assume resume and cover_letter are removed.
-        # (Make sure your form and view can handle the absence of these fields.)
-
+        # Remove file fields if they cause issues.
         if "resume" in ApplicationForm.base_fields:
             ApplicationForm.base_fields.pop("resume")
         if "cover_letter" in ApplicationForm.base_fields:
             ApplicationForm.base_fields.pop("cover_letter")
-
     
     def login_applicant(self):
         self.client.login(username='applicantuser', password='testpass')
@@ -83,10 +84,15 @@ class ApplyForJobViewTests(TestCase):
         self.assertFalse(response.context.get("existing_application", True))
 
     def test_post_valid_application_non_ajax(self):
-        """Valid POST (non-AJAX) creates an application... and redirects."""
+        """
+        Valid POST (non-AJAX) creates an application and redirects.
+        Updated field values to match valid choices:
+         - discipline: "bachelors" (valid, instead of "Information Technology")
+         - how_did_you_hear: "referral" (lowercase)
+         - sponsorship_needed: "no" (lowercase)
+        """
         self.login_applicant()
         
-        # Use valid discipline, how_did_you_hear, and add required fields:
         post_data = {
             "first_name": "John",
             "last_name": "Doe",
@@ -95,18 +101,10 @@ class ApplyForJobViewTests(TestCase):
             "address": "123 Main St",
             "school": "Test University",
             "degree": "Bachelor",
-            # Suppose your form's valid discipline choices do NOT include "Computer Science",
-            # but do include "Information Technology". Use that instead:
-            "discipline": "Information Technology",
-            
-            # how_did_you_hear must match one of the valid choices from the form:
-            "how_did_you_hear": "Referral",
-            
-            # Provide missing fields:
-            "sponsorship_needed": "No",
-            # If confirm_information is a boolean/checkbox, passing "on" usually marks it True:
+            "discipline": "bachelors",  # valid choice from the form
+            "how_did_you_hear": "referral",  # valid choice
+            "sponsorship_needed": "no",      # valid choice
             "confirm_information": "on",
-            
             "start_date": "2020-01-01",
             "end_date": "2024-01-01",
             "linkedin_profile": "https://linkedin.com/in/johndoe",
@@ -114,14 +112,12 @@ class ApplyForJobViewTests(TestCase):
             "current_job_title": "Intern",
             "current_employer": "TechCorp",
             "skills": "Python, Django, REST",
-            
             # Dynamic education fields:
             "school[]": ["Test University"],
             "degree[]": ["Bachelor"],
-            "discipline[]": ["Information Technology"],
+            "discipline[]": ["bachelors"],
             "start_date[]": ["2020-01-01"],
             "end_date[]": ["2024-01-01"],
-            
             # Dynamic work experience fields:
             "work_job_title[]": ["Software Intern"],
             "work_employer[]": ["TechCorp"],
@@ -132,23 +128,23 @@ class ApplyForJobViewTests(TestCase):
         
         response = self.client.post(self.apply_url, post_data)
         
-        # Now the form should be valid. The view is expected to redirect to the job detail page:
         expected_redirect = f"/job/{self.job.id}/?applied=true"
         self.assertRedirects(response, expected_redirect)
 
-        # The rest of your assertions remain the same...
         application = Application.objects.get(applicant=self.applicant, job=self.job)
         self.assertEqual(application.education, [{
             "school": "Test University",
             "degree": "Bachelor",
-            "discipline": "Information Technology",
+            "discipline": "bachelors",
             "start_date": "2020-01-01",
             "end_date": "2024-01-01"
         }])
 
-
     def test_post_valid_application_ajax(self):
-        """Valid AJAX POST returns a JSON response with success."""
+        """
+        Valid AJAX POST returns a JSON response with success.
+        Updated field values to valid ones.
+        """
         self.login_applicant()
         
         post_data = {
@@ -158,10 +154,10 @@ class ApplyForJobViewTests(TestCase):
             "phone": "1234567890",
             "address": "123 Main St",
             "school": "Test University",
-            "degree": "Bachelor",  # Use a valid choice (e.g., "Bachelor")
-            "discipline": "Information Technology",  # Valid discipline
-            "how_did_you_hear": "Referral",  # Adjust if "Referral" is valid; otherwise, change it to a valid option
-            "sponsorship_needed": "No",  # Adjust if needed; ensure it's a valid choice per your form
+            "degree": "Bachelor",
+            "discipline": "bachelors",
+            "how_did_you_hear": "referral",
+            "sponsorship_needed": "no",
             "confirm_information": "on",
             "start_date": "2020-01-01",
             "end_date": "2024-01-01",
@@ -173,7 +169,7 @@ class ApplyForJobViewTests(TestCase):
             # Dynamic education fields:
             "school[]": ["Test University"],
             "degree[]": ["Bachelor"],
-            "discipline[]": ["Information Technology"],
+            "discipline[]": ["bachelors"],
             "start_date[]": ["2020-01-01"],
             "end_date[]": ["2024-01-01"],
             # Dynamic work experience fields:
@@ -192,9 +188,12 @@ class ApplyForJobViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertJSONEqual(response.content, {"success": True})
 
-            
     def test_post_invalid_application(self):
-        """Invalid POST submission returns errors (JSON for AJAX or re-renders the form)."""
+        """
+        Invalid POST submission returns errors:
+         - Non-AJAX re-renders the form with errors.
+         - AJAX returns JSON with errors.
+        """
         self.login_applicant()
         post_data = {
             "first_name": "",
@@ -213,7 +212,7 @@ class ApplyForJobViewTests(TestCase):
             "work_end_date[]": [],
             "job_description[]": [],
         }
-        # Non-AJAX: re-render form with errors.
+        # Non-AJAX submission.
         response = self.client.post(self.apply_url, post_data)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "applicants_application.html")
@@ -221,15 +220,18 @@ class ApplyForJobViewTests(TestCase):
         form = response.context["form"]
         self.assertFalse(form.is_valid())
         
-        # AJAX: return JSON with errors.
+        # AJAX submission.
         response_ajax = self.client.post(self.apply_url, post_data, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
         self.assertEqual(response_ajax.status_code, 200)
         json_response = response_ajax.json()
         self.assertFalse(json_response.get("success"))
         self.assertIn("error", json_response)
-        
+
     def test_duplicate_application(self):
-        """If the applicant has already applied, they should be redirected to job_detail with an error message."""
+        """
+        If the applicant has already applied, they should be redirected
+        to the job detail page with an error message.
+        """
         self.login_applicant()
         # Create an existing application.
         Application.objects.create(applicant=self.applicant, job=self.job)
@@ -242,19 +244,19 @@ class ApplyForJobViewTests(TestCase):
             "address": "123 Main St",
             "school": "Test University",
             "degree": "Bachelor",
-            "discipline": "Computer Science",
+            "discipline": "bachelors",
             "start_date": "2020-01-01",
             "end_date": "2024-01-01",
             "linkedin_profile": "https://linkedin.com/in/johndoe",
             "portfolio_website": "https://johndoe.com",
-            "how_did_you_hear": "LinkedIn",
+            "how_did_you_hear": "linkedin",
             "current_job_title": "Intern",
             "current_employer": "TechCorp",
             "skills": "Python, Django, REST",
             # Dynamic fields.
             "school[]": ["Test University"],
             "degree[]": ["Bachelor"],
-            "discipline[]": ["Computer Science"],
+            "discipline[]": ["bachelors"],
             "start_date[]": ["2020-01-01"],
             "end_date[]": ["2024-01-01"],
             "work_job_title[]": ["Software Intern"],

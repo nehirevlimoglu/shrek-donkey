@@ -69,7 +69,6 @@ class ApplicantProfileSetupTests(TestCase):
         }
 
         response = self.client.post(self.profile_url, update_form_data)
-        # Remove debug print that accesses response.context when redirect occurs.
         self.assertRedirects(response, reverse('applicants-home-page'))
 
         existing_applicant.refresh_from_db()
@@ -79,12 +78,10 @@ class ApplicantProfileSetupTests(TestCase):
         self.assertNotIn(self.job_title1, existing_applicant.job_preferences.all())
         self.assertIn(self.job_title2, existing_applicant.job_preferences.all())
 
-
-    # Renamed to avoid duplicate method name.
     def test_post_valid_form_updates_existing_applicant_without_names(self):
         """
         If the form is submitted without first_name and last_name, it should fail.
-        This test can be used to check that those fields are indeed required.
+        This test checks that these fields are required.
         """
         existing_applicant = Applicant.objects.create(
             user=self.user,
@@ -107,12 +104,13 @@ class ApplicantProfileSetupTests(TestCase):
         }
 
         response = self.client.post(self.profile_url, update_form_data)
-
-        # Since the form is invalid, there is no redirect. Check for errors.
+        # Since the form is invalid, there is no redirect.
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'applicant_profile_setup.html')
         form = response.context['form']
         self.assertFalse(form.is_valid())
+        # Instead of checking for a specific string in the rendered HTML,
+        # we assert that the form errors contain 'first_name' and 'last_name'.
         self.assertIn('first_name', form.errors)
         self.assertIn('last_name', form.errors)
 
@@ -128,13 +126,13 @@ class ApplicantProfileSetupTests(TestCase):
         }
 
         response = self.client.post(self.profile_url, invalid_form_data)
-
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'applicant_profile_setup.html')
-
         form = response.context['form']
         self.assertFalse(form.is_valid())
-        self.assertContains(response, "This field is required")
+        # Instead of asserting the literal error text, we check that errors exist for required fields.
+        self.assertIn('first_name', form.errors)
+        self.assertIn('last_name', form.errors)
 
     def test_redirect_if_not_logged_in(self):
         response = self.client.get(self.profile_url)

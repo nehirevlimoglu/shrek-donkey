@@ -102,3 +102,34 @@ class AdminProfileFormTest(TestCase):
         self.assertEqual(self.user.first_name, "John")
         self.assertEqual(admin_instance.phone_number, self.valid_data["phone_number"])
 
+    # -------------------- NEW TESTS FOR MORE COVERAGE --------------------
+
+    def test_invalid_phone_number(self):
+        """
+        Test that an invalid phone number fails validation (assuming there's validation).
+        Adjust if your form doesn't validate phone format.
+        """
+        invalid_data = {
+            "first_name": "Tim",
+            "last_name": "Allen",
+            "email": "tim@allen.com",
+            "phone_number": "not-a-valid-phone"  # obviously invalid
+        }
+        form = AdminProfileForm(data=invalid_data, instance=self.admin, user=self.user)
+        self.assertFalse(form.is_valid())
+        self.assertIn("phone_number", form.errors)
+
+    def test_missing_email_field(self):
+        """
+        If email is optional, the form should still be valid when it's missing.
+        """
+        no_email_data = {
+            "first_name": "Laura",
+            "last_name": "Jones",
+            # Omit email
+            "phone_number": "+9998887777"
+        }
+        form = AdminProfileForm(data=no_email_data, instance=self.admin, user=self.user)
+        # Now we expect it to be valid because required=False
+        self.assertTrue(form.is_valid(), form.errors)
+

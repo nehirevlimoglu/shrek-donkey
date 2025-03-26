@@ -123,7 +123,6 @@ class AdminNotificationsViewTests(TestCase):
         # Calculate expected counts.
         total_count = Notification.objects.filter(is_deleted=False).count()
         unread_count = Notification.objects.filter(is_deleted=False, is_read=False).count()
-        feedback_count = Notification.objects.filter(is_deleted=False, notification_type="feedback").count()
         
         type_counts = {
             'general': Notification.objects.filter(is_deleted=False, notification_type="general").count(),
@@ -131,7 +130,6 @@ class AdminNotificationsViewTests(TestCase):
             'application': Notification.objects.filter(is_deleted=False, notification_type="application").count(),
             'user': Notification.objects.filter(is_deleted=False, notification_type="user").count(),
             'system': Notification.objects.filter(is_deleted=False, notification_type="system").count(),
-            'feedback': Notification.objects.filter(is_deleted=False, notification_type="feedback").count(),
         }
         
         priority_counts = {
@@ -143,6 +141,5 @@ class AdminNotificationsViewTests(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.context["total_count"], total_count)
         self.assertEqual(response.context["unread_count"], unread_count)
-        self.assertEqual(response.context["feedback_count"], feedback_count)
         self.assertEqual(response.context["type_counts"], type_counts)
         self.assertEqual(response.context["priority_counts"], priority_counts)

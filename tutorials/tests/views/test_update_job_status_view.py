@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 
 from tutorials.models.employer_models import Job, Employer
-from tutorials.models.employer_models import EmployerNotification
+from tutorials.models.admin_models import Notification  # Use Notification, not EmployerNotification
 
 User = get_user_model()
 
@@ -90,8 +90,9 @@ class UpdateJobStatusViewTests(TestCase):
         self.assertEqual(data.get("error"), "Job not found")
     
     def test_toggle_status_open(self):
-        """Test that new_status 'Open' sets the deadline to 30 days in the future.
-           Also, if current status is 'rejected', it should be reset to 'pending'.
+        """
+        Test that new_status 'Open' sets the deadline to 30 days in the future.
+        Also, if current status is 'rejected', it should be reset to 'pending'.
         """
         # Set initial job status to pending.
         self.job.status = "pending"
@@ -125,13 +126,14 @@ class UpdateJobStatusViewTests(TestCase):
         self.assertEqual(self.job.status, "pending")
 
     def test_toggle_status_approved(self):
-        """Test that new_status 'approved' sets job status to 'approved' and deadline is set to 30 days in the future if needed.
-           Also, a notification is sent.
+        """
+        Test that new_status 'approved' sets job status to 'approved' and deadline is set to 30 days in the future if needed.
+        Also, a notification is sent.
         """
         # Set the deadline to past to force update.
         self.job.application_deadline = timezone.now().date() - timedelta(days=5)
         self.job.save()
-        initial_notifications = EmployerNotification.objects.count()
+        initial_notifications = Notification.objects.count()
         
         response = self.post_update(self.job.id, "approved")
         self.assertEqual(response.status_code, 200)
@@ -143,7 +145,7 @@ class UpdateJobStatusViewTests(TestCase):
         self.assertEqual(self.job.application_deadline, expected_deadline)
         
         # Check that an approval notification was sent.
-        final_notifications = EmployerNotification.objects.count()
+        final_notifications = Notification.objects.count()
         self.assertEqual(final_notifications, initial_notifications + 1)
 
     def test_toggle_status_rejected(self):
@@ -159,7 +161,6 @@ class UpdateJobStatusViewTests(TestCase):
 
     def test_unrecognized_status(self):
         """Test that an unrecognized status doesn't break the view (and returns success)."""
-        # Record original deadline and status.
         original_deadline = self.job.application_deadline
         original_status = self.job.status
         response = self.post_update(self.job.id, "UnknownStatus")
