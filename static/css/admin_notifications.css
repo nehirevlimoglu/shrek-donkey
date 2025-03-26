@@ -1,3 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+
 body {
     min-height: 100vh;
     overflow-y: auto;
@@ -21,7 +27,7 @@ body {
 }
 
 .notifications-header h2 {
-    font-size: 40px;
+    font-size: 35px;
     color: #2d3748;
     font-weight: bold;
     margin: 0;

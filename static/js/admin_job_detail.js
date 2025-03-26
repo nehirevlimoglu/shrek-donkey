@@ -21,27 +21,37 @@ function setupJobActions() {
     if (deleteJobBtn) {
         deleteJobBtn.addEventListener('click', function() {
             const jobId = this.dataset.jobId;
-            if (confirm('Are you sure you want to delete this job listing? This action cannot be undone.')) {
-                fetch(`/admin_delete_job/${jobId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCsrfToken(),
-                        'Content-Type': 'application/json'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success || data.status === 'success') {
-                        window.location.href = '/admin_job_listings/';
-                    } else {
-                        alert('Error deleting job: ' + (data.error || 'Unknown error'));
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while deleting the job.');
-                });
-            }
+            showConfirmationModal({
+                title: 'Delete Job?',
+                message: 'Are you sure you want to delete this job listing? This action cannot be undone.',
+                onConfirm: () => {
+                    fetch(`/admin_delete_job/${jobId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCsrfToken(),
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success || data.status === 'success') {
+                            window.location.href = '/admin_job_listings/';
+                        } else {
+                            showConfirmationModal({
+                                title: 'Error Deleting Job',
+                                message: data.error || 'Unknown error'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showConfirmationModal({
+                            title: 'Error',
+                            message: 'An error occurred while deleting the job.'
+                        });
+                    });
+                }
+            });
         });
     }
     
@@ -49,9 +59,14 @@ function setupJobActions() {
     const closeJobBtn = document.querySelector('.close-job');
     if (closeJobBtn) {
         closeJobBtn.addEventListener('click', function() {
-            if (confirm('Are you sure you want to close this job?')) {
-                updateJobStatus(this.dataset.jobId, 'Closed');
-            }
+            const jobId = this.dataset.jobId;
+            showConfirmationModal({
+                title: 'Close Job?',
+                message: 'Are you sure you want to close this job?',
+                onConfirm: () => {
+                    updateJobStatus(jobId, 'Closed');
+                }
+            });
         });
     }
     
@@ -59,9 +74,14 @@ function setupJobActions() {
     const reopenJobBtn = document.querySelector('.reopen-job');
     if (reopenJobBtn) {
         reopenJobBtn.addEventListener('click', function() {
-            if (confirm('Are you sure you want to reopen this job?')) {
-                updateJobStatus(this.dataset.jobId, 'Open');
-            }
+            const jobId = this.dataset.jobId;
+            showConfirmationModal({
+                title: 'Reopen Job?',
+                message: 'Are you sure you want to reopen this job?',
+                onConfirm: () => {
+                    updateJobStatus(jobId, 'Open');
+                }
+            });
         });
     }
     
@@ -69,9 +89,14 @@ function setupJobActions() {
     const approveJobBtn = document.querySelector('.approve-job');
     if (approveJobBtn) {
         approveJobBtn.addEventListener('click', function() {
-            if (confirm('Are you sure you want to approve this job?')) {
-                updateJobStatus(this.dataset.jobId, 'Approved');
-            }
+            const jobId = this.dataset.jobId;
+            showConfirmationModal({
+                title: 'Approve Job?',
+                message: 'Are you sure you want to approve this job?',
+                onConfirm: () => {
+                    updateJobStatus(jobId, 'Approved');
+                }
+            });
         });
     }
 }
@@ -85,9 +110,7 @@ function updateJobStatus(jobId, status) {
             'X-CSRFToken': getCsrfToken(),
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 
-            status: status 
-        })
+        body: JSON.stringify({ status: status })
     })
     .then(response => {
         console.log(`Received response with status: ${response.status}`);
@@ -96,31 +119,30 @@ function updateJobStatus(jobId, status) {
     .then(data => {
         console.log('Response data:', data);
         if (data.success) {
-            // Update UI directly instead of just refreshing the page
             updateJobStatusUI(status);
-            
-            // Schedule a page reload after a delay to get complete updates
             console.log('Scheduling page reload in 1.5 seconds...');
             setTimeout(() => {
                 console.log('Reloading page now...');
                 window.location.reload();
             }, 1500);
         } else {
-            alert('Error updating job status: ' + (data.error || 'Unknown error'));
+            showConfirmationModal({
+                title: 'Error Updating Job Status',
+                message: data.error || 'Unknown error'
+            });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred while updating the job status.');
+        showConfirmationModal({
+            title: 'Error',
+            message: 'An error occurred while updating the job status.'
+        });
     });
 }
 
-
 function updateJobStatusUI(status) {
-    
     console.log(`Updating UI for status: ${status}`);
-    
-    
     const statusBadge = document.querySelector('.job-header .badge');
     if (statusBadge) {
         if (status === 'Open') {
@@ -134,7 +156,6 @@ function updateJobStatusUI(status) {
             statusBadge.classList.add('closed');
             console.log('Updated badge to Closed');
         } else if (status === 'Approved') {
-            
             const approvalStatus = document.querySelector('.approval-status');
             if (approvalStatus) {
                 approvalStatus.textContent = 'Approved';
@@ -147,10 +168,8 @@ function updateJobStatusUI(status) {
         console.warn('Status badge not found in the DOM');
     }
     
-    
     const closeJobBtn = document.querySelector('.close-job');
     const reopenJobBtn = document.querySelector('.reopen-job');
-    
     if (closeJobBtn && reopenJobBtn) {
         if (status === 'Open') {
             closeJobBtn.style.display = 'inline-block';
@@ -165,7 +184,6 @@ function updateJobStatusUI(status) {
         console.warn('Close/Reopen buttons not found in the DOM');
     }
     
-    
     if (status === 'Approved') {
         const approveJobBtn = document.querySelector('.approve-job');
         if (approveJobBtn) {
@@ -176,7 +194,6 @@ function updateJobStatusUI(status) {
 }
 
 function setupCandidateView() {
-    // View candidate buttons
     const viewCandidateBtns = document.querySelectorAll('.view-candidate-btn');
     viewCandidateBtns.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -197,14 +214,16 @@ function setupCandidateView() {
                 })
                 .catch(error => {
                     console.error('Error fetching candidate info:', error);
-                    alert('An error occurred while fetching candidate information.');
+                    showConfirmationModal({
+                        title: 'Error',
+                        message: 'An error occurred while fetching candidate information.'
+                    });
                 });
         });
     });
 }
 
 function displayCandidateModal(candidateData) {
-    // Create modal if it doesn't exist
     let modal = document.getElementById('candidateModal');
     if (!modal) {
         modal = document.createElement('div');
@@ -230,22 +249,19 @@ function displayCandidateModal(candidateData) {
         modal.appendChild(modalContent);
         document.body.appendChild(modal);
         
-        // Close modal when clicking outside
-        window.onclick = function(event) {
+        window.addEventListener('click', function(event) {
             if (event.target === modal) {
                 modal.style.display = 'none';
             }
-        };
+        });
     }
     
-    // Update modal content with candidate data
     const candidateInfo = document.getElementById('candidateInfo');
     candidateInfo.innerHTML = `
         <h2>${candidateData.name || 'Candidate'}</h2>
         <div class="info-item"><strong>Email:</strong> ${candidateData.email || 'Not provided'}</div>
         <div class="info-item"><strong>Applied On:</strong> ${candidateData.application_date || 'Unknown'}</div>
         <div class="info-item"><strong>Status:</strong> ${candidateData.status || 'Pending'}</div>
-        
         <div class="status-update">
             <h3>Update Application Status</h3>
             <select id="applicationStatus">
@@ -258,7 +274,6 @@ function displayCandidateModal(candidateData) {
         </div>
     `;
     
-    // Add event listener for status update button
     const updateBtn = candidateInfo.querySelector('.update-btn');
     updateBtn.addEventListener('click', function() {
         const candidateId = this.dataset.candidateId;
@@ -283,28 +298,108 @@ function displayCandidateModal(candidateData) {
         .then(data => {
             console.log('Update status response data:', data);
             if (data.success) {
-                // Close modal and reload page to see updated status
                 modal.style.display = 'none';
                 window.location.reload();
             } else {
-                alert('Error updating status: ' + (data.error || 'Unknown error'));
+                showConfirmationModal({
+                    title: 'Error Updating Status',
+                    message: data.error || 'Unknown error'
+                });
             }
         })
         .catch(error => {
             console.error('Error updating candidate status:', error);
-            alert('An error occurred while updating the candidate status.');
+            showConfirmationModal({
+                title: 'Error',
+                message: 'An error occurred while updating the candidate status.'
+            });
         });
     });
     
-    // Show the modal
     modal.style.display = 'block';
 }
 
-// Helper function to get CSRF token from cookies
 function getCsrfToken() {
     const cookieValue = document.cookie
         .split('; ')
         .find(row => row.startsWith('csrftoken='))
         ?.split('=')[1];
     return cookieValue;
-} 
+}
+
+// Custom confirmation modal function
+function showConfirmationModal(options) {
+    let confirmModal = document.getElementById('confirmModal');
+    if (!confirmModal) {
+        // Create the modal
+        confirmModal = document.createElement('div');
+        confirmModal.id = 'confirmModal';
+        confirmModal.className = 'modal';
+        
+        const modalContent = document.createElement('div');
+        modalContent.className = 'modal-content';
+        
+        const closeBtn = document.createElement('span');
+        closeBtn.className = 'close';
+        closeBtn.innerHTML = '&times;';
+        closeBtn.onclick = () => { confirmModal.style.display = 'none'; };
+        
+        const titleElem = document.createElement('h2');
+        titleElem.id = 'confirmModalTitle';
+        
+        const messageElem = document.createElement('p');
+        messageElem.id = 'confirmModalMessage';
+        
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'confirm-actions';
+        
+        const yesBtn = document.createElement('button');
+        yesBtn.id = 'confirmModalYes';
+        yesBtn.className = 'update-btn';
+        yesBtn.textContent = 'Confirm';
+        
+        const noBtn = document.createElement('button');
+        noBtn.id = 'confirmModalNo';
+        noBtn.className = 'update-btn';
+        noBtn.textContent = 'Cancel';
+        
+        actionsDiv.appendChild(yesBtn);
+        actionsDiv.appendChild(noBtn);
+        
+        modalContent.appendChild(closeBtn);
+        modalContent.appendChild(titleElem);
+        modalContent.appendChild(messageElem);
+        modalContent.appendChild(actionsDiv);
+        
+        confirmModal.appendChild(modalContent);
+        document.body.appendChild(confirmModal);
+        
+        window.addEventListener('click', function(event) {
+            if (event.target === confirmModal) {
+                confirmModal.style.display = 'none';
+            }
+        });
+    }
+    
+    // Set the modal title and message
+    document.getElementById('confirmModalTitle').textContent = options.title || 'Confirm';
+    document.getElementById('confirmModalMessage').textContent = options.message || 'Are you sure?';
+    
+    // Display the modal
+    confirmModal.style.display = 'block';
+    
+    // Set up the button actions
+    document.getElementById('confirmModalYes').onclick = function() {
+        confirmModal.style.display = 'none';
+        if (options.onConfirm && typeof options.onConfirm === 'function') {
+            options.onConfirm();
+        }
+    };
+    
+    document.getElementById('confirmModalNo').onclick = function() {
+        confirmModal.style.display = 'none';
+        if (options.onCancel && typeof options.onCancel === 'function') {
+            options.onCancel();
+        }
+    };
+}
