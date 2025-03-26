@@ -25,8 +25,6 @@ user_fixtures = [
 ]
 
 class Command(BaseCommand):
-    """Automatically seeds Employers, Admins, and Applicants into the database."""
-
     USER_COUNT = 25
     EMPLOYER_COUNT = 5
     APPLICANT_COUNT = 15
@@ -38,21 +36,21 @@ class Command(BaseCommand):
         self.faker = Faker('en_GB')
 
     def handle(self, *args, **options):
-        self.create_users()  # from fixtures + random
-        print("\n✅ Seeding complete. Summary:")
-        self.list_all_users()
-
+        self.create_users()
         self.create_jobs()
         self.create_candidates()
         self.create_interviews()
+        # You can add more methods here later like:
+        # self.create_applications()
+        # self.create_notifications()
+        # self.create_admin_preferences()
+        # self.create_applicant_notifications()
+        # self.create_employer_notifications()
+        # self.create_employer_events()
+        self.list_all_users()
+        print("\n✅ Seeding complete.")
 
-        print("Seeding complete.")
-
-    # ---------------------------
-    # Create users
-    # ---------------------------
     def create_users(self):
-        """Creates users from fixtures, then random ones."""
         self.generate_user_fixtures()
         self.generate_random_users()
 
@@ -85,7 +83,6 @@ class Command(BaseCommand):
         last_name = self.faker.last_name()
         email = self.create_email(first_name, last_name)
 
-        # Ensure unique email
         while User.objects.filter(email=email).exists():
             first_name = self.faker.first_name()
             last_name = self.faker.last_name()
@@ -124,7 +121,6 @@ class Command(BaseCommand):
         if created:
             print(f"Created User: {user.username} (role={user.role})")
 
-        # Create role-specific profiles
         if user.role == 'Employer':
             self.create_employer_profile(user)
         elif user.role == 'Applicant':
@@ -133,14 +129,13 @@ class Command(BaseCommand):
             self.create_admin_profile(user)
 
     def create_employer_profile(self, user):
-        """Creates an Employer profile with a fake website."""
         if not Employer.objects.filter(user=user).exists():
             Employer.objects.create(
                 user=user,
                 username=user.username,
                 email=user.email,
                 company_name=f"{user.first_name} {user.last_name} Corp",
-                company_website=self.faker.url(),  # Populate the new website field
+                company_website=self.faker.url(),
                 company_location=self.faker.city(),
                 industry="Tech",
                 company_size=random.randint(1, 500),
@@ -151,24 +146,19 @@ class Command(BaseCommand):
             print(f"Created Employer profile for {user.username}")
 
     def create_applicant_profile(self, user):
-        """Creates an Applicant profile with a CV and sets job preferences."""
         if not Applicant.objects.filter(user=user).exists():
             applicant = Applicant.objects.create(
                 user=user,
                 degree="Computer Science",
                 salary_preferences="$50,000-$70,000",
                 location_preferences="Remote",
-                # Provide a placeholder file path for CV (FileField)
                 cv="uploads/cv/dummy_cv.pdf"
             )
-            # Set job preferences (ManyToMany)
             job_titles = JobTitle.objects.filter(title__icontains="Software")[:3]
             applicant.job_preferences.set(job_titles)
-
             print(f"Created Applicant profile for {user.username}")
 
     def create_admin_profile(self, user):
-        """Creates an Admin profile with a fake phone number."""
         if not Admin.objects.filter(user=user).exists():
             Admin.objects.create(
                 user=user,
@@ -176,17 +166,15 @@ class Command(BaseCommand):
                 email=user.email,
                 first_name=user.first_name,
                 last_name=user.last_name,
-                phone_number=self.faker.phone_number()  # Populate phone number
+                phone_number=self.faker.phone_number()
             )
             print(f"Created Admin profile for {user.username}")
 
-    # ---------------------------
-    # Create Jobs, Candidates, Interviews
-    # ---------------------------
     def create_jobs(self):
         for employer in Employer.objects.all():
             for _ in range(3):
                 title = self.faker.job()
+                is_approved = random.choice([True, False])  # ✅ Randomly approve some jobs
                 job = Job.objects.create(
                     employer=employer,
                     title=title,
@@ -198,8 +186,9 @@ class Command(BaseCommand):
                     requirements="Sample requirements",
                     benefits="Some benefits",
                     contact_email=employer.user.email,
+                    status="approved" if is_approved else "pending",  # ✅ Randomized status
                 )
-                print(f"Created Job '{job.title}' for employer {employer.user.username}")
+                print(f"Created Job '{job.title}' for {employer.user.username} (Status: {job.status})")
 
     def create_candidates(self):
         jobs = list(Job.objects.all())
@@ -238,7 +227,6 @@ class Command(BaseCommand):
         print("\n🔹 **Admins:**")
         for admin in User.objects.filter(role="Admin"):
             print(f"  ✅ {admin.username} | {admin.email}")
-            # Optionally show phone
             try:
                 admin_profile = Admin.objects.get(user=admin)
                 print(f"     Phone: {admin_profile.phone_number}")
@@ -257,10 +245,8 @@ class Command(BaseCommand):
 
     @staticmethod
     def create_username(first_name, last_name):
-        """Creates a username in the format '@firstname_lastname'"""
         return f"@{first_name.lower()}{last_name.lower()}"
 
     @staticmethod
     def create_email(first_name, last_name):
-        """Creates an email in the format 'firstname.lastname@example.com'"""
         return f"{first_name.lower()}.{last_name.lower()}@example.com"
