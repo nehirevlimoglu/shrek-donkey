@@ -170,3 +170,153 @@
     border-radius: 4px;
     cursor: pointer;
 } 
+
+/* Reuse your existing modal styles, or adapt them here */
+
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 5px;
+    width: 80%;
+    max-width: 600px;
+    position: relative;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: -10px;
+}
+
+.close:hover {
+    color: black;
+}
+
+.confirm-actions {
+    text-align: right;
+    margin-top: 20px;
+}
+
+/* Buttons inside the modal */
+.update-btn {
+    background-color: #4a6cf7;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.update-btn:hover {
+    background-color: #3954c7;
+}
+
+/* Make sure the modal covers the entire viewport and is on top */
+.modal { 
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999999 !important;
+    pointer-events: auto !important;
+}
+
+/* The white box that appears in the center */
+.modal-content {
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+/* Close (X) button in the top-right corner */
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    color: #666; /* Gray so it's visible against white */
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #000;
+}
+
+/* Title styling (the <h2> in the modal) */
+.modal-content h2 {
+    margin: 0 0 10px;
+    font-size: 1.5rem;
+}
+
+/* The message text (the <p> in the modal) */
+.modal-content p {
+    font-size: 1rem;
+    margin: 0 0 20px;
+    line-height: 1.4;
+}
+
+/* Container for the Confirm/Cancel buttons */
+.confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* Confirm/Cancel buttons */
+#confirmModalYes,
+#confirmModalNo {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Confirm button */
+#confirmModalYes {
+    background-color: #1a73e8;
+    color: #fff;
+    transition: background 0.3s ease;
+}
+
+#confirmModalYes:hover {
+    background-color: #1558b5;
+}
+
+/* Cancel button */
+#confirmModalNo {
+    background-color: #e2e8f0;
+    color: #1a202c;
+    transition: background 0.3s ease;
+}
+
+#confirmModalNo:hover {
+    background-color: #cbd5e0;
+}
