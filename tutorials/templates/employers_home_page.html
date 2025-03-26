@@ -50,15 +50,15 @@
                     <td>{{ application.job.title }}</td>
                     <td>
                         {% if application.application_status == "Pending" %}
-                            <span class="status-badge under-review">Under Review</span>
+                            <span>Under Review</span>
                         {% elif application.application_status == "Interview" %}
-                            <span class="status-badge interviewed">Interview Scheduled</span>
+                            <span>Interview Scheduled</span>
                         {% elif application.application_status == "Hired" %}
-                            <span class="status-badge hired">Hired</span>
+                            <span>Hired</span>
                         {% elif application.application_status == "Rejected" %}
-                            <span class="status-badge rejected">Rejected</span>
+                            <span>Rejected</span>
                         {% else %}
-                            <span class="status-badge">Pending</span>
+                            <span>Pending</span>
                         {% endif %}
                     </td>
                 </tr>

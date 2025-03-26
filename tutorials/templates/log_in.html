@@ -46,15 +46,13 @@
         <h2>Log In</h2>
         
         {% if messages %}
-          <ul class="messages">
             {% for message in messages %}
-              <li>{{ message }}</li>
+            <div class="login-error">{{ message }}</div>
             {% endfor %}
-          </ul>
-        {% endif %}
+        {% endif %}    
 
         <form method="POST" action="{% url 'log_in' %}">
-          {% csrf_token %}
+
           <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
           
           <input type="text" name="username" placeholder="Username" required>

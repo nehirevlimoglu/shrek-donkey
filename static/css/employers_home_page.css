@@ -296,19 +296,3 @@ table td {
     background-color: #6c757d; /* Default "Pending" color or neutral gray */
 }
 
-/* Different statuses */
-.status-badge.under-review {
-    background-color: #f0ad4e; /* e.g., orange-ish */
-}
-
-.status-badge.interviewed {
-    background-color: #0275d8; /* e.g., blue */
-}
-
-.status-badge.hired {
-    background-color: #5cb85c; /* green */
-}
-
-.status-badge.rejected {
-    background-color: #d9534f; /* red */
-}
