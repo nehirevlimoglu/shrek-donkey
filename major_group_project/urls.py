@@ -2,8 +2,8 @@ from django.contrib import admin
 from django.urls import path, include
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites 
 from tutorials.views.views import log_in, log_out, sign_up, job_matching_view 
-from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, get_active_users_data, admin_job_detail, admin_edit_job, admin_delete_job, admin_toggle_job_status, admin_applications_view, generate_test_notifications, get_candidate_info, update_candidate_status
-from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_candidates, get_interviews, delete_account, schedule_interview, interview_detail, reschedule_interview
+from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, get_active_users_data, admin_job_detail, admin_edit_job, admin_delete_job, admin_toggle_job_status, admin_applications_view, generate_test_notifications, get_candidate_info, update_candidate_status, admin_notifications, admin_notifications_count, admin_notifications_stats, generate_admin_notification, mark_notification_as_read as admin_mark_notification_as_read, mark_notification_as_unread, mark_all_notifications_as_read, delete_notification, delete_all_notifications
+from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_candidates, get_interviews, delete_account, schedule_interview, interview_detail, reschedule_interview, mark_notification_as_read as employer_mark_notification_as_read
 
 from tutorials.views.applicant_views import toggle_favorite
 
@@ -15,7 +15,7 @@ from tutorials.views.applicant_views import applicants_home_page, applicants_acc
 from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications,  update_job_status, admin_settings
 from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view, employer_calendar, employer_candidates, get_interviews, delete_account, employer_notifications, get_employer_events, review_application, applicant_profile, schedule_interview, accept_candidate, reject_candidate
 from tutorials.views.applicant_views import applicants_home_page, applicants_account, applicants_applied_jobs, applicants_favourites, applicants_notifications, applicants_edit_profile, applicants_analytics
-from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications, admin_applications_view, admin_notifications_count, generate_admin_notification, mark_notification_as_read, mark_all_notifications_as_read, delete_notification, delete_all_notifications, generate_test_notifications
+from tutorials.views.admin_views import admin_home_page, admin_job_listings, admin_settings, admin_notifications, admin_applications_view, admin_notifications_count, admin_notifications_stats, generate_admin_notification, mark_notification_as_read, mark_notification_as_unread, mark_all_notifications_as_read, delete_notification, delete_all_notifications, generate_test_notifications
 from tutorials.views.employer_views import employer_home_page, view_employer_analytics, employer_settings, employer_settings, employer_job_listings, create_job_listings, job_detail_view, edit_job_view,  employer_candidates, get_interviews,  delete_account
 from tutorials.models.applicants_models import Applicant
 from tutorials.views.views import sign_up, applicant_profile_setup, employer_profile_setup
@@ -61,11 +61,13 @@ urlpatterns = [
 
     path('admin_notifications/', admin_notifications, name='admin_notifications'),
     path('admin_notifications/count/', admin_notifications_count, name='admin_notifications_count'),
+    path('admin_notifications/stats/', admin_notifications_stats, name='admin_notifications_stats'),
     path('admin_notifications/generate/', generate_admin_notification, name='admin_notifications_generate'),
     path('admin_notifications/generate_test/', generate_test_notifications, name='admin_notifications_generate_test'),
-    path('admin_notifications/mark_read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
-    path('admin_notifications/delete/<int:notification_id>/', delete_notification, name='delete_notification'),
-    path('clear-all-notifications/', delete_all_notifications, name='clear_all_notifications'),
+    path('admin_notifications/mark_read/<int:notification_id>/', admin_mark_notification_as_read, name='admin_mark_notification_as_read'),
+    path('admin_notifications/mark_unread/<int:notification_id>/', mark_notification_as_unread, name='admin_mark_notification_as_unread'),
+    path('admin_notifications/delete/<int:notification_id>/', delete_notification, name='admin_delete_notification'),
+    path('clear-all-notifications/', delete_all_notifications, name='admin_clear_all_notifications'),
     path('admin_applications_view/', admin_applications_view, name='admin_applications_view'),
     path('employer_home_page', employer_home_page, name='employer_home_page'),
     path('create_job_listings', create_job_listings, name='create_job_listings'),
@@ -79,7 +81,7 @@ urlpatterns = [
     path('admin_settings/', admin_settings, name='admin_settings'),
     path('employer_settings/', employer_settings, name='employer_settings'),
     path('employer_notifications/', employer_notifications, name='employer_notifications'),
-    path('mark-notification-read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
+    path('employer-notifications/mark-read/<int:notification_id>/', employer_mark_notification_as_read, name='employer_mark_notification_as_read'),
     path('admin/mark-all-notifications-read/', mark_all_notifications_as_read, name='mark_all_notifications_as_read'),
 
 
@@ -99,7 +101,6 @@ urlpatterns = [
     path('employer-notifications/', employer_notifications, name='employer_notifications'),
     path('get-employer-events/', get_employer_events, name='get_employer_events'),
     path('review-application/<int:application_id>/', review_application, name='review_application'),
-    path('mark-notification-read/<int:notification_id>/', mark_notification_as_read, name='mark_notification_as_read'),
     path('applicants/<int:applicant_id>/', applicant_profile, name='applicant_profile'),
     path('interviews/schedule/<int:applicant_id>/', schedule_interview, name='schedule_interview'),
     path('get-interview-events/', get_interviews, name='get_interview_events'),
@@ -117,8 +118,6 @@ urlpatterns = [
     path('toggle-favorite/', toggle_favorite, name='toggle_favorite'),
     path('admin_settings/', admin_settings, name='admin_settings'),
 
-    
-    
     ]
 
 

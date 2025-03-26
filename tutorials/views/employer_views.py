@@ -26,6 +26,8 @@ from tutorials.utils import match_candidates_to_job
 from datetime import datetime, date
 from tutorials.helpers import clear_feedback_messages
 from django.db.models.functions import Lower
+from django.contrib.auth import update_session_auth_hash
+
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +139,7 @@ def employer_settings(request):
             if form.is_valid():
                 form.save()
                 request.user.refresh_from_db()  # to reflect updated names immediately
-                messages.success(request, "Company profile updated successfully.")
+                messages.add_message(request, messages.SUCCESS, "Company profile updated successfully.", extra_tags="profile_edit")
                 return redirect('employer_settings')  # or redirect with ?tab=profile
         else:
             form = EmployerProfileForm(instance=employer, user=request.user)
@@ -151,8 +153,8 @@ def employer_settings(request):
             if form.is_valid():
                 user = form.save()
                 update_session_auth_hash(request, user)
-                messages.success(request, "Password changed successfully.")
-                return redirect('applicants-account')
+                messages.success(request, "Password changed successfully.", extra_tags="profile_edit")
+                return redirect('employer_settings')
 
     context = {
         'tab': tab,
@@ -523,58 +525,27 @@ def applicant_profile(request, applicant_id):
             "latest_interview": latest_interview,
         }
     )
-@login_required
-def applicant_profile(request, applicant_id):
-    try:
-        candidate = Candidate.objects.get(id=applicant_id)
-    except Candidate.DoesNotExist:
-        return HttpResponse("Candidate does not exist.", status=404)
-
-    try:
-        applicant_obj = Applicant.objects.get(user=candidate.user)
-    except Applicant.DoesNotExist:
-        return HttpResponse("Applicant profile not found.", status=404)
-
-    try:
-        application = Application.objects.get(applicant=applicant_obj, job=candidate.job)
-    except Application.DoesNotExist:
-        application = None
-
-    # Handle POST: update candidate status if provided and valid, then redirect.
-    if request.method == "POST":
-        new_status = request.POST.get("status")
-        valid_statuses = ["Hired", "Rejected", "Pending", "under_review"]
-        if new_status in valid_statuses:
-            candidate.application_status = new_status
-            candidate.save()
-        return redirect("applicant_profile", applicant_id=applicant_id)
-
-    # For GET: compute duration for each work_experience entry.
-    if application and application.work_experience:
-        for work in application.work_experience:
-            start = work.get("work_start_date")
-            end = work.get("work_end_date")
-            work["duration"] = calculate_duration(start, end)
-
-    # Only get interviews that belong to this exact candidate.
-    latest_interview = Interview.objects.filter(candidate=candidate).order_by('-date', '-time').first()
-
-    return render(
-        request,
-        "applicant_profile.html",
-        {
-            "candidate": candidate,
-            "application": application,
-            "latest_interview": latest_interview,
-        }
-    )
 
 @csrf_exempt
 @login_required
 def mark_notification_as_read(request, notification_id):
+    """Mark a notification as read for an employer"""
     try:
-        employer = Employer.objects.get(user=request.user)
-        notification = EmployerNotification.objects.get(id=notification_id, employer=employer)
+        # First check if user is an employer
+        if request.user.role != 'Employer':
+            return JsonResponse({"success": False, "error": "User is not an employer"}, status=403)
+        
+        # Then try to get the employer object
+        try:
+            employer = Employer.objects.get(user=request.user)
+        except Employer.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Employer not found"}, status=403)
+        
+        # Try to get the notification
+        try:
+            notification = EmployerNotification.objects.get(id=notification_id, employer=employer)
+        except EmployerNotification.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
 
         if request.method == "POST":
             notification.is_read = True
@@ -583,10 +554,11 @@ def mark_notification_as_read(request, notification_id):
 
         return JsonResponse({"success": False, "error": "Invalid request method"}, status=405)
 
-    except Employer.DoesNotExist:
-        return JsonResponse({"success": False, "error": "Employer not found"}, status=403)
-    except EmployerNotification.DoesNotExist:
-        return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] Exception in employer mark_notification_as_read: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
 @login_required

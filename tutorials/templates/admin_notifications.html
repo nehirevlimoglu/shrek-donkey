@@ -13,9 +13,7 @@
 <div class="notifications-header">
     <h2>Notifications</h2>
     <div class="notifications-actions">
-        {% if unread_count > 0 %}
-        <button id="markAllReadBtn" class="btn btn-secondary">Mark All as Read</button>
-        {% endif %}
+        
         <button id="deleteAllBtn" class="btn btn-danger">Clear All</button>
     </div>
 </div>
@@ -102,7 +100,7 @@
 <div class="notifications-list">
     {% if notifications %}
         {% for notification in notifications %}
-        <div class="notification-card {% if not notification.is_read %}unread{% endif %} {% if notification.notification_type == 'feedback' %}feedback-card{% endif %}" data-id="{{ notification.id }}">
+        <div id="notification-{{ notification.id }}" class="notification-card {% if not notification.is_read %}unread{% endif %} {% if notification.notification_type == 'feedback' %}feedback-card{% endif %}" data-id="{{ notification.id }}">
             <div class="notification-indicators">
                 {% if notification.priority == 'high' %}
                 <span class="priority-indicator high" title="High Priority">!</span>
@@ -159,8 +157,9 @@
             <div class="notification-actions">
                 {% if not notification.is_read %}
                 <button class="mark-read-btn" data-id="{{ notification.id }}" title="Mark as Read">✓</button>
+                {% else %}
+                <button class="mark-unread-btn" data-id="{{ notification.id }}" title="Mark as Unread">↻</button>
                 {% endif %}
-                <button class="delete-btn" data-id="{{ notification.id }}" title="Delete">×</button>
             </div>
         </div>
         {% endfor %}

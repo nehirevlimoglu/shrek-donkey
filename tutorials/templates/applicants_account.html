@@ -16,10 +16,12 @@
 
     {% if messages %}
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
+            {% if 'profile_edit' in message.tags %}
+                <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
         {% endfor %}
     {% endif %}
 
@@ -46,7 +48,6 @@
                     <a href="?tab=password" class="list-group-item list-group-item-action {% if tab == 'password' %}active{% endif %}">
                         <i class="bi bi-lock-fill me-2"></i> Change Password
                     </a>
-
                 </div>
             </div>
 
@@ -59,7 +60,7 @@
             </div>
         </div>
 
-        <!-- Profile View Tab (readonly view) -->
+        <!-- Profile View Tab -->
         <div class="card {% if tab != 'profile' %}d-none{% endif %}" id="profile-tab">
             <div class="card-header bg-light">
                 <h5 class="mb-0"><i class="bi bi-person-fill me-2"></i>Profile Information</h5>
@@ -71,7 +72,6 @@
                 <p><strong>Degree:</strong> {{ applicant.degree|default:"—" }}</p>
                 <p><strong>Salary Preferences:</strong> {{ applicant.salary_preferences|default:"—" }}</p>
                 <p><strong>Location Preferences:</strong> {{ applicant.location_preferences|default:"—" }}</p>
-
                 <p><strong>Job Preferences:</strong></p>
                 {% if applicant.job_preferences.all %}
                     <ul>
@@ -82,20 +82,12 @@
                 {% else %}
                     <p class="text-muted">No preferences selected.</p>
                 {% endif %}
-
-                <p><strong>CV:</strong>
-                    {% if applicant.cv %}
-                        <a href="{{ applicant.cv.url }}" target="_blank">Download CV</a>
-                    {% else %}
-                        <span class="text-muted">No CV uploaded.</span>
-                {% endif %}
-                </p>
             </div>
         </div>
 
-
+        <!-- Editable Tabs -->
         <div class="col-md-9">
-            <!-- Profile Settings Tab (readonly view) -->
+            <!-- Edit Profile Settings Tab -->
             <div class="card {% if tab != 'edit_profile' %}d-none{% endif %}" id="edit-profile-settings">
                 <div class="card-header bg-light">
                     <h5 class="mb-0"><i class="bi bi-pencil-fill me-2"></i>Edit Profile</h5>
@@ -127,7 +119,6 @@
                             </div>
                         </div>
                         
-
                         <div class="mb-3">
                             <label for="degree" class="form-label">Degree</label>
                             <input type="text" class="form-control" id="degree" name="degree" value="{{ applicant.degree|default_if_none:'' }}">
@@ -148,21 +139,9 @@
                             {% endfor %}
                         </select>
 
-                        
-
                         <div class="mb-3">
                             <label for="location_preferences" class="form-label">Location Preferences</label>
                             <input type="text" class="form-control" id="location_preferences" name="location_preferences" value="{{ applicant.location_preferences|default_if_none:'' }}">
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="cv" class="form-label">Upload CV</label>
-                            <input type="file" class="form-control" id="cv" name="cv">
-                            {% if applicant.cv %}
-                                <p class="mt-2">Uploaded CV: <a href="{{ applicant.cv.url }}" target="_blank">Download CV</a></p>
-                            {% else %}
-                                <p class="mt-2 text-muted">No CV uploaded yet.</p>
-                            {% endif %}
                         </div>
 
                         <div class="d-grid">
@@ -173,8 +152,6 @@
                     </form>
                 </div>
             </div>
-
-
 
             <!-- Password Change Tab -->
             <div class="card {% if tab != 'password' %}d-none{% endif %}" id="password-tab">
@@ -212,7 +189,6 @@
                     </form>
                 </div>
             </div>
-
         </div>
     </div>
 </div>

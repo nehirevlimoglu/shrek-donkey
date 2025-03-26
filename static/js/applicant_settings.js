@@ -1,27 +1,23 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching event listeners (placeholder for potential future enhancements)
     const tabLinks = document.querySelectorAll('.list-group-item-action');
-    
-    // Handle tab switching
     tabLinks.forEach(link => {
         link.addEventListener('click', function(e) {
-            // The default link behavior (URL parameter) will handle the tab switching
-            // This is just a hook for potential future enhancements
+            // URL parameters handle the tab switching.
         });
     });
-    
+
     // Password validation
     const passwordForm = document.querySelector('form[name="change_password"]');
     if (passwordForm) {
         const newPasswordInput = document.getElementById('new_password');
         const confirmPasswordInput = document.getElementById('confirm_password');
-        const submitButton = passwordForm.querySelector('button[type="submit"]');
         
-        // Function to validate password
         function validatePassword() {
             const newPassword = newPasswordInput.value;
             const confirmPassword = confirmPasswordInput.value;
             
-            // Check password length
+            // Validate password length
             if (newPassword.length < 8) {
                 newPasswordInput.classList.add('is-invalid');
                 newPasswordInput.setCustomValidity('Password must be at least 8 characters long');
@@ -30,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 newPasswordInput.setCustomValidity('');
             }
             
-            // Check if passwords match
+            // Validate matching passwords
             if (newPassword !== confirmPassword && confirmPassword.length > 0) {
                 confirmPasswordInput.classList.add('is-invalid');
                 confirmPasswordInput.setCustomValidity('Passwords do not match');
@@ -40,23 +36,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Add event listeners for password validation
         newPasswordInput.addEventListener('input', validatePassword);
         confirmPasswordInput.addEventListener('input', validatePassword);
         
-        // Form submission validation
         passwordForm.addEventListener('submit', function(e) {
             validatePassword();
-            
             if (!passwordForm.checkValidity()) {
                 e.preventDefault();
                 e.stopPropagation();
             }
-            
             passwordForm.classList.add('was-validated');
         });
     }
-    // Auto-dismiss alerts after 5 seconds
+
+    // Auto-dismiss alerts after 5 seconds (except danger alerts)
     const alerts = document.querySelectorAll('.alert:not(.alert-danger)');
     alerts.forEach(alert => {
         setTimeout(() => {
@@ -64,4 +57,4 @@ document.addEventListener('DOMContentLoaded', function() {
             if (closeButton) closeButton.click();
         }, 5000);
     });
-}); 
+});
