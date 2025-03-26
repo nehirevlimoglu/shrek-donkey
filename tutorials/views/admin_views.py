@@ -247,67 +247,6 @@ def mark_notification_as_read(request, notification_id):
         print(traceback.format_exc())
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-@login_required
-@require_POST
-@csrf_exempt  # Adding CSRF exemption as it may be causing issues
-def mark_all_notifications_as_read(request):
-    """Mark all notifications as read for the current user"""
-    try:
-        print(f"[DEBUG] Mark all as read request received")
-        print(f"[DEBUG] User: {request.user.username}, ID: {request.user.id}")
-        print(f"[DEBUG] Request method: {request.method}")
-        print(f"[DEBUG] Request body: {request.body}")
-        print(f"[DEBUG] Request headers: {dict(request.headers)}")
-        
-        # Count notifications before update
-        unread_count = Notification.objects.filter(
-            recipient=request.user, 
-            is_read=False,
-            is_deleted=False
-        ).count()
-        
-        if unread_count == 0:
-            print("[INFO] No unread notifications found for user")
-            return JsonResponse({'success': True, 'count': 0, 'message': 'No unread notifications found'})
-        
-        # Update notifications
-        updated_count = Notification.objects.filter(
-            recipient=request.user, 
-            is_read=False,
-            is_deleted=False
-        ).update(is_read=True)
-        
-        print(f"[SUCCESS] Marked {updated_count} notifications as read")
-        return JsonResponse({'success': True, 'count': updated_count})
-    except Exception as e:
-        import traceback
-        print(f"[ERROR] Exception in mark_all_notifications_as_read: {str(e)}")
-        print(traceback.format_exc())
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-@user_passes_test(is_admin)
-@require_POST
-@csrf_exempt
-def delete_notification(request, notification_id):
-    """Soft delete a notification (mark as deleted)"""
-    try:
-        # Get the notification
-        notification = get_object_or_404(Notification, id=notification_id)
-        
-        # Ensure notification belongs to current user
-        if notification.recipient.id != request.user.id:
-            return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
-        
-        # Mark as deleted
-        notification.is_deleted = True
-        notification.save()
-        
-        return JsonResponse({'status': 'success'})
-    except Exception as e:
-        print(f"Error deleting notification: {str(e)}")
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
-
 @user_passes_test(is_admin)
 @require_POST
 @csrf_exempt
