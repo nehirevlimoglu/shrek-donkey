@@ -132,4 +132,87 @@ class MatchCandidatesToJobTests(TestCase):
         self.assertEqual(results[0][0], cand)
         self.assertTrue(0.69 < results[0][1] < 0.71)
 
+    @patch("tutorials.utils.extract_skills_nlp", return_value=["python"])
+    @patch("tutorials.utils.semantic_model.encode")
+    @patch("tutorials.utils.util.pytorch_cos_sim")
+    def test_experience_and_discipline_adjustments(
+        self, mock_cos_sim, mock_encode, mock_extract_skills
+    ):
+        """
+        Covers lines where job.required_experience and job.required_discipline
+        trigger adjustments to the final similarity score.
+        """
+
+        # 1) Create a job that requires 5 years of experience & discipline='computer science'
+        self.job.required_experience = 5
+        self.job.required_discipline = "computer science"
+        self.job.save()
+
+        # 2) Mock out encode calls (one for the job, one per candidate)
+        # We'll produce base similarities of 0.9, 0.8, 0.7 for the 3 candidates
+        mock_encode.side_effect = [
+            "JOB_VECTOR",      # for the job
+            "CAND1_VECTOR",    # candidate1
+            "CAND2_VECTOR",    # candidate2
+            "CAND3_VECTOR",    # candidate3
+        ]
+        mock_cos_sim.side_effect = [
+            torch.tensor([[0.9]]),
+            torch.tensor([[0.8]]),
+            torch.tensor([[0.7]]),
+        ]
+
+        # 3) Create candidates with different experience & discipline
+        # Candidate 1 => experience < required => penalty, discipline mismatch => another penalty
+        cand1 = Candidate.objects.create(
+            user=self.user1,
+            job=self.job,
+            total_experience_years=3,       # less than 5 => triggers partial penalty
+            discipline="IT"                # mismatch => triggers *0.5
+        )
+        # Candidate 2 => experience >= required => no penalty, discipline mismatch => penalty
+        cand2 = Candidate.objects.create(
+            user=self.user2,
+            job=self.job,
+            total_experience_years=5,       # exactly 5 => no penalty
+            discipline="IT"                # mismatch => triggers *0.5
+        )
+        # Candidate 3 => experience < required => partial penalty, discipline matches => slight bonus
+        cand3 = Candidate.objects.create(
+            user=self.user3,
+            job=self.job,
+            total_experience_years=4,       # triggers partial penalty
+            discipline="Computer Science"   # matches => *1.05
+        )
+
+        # 4) Call the function
+        results = match_candidates_to_job(self.job.title, top_n=5)
+        # We'll get a list of (candidate, final_score) sorted descending.
+
+        # Let’s verify we got all 3
+        self.assertEqual(len(results), 3, "Should return all 3 candidates in descending order")
+
+        # Let's compute expected final scores manually:
+
+        # Candidate 1 => base=0.9
+        #   experience=3 < 5 => multiply by 3/5 => 0.9 * 0.6=0.54
+        #   discipline mismatch => *0.5 => 0.54 * 0.5=0.27
+        # Candidate 2 => base=0.8
+        #   experience=5 => no penalty
+        #   discipline mismatch => *0.5 => 0.8 * 0.5=0.4
+        # Candidate 3 => base=0.7
+        #   experience=4 <5 => multiply by 4/5 => 0.7 *0.8=0.56
+        #   discipline match => *1.05 => 0.56*1.05=0.588
+
+        # => final => cand1=0.27, cand2=0.4, cand3=0.588 => sorted => cand3>cand2>cand1
+        # Check ordering & final scores
+        self.assertEqual(results[0][0], cand3)
+        self.assertAlmostEqual(results[0][1], 0.588, places=3)
+
+        self.assertEqual(results[1][0], cand2)
+        self.assertAlmostEqual(results[1][1], 0.4, places=3)
+
+        self.assertEqual(results[2][0], cand1)
+        self.assertAlmostEqual(results[2][1], 0.27, places=3)
+
 

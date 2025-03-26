@@ -51,7 +51,7 @@ class MarkNotificationAsReadViewTests(TestCase):
     def test_mark_notification_as_read_successful(self):
         """Test that a valid POST request marks the notification as read and returns JSON success."""
         response = self.client.post(self.url)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)cov
         json_data = response.json()
         self.assertEqual(json_data.get("status"), "success")
         # Reload the notification from the DB.

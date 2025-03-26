@@ -91,3 +91,10 @@ class ApplicantProfileViewTests(TestCase):
         self.candidate.refresh_from_db()
         # Should remain unchanged
         self.assertEqual(self.candidate.application_status, "Pending")
+    
+    def test_redirect_if_not_logged_in(self):
+        self.client.logout()
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("log_in"), response.url)
+

@@ -269,3 +269,59 @@ class ApplyForJobViewTests(TestCase):
         self.assertRedirects(response, reverse("job_detail", kwargs={"job_id": self.job.id}))
         messages = list(get_messages(response.wsgi_request))
         self.assertTrue(any("already applied" in m.message for m in messages))
+
+    def test_keybert_extraction_fallback_and_exception(self):
+        self.login_applicant()
+
+        # Import and override the actual view's extract_skills_nlp function
+        from tutorials.views.applicant_views import apply_for_job as apply_view_module
+
+        post_data = {
+            "first_name": "John",
+            "last_name": "Doe",
+            "email": "applicant@example.com",
+            "phone": "1234567890",
+            "address": "123 Main St",
+            "school": "Test University",
+            "degree": "Bachelor",
+            "discipline": "bachelors",
+            "start_date": "2020-01-01",
+            "end_date": "2024-01-01",
+            "linkedin_profile": "https://linkedin.com/in/johndoe",
+            "portfolio_website": "https://johndoe.com",
+            "how_did_you_hear": "referral",
+            "sponsorship_needed": "no",
+            "confirm_information": "on",
+            "current_job_title": "Intern",
+            "current_employer": "TechCorp",
+            "skills": "SkillA, SkillB",
+            "school[]": ["Test University"],
+            "degree[]": ["Bachelor"],
+            "discipline[]": ["bachelors"],
+            "start_date[]": ["2020-01-01"],
+            "end_date[]": ["2024-01-01"],
+            "work_job_title[]": ["Software Intern"],
+            "work_employer[]": ["TechCorp"],
+            "work_start_date[]": ["2021-06-01"],
+            "work_end_date[]": ["2021-08-01"],
+            "job_description[]": ["Developed features"],
+        }
+
+        # CASE 1: Force empty skills extraction
+        apply_view_module.extract_skills_nlp = lambda text: []
+        response = self.client.post(self.apply_url, post_data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(response.content, {"success": True})
+
+        # Clean up application so we can try the second case
+        Application.objects.all().delete()
+
+        # CASE 2: Force an exception in skill extraction
+        def exploding_nlp(text):
+            raise Exception("NLP failure")
+        apply_view_module.extract_skills_nlp = exploding_nlp
+
+        response = self.client.post(self.apply_url, post_data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+        self.assertEqual(response.status_code, 200)
+        self.assertJSONEqual(response.content, {"success": True})
+

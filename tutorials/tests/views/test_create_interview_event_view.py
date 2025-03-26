@@ -1,71 +1,65 @@
-from django.test import TestCase
+from django.test import TestCase, Client
+from django.urls import reverse
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
-from tutorials.forms.employer_forms import InterviewForm
-from tutorials.models.employer_models import Interview, Candidate, Job, Employer
-from django.contrib.auth import get_user_model
+from tutorials.models.employe_models import Calendar, Event  # or adjust import path if you're using custom models
+from tutorials.models.employer_models import Candidate, Job
 
 User = get_user_model()
 
-class InterviewFormTests(TestCase):
+class CreateInterviewEventViewTests(TestCase):
     def setUp(self):
-        # Create a user (could be an applicant)
+        self.client = Client()
+        self.password = "testpass123"
         self.user = User.objects.create_user(
             username="testuser",
-            email="testuser@example.com",
-            password="password123",
-            role="Applicant"
+            email="test@example.com",
+            password=self.password
         )
-        # Create an Employer (if needed for Job)
-        self.employer = Employer.objects.create(
-            user=self.user,
-            username="employeruser",
-            email="employer@example.com",
-            company_name="Test Company",
-            company_location="Test City",
-            industry="Tech"
-        )
-        # Create a Job instance (associated with the employer)
+        self.client.login(username="testuser", password=self.password)
+
+        # Setup a job and candidate with id=1 (hardcoded in view)
         self.job = Job.objects.create(
-            employer=self.employer,
-            title="Test Job",
-            description="Job description for testing",
-            application_deadline=timezone.now().date() + timedelta(days=10)
+            title="Software Engineer",
+            description="Test job",
+            application_deadline=timezone.now().date() + timedelta(days=7)
         )
-        # Create a Candidate (associated with the user and job)
         self.candidate = Candidate.objects.create(
             user=self.user,
             job=self.job,
-            application_status="Pending",
-            application_date=timezone.now(),
             first_name="John",
-            last_name="Doe"
+            last_name="Doe",
+            application_status="Pending"
         )
+        self.url = reverse("create_interview_event")  # adjust if needed
 
-    def test_valid_form(self):
-        """Test that a form with valid data is valid."""
-        form_data = {
-            "candidate": self.candidate.id,
-            "job": self.job.id,
-            "date": (timezone.now().date() + timedelta(days=1)).isoformat(),
-            "time": "10:00:00",
-            "interview_link": "http://example.com/interview",
-            "notes": "This is a test interview."
-        }
-        form = InterviewForm(data=form_data)
-        self.assertTrue(form.is_valid(), form.errors)
+    def test_interview_event_created_and_redirects(self):
+        """Test that the view creates an Event and redirects properly."""
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("schedule"))
 
-    def test_missing_required_field(self):
-        """Test that a form missing a required field is invalid."""
-        # Remove the candidate field which is required.
-        form_data = {
-            # "candidate": self.candidate.id,  <-- missing candidate
-            "job": self.job.id,
-            "date": (timezone.now().date() + timedelta(days=1)).isoformat(),
-            "time": "10:00:00",
-            "interview_link": "http://example.com/interview",
-            "notes": "This is a test interview."
-        }
-        form = InterviewForm(data=form_data)
-        self.assertFalse(form.is_valid())
-        self.assertIn("candidate", form.errors)
+        # Confirm that the event was created
+        event = Event.objects.latest("start")
+        self.assertEqual(event.title, f"Interview - {self.candidate.user.first_name} (Software Engineer)")
+        self.assertEqual(event.creator, self.user)
+
+        # Check calendar association
+        self.assertEqual(event.calendar.slug, "interviews")
+
+    def test_calendar_created_if_missing(self):
+        """Test that a new 'interviews' calendar is created if it does not exist."""
+        Calendar.objects.all().delete()  # Ensure no calendar exists
+        self.client.get(self.url)
+        self.assertTrue(Calendar.objects.filter(slug="interviews").exists())
+
+    def test_event_times_are_set_for_tomorrow(self):
+        """Ensure the event is scheduled for 10am–11am tomorrow."""
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        event = Event.objects.latest("start")
+        tomorrow = timezone.now().date() + timedelta(days=1)
+        self.assertEqual(event.start.date(), tomorrow)
+        self.assertEqual(event.start.hour, 10)
+        self.assertEqual(event.end.hour, 11)
