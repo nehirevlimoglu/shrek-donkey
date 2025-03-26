@@ -202,3 +202,18 @@ header h1 {
 }
 
 /* ...Add or override more as your page demands... */
+
+.btn-view {
+    display: inline-block;
+    background-color: #007bff;
+    border: none;
+    color: #fff;
+    padding: 0.375rem 0.75rem;
+    text-decoration: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+
+.btn-view:hover {
+    background-color: #0056b3;
+}

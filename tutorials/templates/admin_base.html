@@ -51,17 +51,11 @@
                         </ul>
                     </div>
                 </div>
-                <div class="header-actions">
-                    <a href="{% url 'admin_notifications' %}" class="notifications-btn">
-                        <span class="notifications-icon"></span>
-                        <span id="notificationCountBadge" class="notifications-count {% if unread_count > 0 %}has-notifications{% endif %}" {% if unread_count == 0 %}style="display:none"{% endif %}>{{ unread_count }}</span>
-                    </a>
-                    <div class="logout-container">
-                        <form action="{% url 'log-out' %}" method="POST">
-                            {% csrf_token %}
-                            <button type="submit" class="logout-btn">Logout</button>
-                        </form>
-                    </div>
+                <div class="logout-container">
+                    <form action="{% url 'log-out' %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">Logout</button>
+                    </form>
                 </div>
             </header>
             

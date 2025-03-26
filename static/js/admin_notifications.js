@@ -28,112 +28,109 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function setupMarkAsRead() {
+    // Bind mark-read buttons
     document.querySelectorAll('.mark-read-btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const notificationId = this.getAttribute('data-id');
-            const notificationCard = document.getElementById(`notification-${notificationId}`);
-            
-            // Use fetch API instead of form submission
-            fetch(`/admin_notifications/mark_read/${notificationId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCsrfToken(),
-                    'Content-Type': 'application/json'
-                },
-                credentials: 'same-origin'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Update UI
-                    if (notificationCard) {
-                        notificationCard.classList.remove('unread');
-                        
-                        // Replace the mark-read button with mark-unread button
-                        const markReadBtn = this;
-                        const markUnreadBtn = document.createElement('button');
-                        markUnreadBtn.className = 'mark-unread-btn';
-                        markUnreadBtn.setAttribute('data-id', notificationId);
-                        markUnreadBtn.title = 'Mark as Unread';
-                        markUnreadBtn.innerHTML = '↻';
-                        
-                        if (markReadBtn.parentNode) {
-                            markReadBtn.parentNode.replaceChild(markUnreadBtn, markReadBtn);
-                            
-                            // Add event listener to the new button
-                            markUnreadBtn.addEventListener('click', handleMarkUnread);
-                        }
-                    }
-                    
-                    // Update notification count
-                    updateNotificationCount();
-                } else {
-                    console.error('Error marking notification as read:', data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        });
-    });
-
-    document.querySelectorAll('.mark-unread-btn').forEach(button => {
-        button.addEventListener('click', handleMarkUnread);
+        button.removeEventListener('click', handleMarkRead);
+        button.addEventListener('click', handleMarkRead);
     });
     
-    // Function to handle mark as unread button clicks
-    function handleMarkUnread(e) {
-        e.preventDefault();
-        const notificationId = this.getAttribute('data-id');
-        const notificationCard = document.getElementById(`notification-${notificationId}`);
-        
-        // Use fetch API
-        fetch(`/admin_notifications/mark_unread/${notificationId}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCsrfToken(),
-                'Content-Type': 'application/json'
-            },
-            credentials: 'same-origin'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // Update UI
-                if (notificationCard) {
-                    notificationCard.classList.add('unread');
-                    
-                    // Replace the mark-unread button with mark-read button
-                    const markUnreadBtn = this;
-                    const markReadBtn = document.createElement('button');
-                    markReadBtn.className = 'mark-read-btn';
-                    markReadBtn.setAttribute('data-id', notificationId);
-                    markReadBtn.title = 'Mark as Read';
-                    markReadBtn.innerHTML = '✓';
-                    
-                    if (markUnreadBtn.parentNode) {
-                        markUnreadBtn.parentNode.replaceChild(markReadBtn, markUnreadBtn);
-                        
-                        // Add event listener to the new button
-                        markReadBtn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            const id = this.getAttribute('data-id');
-                            document.querySelector(`.mark-read-btn[data-id="${id}"]`).click();
-                        });
-                    }
-                }
-                
-                // Update notification count
-                updateNotificationCount();
-            } else {
-                console.error('Error marking notification as unread:', data.message);
+    // Bind mark-unread buttons
+    document.querySelectorAll('.mark-unread-btn').forEach(button => {
+        button.removeEventListener('click', handleMarkUnread);
+        button.addEventListener('click', handleMarkUnread);
+    });
+}
+
+function handleMarkRead(e) {
+    e.preventDefault();
+    const button = e.currentTarget;
+    const notificationId = button.getAttribute('data-id');
+    const notificationCard = document.getElementById(`notification-${notificationId}`);
+
+    fetch(`/admin_notifications/mark_read/${notificationId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update UI: remove unread class
+            if (notificationCard) {
+                notificationCard.classList.remove('unread');
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }
+            // Create a new mark-unread button
+            const markUnreadBtn = document.createElement('button');
+            markUnreadBtn.className = 'mark-unread-btn';
+            markUnreadBtn.setAttribute('data-id', notificationId);
+            markUnreadBtn.title = 'Mark as Unread';
+            markUnreadBtn.innerHTML = '↻';
+
+            // Replace the current button with the new one
+            if (button.parentNode) {
+                button.parentNode.replaceChild(markUnreadBtn, button);
+            }
+            // Attach event listener for mark-unread
+            markUnreadBtn.addEventListener('click', handleMarkUnread);
+
+            // Update count if needed
+            updateNotificationCount();
+        } else {
+            console.error('Error marking notification as read:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function handleMarkUnread(e) {
+    e.preventDefault();
+    const button = e.currentTarget;
+    const notificationId = button.getAttribute('data-id');
+    const notificationCard = document.getElementById(`notification-${notificationId}`);
+
+    fetch(`/admin_notifications/mark_unread/${notificationId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update UI: add unread class
+            if (notificationCard) {
+                notificationCard.classList.add('unread');
+            }
+            // Create a new mark-read button
+            const markReadBtn = document.createElement('button');
+            markReadBtn.className = 'mark-read-btn';
+            markReadBtn.setAttribute('data-id', notificationId);
+            markReadBtn.title = 'Mark as Read';
+            markReadBtn.innerHTML = '✓';
+
+            // Replace the current button with the new one
+            if (button.parentNode) {
+                button.parentNode.replaceChild(markReadBtn, button);
+            }
+            // Attach event listener for mark-read
+            markReadBtn.addEventListener('click', handleMarkRead);
+
+            // Update notification count
+            updateNotificationCount();
+        } else {
+            console.error('Error marking notification as unread:', data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
 }
 
 function setupClearAll() {

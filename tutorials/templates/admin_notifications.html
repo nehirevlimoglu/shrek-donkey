@@ -13,9 +13,7 @@
 <div class="notifications-header">
     <h2>Notifications</h2>
     <div class="notifications-actions">
-        {% if unread_count > 0 %}
-        <button id="markAllReadBtn" class="btn btn-secondary">Mark All as Read</button>
-        {% endif %}
+        
         <button id="deleteAllBtn" class="btn btn-danger">Clear All</button>
     </div>
 </div>
@@ -162,7 +160,6 @@
                 {% else %}
                 <button class="mark-unread-btn" data-id="{{ notification.id }}" title="Mark as Unread">↻</button>
                 {% endif %}
-                <button class="delete-btn" data-id="{{ notification.id }}" title="Delete">×</button>
             </div>
         </div>
         {% endfor %}
