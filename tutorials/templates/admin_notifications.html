@@ -102,7 +102,7 @@
 <div class="notifications-list">
     {% if notifications %}
         {% for notification in notifications %}
-        <div class="notification-card {% if not notification.is_read %}unread{% endif %} {% if notification.notification_type == 'feedback' %}feedback-card{% endif %}" data-id="{{ notification.id }}">
+        <div id="notification-{{ notification.id }}" class="notification-card {% if not notification.is_read %}unread{% endif %} {% if notification.notification_type == 'feedback' %}feedback-card{% endif %}" data-id="{{ notification.id }}">
             <div class="notification-indicators">
                 {% if notification.priority == 'high' %}
                 <span class="priority-indicator high" title="High Priority">!</span>

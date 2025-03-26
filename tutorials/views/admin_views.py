@@ -12,8 +12,8 @@ from datetime import timedelta
 import json
 from tutorials.models.employer_models import Job, Candidate, Employer
 from django.views.decorators.http import require_POST
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib import messages
 from django.core.cache import cache
 from django.contrib.auth.decorators import login_required
@@ -162,7 +162,7 @@ def admin_notifications(request):
             Q(message__icontains=search_query)
         )
     
-    # Count totals for statistics (only among this admin’s notifications)
+    # Count totals for statistics (only among this admin's notifications)
     total_count = notifications.count()
     unread_count = notifications.filter(is_read=False).count()
     
@@ -215,15 +215,30 @@ def admin_notifications_count(request):
     return JsonResponse({'count': unread_count})
 
 
-@login_required
-@user_passes_test(is_admin)
-@require_POST
+@csrf_exempt
 def mark_notification_as_read(request, notification_id):
     """Mark a single notification as read"""
-    notification = get_object_or_404(Notification, id=notification_id)
-    notification.is_read = True
-    notification.save()
-    return JsonResponse({'status': 'success'})
+    try:
+        print(f"Marking notification {notification_id} as read for user {request.user.username}")
+        print(f"Is user admin? {request.user.role == 'Admin'}")
+        print(f"Request method: {request.method}")
+        
+        # 检查通知是否存在并且属于当前用户
+        notification = get_object_or_404(Notification, id=notification_id)
+        print(f"Notification found: {notification.id}, recipient: {notification.recipient.id}, current user: {request.user.id}")
+        
+        # 确保通知属于当前用户
+        if notification.recipient.id != request.user.id:
+            print(f"Permission denied: notification belongs to {notification.recipient.username}, not {request.user.username}")
+            return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+        
+        notification.is_read = True
+        notification.save()
+        print(f"Notification {notification_id} successfully marked as read")
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        print(f"Error marking notification as read: {str(e)}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @login_required
 @require_POST
@@ -237,20 +252,40 @@ def mark_all_notifications_as_read(request):
 
 @user_passes_test(is_admin)
 @require_POST
+@csrf_exempt
 def delete_notification(request, notification_id):
     """Soft delete a notification (mark as deleted)"""
-    notification = get_object_or_404(Notification, id=notification_id)
-    notification.is_deleted = True
-    notification.save()
-    return JsonResponse({'status': 'success'})
+    try:
+        # Get the notification
+        notification = get_object_or_404(Notification, id=notification_id)
+        
+        # Ensure notification belongs to current user
+        if notification.recipient.id != request.user.id:
+            return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+        
+        # Mark as deleted
+        notification.is_deleted = True
+        notification.save()
+        
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        print(f"Error deleting notification: {str(e)}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
 @user_passes_test(is_admin)
 @require_POST
+@csrf_exempt
 def delete_all_notifications(request):
     """Soft delete notifications for the logged-in admin only"""
-    Notification.objects.filter(recipient=request.user).update(is_deleted=True)
-    return JsonResponse({'success': True})
+    try:
+        # Only delete notifications for the current logged-in user
+        affected_rows = Notification.objects.filter(recipient=request.user).update(is_deleted=True)
+        print(f"Deleted {affected_rows} notifications for user {request.user.username}")
+        return JsonResponse({'success': True, 'count': affected_rows})
+    except Exception as e:
+        print(f"Error deleting all notifications: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 @user_passes_test(is_admin)
@@ -828,3 +863,43 @@ def admin_settings(request):
         'user': request.user,
     }
     return render(request, 'admin_settings.html', context)
+
+@user_passes_test(is_admin)
+def admin_notifications_stats(request):
+    """Get updated notification statistics for the current admin user"""
+    # Base queryset: filter by recipient = current admin user
+    notifications = Notification.objects.filter(
+        recipient=request.user,
+        is_deleted=False
+    )
+    
+    # Count totals for statistics
+    total_count = notifications.count()
+    unread_count = notifications.filter(is_read=False).count()
+    
+    # Count by type
+    type_counts = {
+        'general': notifications.filter(notification_type='general').count(),
+        'job': notifications.filter(notification_type='job').count(),
+        'application': notifications.filter(notification_type='application').count(),
+        'user': notifications.filter(notification_type='user').count(),
+        'system': notifications.filter(notification_type='system').count(),
+    }
+    
+    # Count by priority
+    priority_counts = {
+        'high': notifications.filter(priority='high').count(),
+        'medium': notifications.filter(priority='medium').count(),
+        'low': notifications.filter(priority='low').count(),
+    }
+    
+    # Add feedback count if needed
+    feedback_count = notifications.filter(notification_type='feedback').count() if hasattr(Notification, 'TYPE_FEEDBACK') else 0
+    
+    return JsonResponse({
+        'total_count': total_count,
+        'unread_count': unread_count,
+        'type_counts': type_counts,
+        'priority_counts': priority_counts,
+        'feedback_count': feedback_count
+    })

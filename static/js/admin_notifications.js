@@ -19,6 +19,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup filter auto-submit on select change
     setupFilterAutoSubmit();
+    
+    // Update notification count immediately and set interval for auto refresh
+    updateNotificationCount();
+    updateNotificationStats(); // Update stats immediately
+    setInterval(updateNotificationCount, 5000); // Check every 5 seconds for updates
+    setInterval(updateNotificationStats, 10000); // Update statistics every 10 seconds
 });
 
 function setupMarkAsRead() {
@@ -28,15 +34,16 @@ function setupMarkAsRead() {
         markReadButtons.forEach(btn => {
             btn.addEventListener('click', function(e) {
                 e.preventDefault();
-                const notificationId = this.dataset.notificationId;
+                const notificationId = this.dataset.id;
                 const notificationItem = document.getElementById(`notification-${notificationId}`);
                 
-                fetch(`/admin/mark-notification-read/${notificationId}/`, {
+                fetch(`/admin_notifications/mark_read/${notificationId}/`, {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': getCsrfToken(),
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    body: JSON.stringify({})
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -55,7 +62,18 @@ function setupMarkAsRead() {
                             btn.textContent = 'Marked as read';
                             btn.disabled = true;
                         }
+                        
+                        // Explicitly update notification count to reflect the change
                         updateNotificationCount();
+                        
+                        // Show a success message
+                        showNotification('Notification marked as read', 'success');
+                        
+                        // Update statistics
+                        updateNotificationStats();
+                    } else {
+                        console.error('Error marking notification as read:', data.message || 'Unknown error');
+                        showNotification(data.message || 'Error marking notification as read', 'error');
                     }
                 })
                 .catch(error => {
@@ -81,7 +99,9 @@ function setupMarkAsRead() {
             .then(data => {
                 if (data.success) {
                     // Update UI for all notifications
-                    const unreadNotifications = document.querySelectorAll('.notification-item.unread');
+                    const unreadNotifications = document.querySelectorAll('.notification-card.unread');
+                    console.log(`Marking ${unreadNotifications.length} notifications as read`);
+                    
                     unreadNotifications.forEach(item => {
                         item.classList.remove('unread');
                         item.classList.add('read');
@@ -105,11 +125,18 @@ function setupMarkAsRead() {
                     updateNotificationCount();
                     
                     // Show success message
-                    showNotification('All notifications marked as read', 'success');
+                    showNotification(`All notifications marked as read (${unreadNotifications.length})`, 'success');
+                    
+                    // Update statistics
+                    updateNotificationStats();
+                } else {
+                    console.error('Error marking all notifications as read:', data.error || 'Unknown error');
+                    showNotification(data.error || 'Error marking notifications as read', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
+                showNotification('Error marking notifications as read', 'error');
             });
         });
     }
@@ -147,14 +174,22 @@ function setupClearAll() {
                     const notificationsContainer = document.querySelector('.notifications-list');
                     if (notificationsContainer) {
                         notificationsContainer.innerHTML = '<div class="no-notifications">No notifications to display</div>';
+                        console.log(`Cleared ${data.count || 'all'} notifications`);
                     }
+                    // Update notification count
                     updateNotificationCount();
-                    showNotification('All notifications cleared', 'success');
+                    // Show success message
+                    showNotification(`All notifications cleared (${data.count || 'all'})`, 'success');
+                    
+                    // Force immediate update of stats
+                    updateNotificationStats();
+                } else {
+                    console.error('Error clearing notifications:', data.error || 'Unknown error');
+                    showNotification(data.error || 'Error clearing notifications', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showNotification('Error clearing notifications', 'error');
             });
         });
     }
@@ -175,7 +210,7 @@ function setupFilters() {
 }
 
 function filterNotifications(filter) {
-    const notificationItems = document.querySelectorAll('.notification-item');
+    const notificationItems = document.querySelectorAll('.notification-card');
     notificationItems.forEach(item => {
         if (filter === 'all') {
             item.style.display = '';
@@ -254,10 +289,10 @@ function appendNotifications(notifications) {
             </div>
             <div class="notification-actions">
                 ${notification.read ? 
-                    '<button class="mark-read-btn" data-notification-id="' + notification.id + '" disabled>Marked as read</button>' : 
-                    '<button class="mark-read-btn" data-notification-id="' + notification.id + '">Mark as read</button>'}
+                    '<button class="mark-read-btn" data-id="' + notification.id + '" disabled>Marked as read</button>' : 
+                    '<button class="mark-read-btn" data-id="' + notification.id + '">Mark as read</button>'}
                 ${notification.actions ? renderActions(notification.actions, notification.id) : ''}
-                <button class="delete-btn" data-notification-id="${notification.id}">Delete</button>
+                <button class="delete-btn" data-id="${notification.id}">Delete</button>
             </div>
         `;
         notificationsList.appendChild(notificationItem);
@@ -270,10 +305,10 @@ function renderActions(actions, notificationId) {
         actionsHtml += `<a href="${actions.view}" class="action-btn view-btn">View</a>`;
     }
     if (actions.approve) {
-        actionsHtml += `<button class="action-btn approve-btn" data-notification-id="${notificationId}" data-action="approve">Approve</button>`;
+        actionsHtml += `<button class="action-btn approve-btn" data-id="${notificationId}" data-action="approve">Approve</button>`;
     }
     if (actions.reject) {
-        actionsHtml += `<button class="action-btn reject-btn" data-notification-id="${notificationId}" data-action="reject">Reject</button>`;
+        actionsHtml += `<button class="action-btn reject-btn" data-id="${notificationId}" data-action="reject">Reject</button>`;
     }
     return actionsHtml;
 }
@@ -283,7 +318,7 @@ function setupNotificationActions() {
     if (deleteButtons.length) {
         deleteButtons.forEach(btn => {
             btn.addEventListener('click', function() {
-                const notificationId = this.dataset.notificationId;
+                const notificationId = this.dataset.id;
                 const notificationItem = document.getElementById(`notification-${notificationId}`);
                 showConfirmationModal({
                     title: 'Delete Notification?',
@@ -299,17 +334,35 @@ function setupNotificationActions() {
                         .then(response => response.json())
                         .then(data => {
                             if (data.status === 'success' && notificationItem) {
+                                // Apply fade-out effect
                                 notificationItem.style.opacity = '0';
                                 setTimeout(() => {
+                                    // Remove the element
                                     notificationItem.remove();
-                                    const remaining = document.querySelectorAll('.notification-item');
+                                    
+                                    // Check if there are any remaining notifications
+                                    const remaining = document.querySelectorAll('.notification-card');
+                                    console.log(`Remaining notifications: ${remaining.length}`);
+                                    
                                     if (remaining.length === 0) {
                                         const container = document.querySelector('.notifications-list');
                                         if (container) {
-                                            container.innerHTML = '<div class="no-notifications">No notifications available</div>';
+                                            container.innerHTML = '<div class="no-notifications">No notifications to display</div>';
                                         }
                                     }
+                                    
+                                    // Update notification count
+                                    updateNotificationCount();
+                                    // Show success message
+                                    showNotification('Notification deleted', 'success');
+
+                                    // Force immediate update of stats
+                                    updateNotificationStats();
                                 }, 300);
+                            } else {
+                                // Show error message
+                                console.error('Error deleting notification:', data.message || 'Unknown error');
+                                showNotification(data.message || 'Error deleting notification', 'error');
                             }
                         })
                         .catch(error => {
@@ -325,9 +378,9 @@ function setupNotificationActions() {
     if (actionButtons.length) {
         actionButtons.forEach(btn => {
             btn.addEventListener('click', function() {
-                const notificationId = this.dataset.notificationId;
+                const notificationId = this.dataset.id;
                 const action = this.dataset.action;
-                fetch(`/admin/notification-action/${notificationId}/${action}/`, {
+                fetch(`/admin_notifications/action/${notificationId}/${action}/`, {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': getCsrfToken(),
@@ -379,10 +432,28 @@ function updateNotificationCount() {
                     countBadge.style.display = 'none';
                 }
             }
+            
+            // Update count display on the notifications page if present
             const pageCountElement = document.getElementById('notificationPageCount');
             if (pageCountElement) {
                 pageCountElement.textContent = data.count;
             }
+            
+            // Update the unread count in the sidebar if present
+            const sidebarUnreadCount = document.querySelector('.unread-count');
+            if (sidebarUnreadCount) {
+                sidebarUnreadCount.textContent = data.count;
+                if (data.count === 0) {
+                    sidebarUnreadCount.style.display = 'none';
+                } else {
+                    sidebarUnreadCount.style.display = 'inline-block';
+                }
+            }
+            
+            // Update statistics counts in the stats-item elements
+            updateNotificationStats();
+            
+            console.log('Notification count updated:', data.count);
         })
         .catch(error => console.error('Error fetching notification count:', error));
 }
@@ -609,4 +680,49 @@ function showConfirmationModal(options) {
             options.onCancel();
         }
     };
+}
+
+// Add a new function to update just the statistics
+function updateNotificationStats() {
+    const statsItems = document.querySelectorAll('.stats-item strong');
+    if (statsItems.length > 0) {
+        // Get updated stats from server
+        fetch('/admin_notifications/stats/')
+            .then(response => response.json())
+            .then(stats => {
+                // Update total count
+                if (statsItems[0]) statsItems[0].textContent = stats.total_count || '0';
+                // Update unread count
+                if (statsItems[1]) statsItems[1].textContent = stats.unread_count || '0';
+                // Update other stats if available
+                if (statsItems[2] && stats.feedback_count !== undefined) {
+                    statsItems[2].textContent = stats.feedback_count || '0';
+                }
+                
+                // Update type counts in filter options
+                if (stats.type_counts) {
+                    Object.keys(stats.type_counts).forEach(type => {
+                        const typeOption = document.querySelector(`option[value="${type}"]`);
+                        if (typeOption) {
+                            const optionText = typeOption.textContent.split('(')[0].trim();
+                            typeOption.textContent = `${optionText} (${stats.type_counts[type]})`;
+                        }
+                    });
+                }
+                
+                // Update priority counts in filter options
+                if (stats.priority_counts) {
+                    Object.keys(stats.priority_counts).forEach(priority => {
+                        const priorityOption = document.querySelector(`option[value="${priority}"]`);
+                        if (priorityOption) {
+                            const optionText = priorityOption.textContent.split('(')[0].trim();
+                            priorityOption.textContent = `${optionText} (${stats.priority_counts[priority]})`;
+                        }
+                    });
+                }
+                
+                console.log('Statistics updated successfully');
+            })
+            .catch(error => console.error('Error fetching notification stats:', error));
+    }
 }
