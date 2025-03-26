@@ -22,6 +22,8 @@ from django.views.decorators.http import require_POST
 from tutorials.helpers import clear_feedback_messages
 from django.contrib.auth import update_session_auth_hash
 
+
+
 @applicant_only
 @login_required
 def applicants_home_page(request):
@@ -106,10 +108,8 @@ def applicants_edit_profile(request):
 
 @login_required
 def applicants_applied_jobs(request):
-    """ Display jobs that the logged-in applicant has applied to """
     applicant = get_object_or_404(Applicant, user=request.user)
     applied_jobs = Application.objects.filter(applicant=applicant).select_related('job')
-
     return render(request, 'applicants_applied_jobs.html', {
         'applied_jobs': applied_jobs,
     })
@@ -139,6 +139,7 @@ def applicants_account(request):
     tab = request.GET.get('tab', 'profile')
     applicant = request.user.applicant
     form = None
+   
 
     if tab == 'edit_profile':
         if request.method == 'POST':
@@ -176,18 +177,17 @@ def applicants_account(request):
 
 @login_required
 def job_detail(request, job_id):
-    """Display job details and check if the user has applied"""
     job = get_object_or_404(Job, id=job_id)
-    
-    # Check if an Application exists for this user and job.
     existing_application = Application.objects.filter(
         applicant__user=request.user, job=job
     ).exists()
 
+    next_page = request.GET.get("next", "home")  # default to 'home'
+
     return render(request, "job_detail.html", {
         "job": job,
         "existing_application": existing_application,
-        "random": randint(1, 10000)
+        "next_page": next_page,
     })
 
 

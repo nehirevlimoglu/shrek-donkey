@@ -225,10 +225,6 @@ class Candidate(models.Model):
         return total_days / 365.25 if total_days > 0 else 0
 
 
-
-
-
-
 class Interview(models.Model):
     candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE, related_name="interviews")
     job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name="job_interviews")
