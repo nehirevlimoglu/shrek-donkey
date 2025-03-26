@@ -21,6 +21,7 @@ from tutorials.forms.forms import CustomPasswordChangeForm
 from tutorials.forms.admin_forms import AdminProfileForm
 from django.urls import reverse
 
+
 def is_admin(user):
     return bool(user) and getattr(user, 'role', None) == 'Admin'
 
@@ -396,6 +397,7 @@ def get_active_users_data(request):
 
 
 @user_passes_test(is_admin)
+@user_passes_test(is_admin)
 def admin_job_detail(request, job_id):
     job = get_object_or_404(Job, id=job_id)
     candidates = Candidate.objects.filter(job=job).select_related('user')
@@ -427,11 +429,14 @@ def admin_job_detail(request, job_id):
     job.display_status = "Open" if job.is_open else "Closed"
     logger.debug(f"[admin_job_detail] Final display status: {job.display_status}")
 
-    # ✅ Create a notification if job is approved or rejected and no notification has been sent ye
-
+    # Create a notification if job is approved or rejected and no notification has been sent yet
     if job.status in ['approved', 'rejected'] and employer:
-        title = "Job Listing Approved " if job.status == 'approved' else "Job Listing Rejected "
-
+        title = "Job Listing Approved" if job.status == 'approved' else "Job Listing Rejected"
+        message = (
+            f"Your job listing '{job.title}' has been approved by the admin team."
+            if job.status == 'approved'
+            else f"Unfortunately, your job listing '{job.title}' was rejected by the admin team."
+        )
         already_exists = EmployerNotification.objects.filter(
             employer=employer,
             title=title,
@@ -452,6 +457,7 @@ def admin_job_detail(request, job_id):
         'employer': employer,
         'candidate_count': candidates.count(),
     })
+
 
 
 

@@ -4,8 +4,14 @@
 {% block title %}Schedule Interview for {{ applicant.user.get_full_name }} | Swamp Hiring{% endblock %}
 
 {% block content %}
-    <div class="interview-schedule-container">
-        <h1>Schedule Interview for {{ applicant.user.get_full_name }}</h1>
+<div class="interview-schedule-container">
+
+    <!-- Back to Candidates at the top -->
+    <div class="top-back-link">
+        <a href="{% url 'employer_candidates' %}" class="btn-secondary">← Back to Candidates</a>
+    </div>
+
+    <h1>Schedule Interview for {{ applicant.user.get_full_name }}</h1>
 
         <!-- Applicant Details Section -->
         <section class="section">
@@ -49,9 +55,6 @@
                 <button type="submit" class="btn-primary">Schedule Interview</button>
             </form>
         </section>
-
-        <!-- Back Button -->
-        <a href="{% url 'employer_candidates' %}" class="btn-secondary">Back to Candidates</a>
 
         <link rel="stylesheet" href="{% static 'css/schedule_interview.css' %}">
         <script src="{% static 'js/schedule_interview.js' %}" defer></script>
