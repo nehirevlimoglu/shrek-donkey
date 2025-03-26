@@ -38,7 +38,7 @@ def csrf_failure(request, reason=""):
 @ensure_csrf_cookie
 def log_in(request):
     # Clear any feedback messages before rendering login page
-    clear_feedback_messages(request)
+
     
     if request.method == 'POST':
         username = request.POST['username']
@@ -65,6 +65,11 @@ def log_in(request):
             print("Authentication failed")  # ❌ This means the username/password is incorrect.
             # Add error message
             messages.error(request, "Incorrect username or password", extra_tags="login")
+<<<<<<< Updated upstream
+=======
+
+
+>>>>>>> Stashed changes
     
     # Force set CSRF Cookie
     response = render(request, 'log_in.html')
