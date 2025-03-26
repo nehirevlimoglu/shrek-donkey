@@ -193,3 +193,28 @@ h2 {
     border-bottom: 1px solid #edf2f7;
     padding-bottom: 20px;
 }
+
+.btn-warning {
+    background-color: #f6c23e;
+    color: #1a202c;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+}
+
+.btn-warning:hover {
+    background-color: #dda20a;
+}
+
+.scheduled-info-box {
+    margin-bottom: 20px;
+    background-color: #fefcbf;
+    border: 1px solid #f6e05e;
+    padding: 15px;
+    border-radius: 8px;
+}
