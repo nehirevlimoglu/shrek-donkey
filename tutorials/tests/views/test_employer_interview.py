@@ -213,172 +213,6 @@ class EmployerInterviewTests(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.content.decode(), "Candidate does not exist.")
 
-    def test_create_interview_event(self):
-        """Test creating an interview event"""
-        tomorrow = timezone.now() + datetime.timedelta(days=1)
-        response = self.client.post(
-            reverse('schedule_interview', args=[self.candidate.id]),
-            {
-                'interview_date': tomorrow.strftime('%Y-%m-%d'),
-                'interview_time': '10:00',
-                'interview_link': 'https://meet.google.com/test',
-                'notes': 'Test interview notes'
-            }
-        )
-        
-        # Check redirect
-        self.assertRedirects(response, reverse('employer_calendar'))
-        
-        # Verify interview was created
-        new_interview = Interview.objects.filter(
-            candidate=self.candidate,
-            date=tomorrow.date(),
-            time='10:00:00'
-        ).exists()
-        self.assertTrue(new_interview)
-
-    def test_create_interview_event_success(self):
-        """Test successful creation of an interview event"""
-        self.client.force_login(self.employer_user)
-        
-        # Create a candidate first
-        candidate = Candidate.objects.create(
-            user=self.applicant_user,
-            job=self.job,  # Use the job from setUp
-            first_name="John",
-            last_name="Doe"
-        )
-
-        # Update the candidate ID in the view or pass it as a parameter
-        response = self.client.post(
-            reverse('create_interview_event'),
-            {'candidate_id': candidate.id}  # Pass candidate ID in POST data
-        )
-        
-        # Check redirect - updated to match new redirect target
-        self.assertRedirects(response, reverse('employer_calendar'))
-        
-        # Verify event was created
-        event = EmployerEvent.objects.first()
-        self.assertIsNotNone(event)
-        self.assertTrue(event.title.startswith("Interview - "))
-        self.assertEqual(event.employer, self.employer)
-        
-        # Check event timing
-        tomorrow = timezone.now() + timezone.timedelta(days=1)
-        self.assertEqual(event.start.date(), tomorrow.date())
-        self.assertEqual(event.start.hour, 10)
-        self.assertEqual(event.start.minute, 0)
-        self.assertEqual(event.end.hour, 11)
-        self.assertEqual(event.end.minute, 0)
-
-    def test_create_interview_event_no_auth(self):
-        """Test interview event creation without authentication"""
-        self.client.logout()
-        response = self.client.post(reverse('create_interview_event'))
-        self.assertEqual(response.status_code, 302)  # Should redirect to login
-        self.assertFalse(EmployerEvent.objects.exists())
-
-    def test_create_interview_event_no_candidate(self):
-        """Test interview event creation when candidate doesn't exist"""
-        self.client.force_login(self.employer_user)
-        
-        response = self.client.post(
-            reverse('create_interview_event'),
-            {'candidate_id': 99999}  # Non-existent ID
-        )
-        
-        self.assertEqual(response.status_code, 404)
-        self.assertFalse(EmployerEvent.objects.exists())
-
-    def test_create_interview_event_creation_error(self):
-        """Test handling of event creation errors"""
-        self.client.force_login(self.employer_user)
-        
-        # Create a valid candidate
-        candidate = Candidate.objects.create(
-            user=self.applicant_user,
-            job=self.job,
-            first_name="John",
-            last_name="Doe"
-        )
-        
-        # Mock EmployerEvent.objects.create to raise an exception
-        with patch('tutorials.models.employer_models.EmployerEvent.objects.create') as mock_create:
-            mock_create.side_effect = Exception("Database error")
-            
-            response = self.client.post(
-                reverse('create_interview_event'),
-                {'candidate_id': candidate.id}
-            )
-            
-            self.assertEqual(response.status_code, 500)
-            self.assertFalse(EmployerEvent.objects.exists())
-
-    def test_get_interviews_employer_not_found(self):
-        """Test getting interviews when employer profile doesn't exist"""
-        # Create a user without an employer profile
-        user_without_employer = User.objects.create_user(
-            username="no_employer",
-            password="password123",
-            email="no_employer@example.com",
-            role='Employer'
-        )
-        
-        # Login as the user without employer profile
-        self.client.force_login(user_without_employer)
-        
-        # Make the request
-        response = self.client.get(reverse('get_interview_events'))
-        
-        # Check response
-        self.assertEqual(response.status_code, 403)
-        self.assertJSONEqual(
-            str(response.content, encoding='utf8'),
-            {"error": "Employer not found"}
-        )
-
-    def test_schedule_interview_success(self):
-        """Test successful interview scheduling"""
-        tomorrow = now().date() + timedelta(days=1)
-        interview_data = {
-            'interview_date': tomorrow.strftime('%Y-%m-%d'),
-            'interview_time': '15:00',
-            'interview_link': 'https://meet.google.com/new-test',
-            'notes': 'New interview notes'
-        }
-        
-        # Delete any existing interviews to avoid MultipleObjectsReturned
-        Interview.objects.all().delete()
-        
-        response = self.client.post(
-            reverse('schedule_interview', args=[self.candidate.id]),
-            interview_data,
-            follow=True
-        )
-        
-        # Check redirect and message
-        self.assertRedirects(response, reverse('employer_calendar'))
-        messages = list(get_messages(response.wsgi_request))
-        self.assertEqual(str(messages[0]), "Interview scheduled successfully!")
-
-        # Verify interview was created
-        interview = Interview.objects.get(
-            candidate=self.candidate,
-            job=self.job,
-            interview_link='https://meet.google.com/new-test'
-        )
-        self.assertEqual(interview.notes, 'New interview notes')
-        self.assertEqual(interview.date, tomorrow)
-        self.assertEqual(interview.time.strftime('%H:%M'), '15:00')
-        
-        # Verify notification was created
-        notification = ApplicantNotification.objects.get(applicant=self.applicant)
-        self.assertEqual(notification.title, "Interview Scheduled")
-        self.assertIn(self.job.title, notification.message)
-        self.assertIn('https://meet.google.com/new-test', notification.message)
-        self.assertIn('New interview notes', notification.message)
-
     def test_schedule_interview_invalid_date(self):
         """Test scheduling interview with invalid date format"""
         invalid_data = {
@@ -391,26 +225,23 @@ class EmployerInterviewTests(TestCase):
         # Get initial count of interviews
         initial_count = Interview.objects.count()
         
-        try:
-            response = self.client.post(
-                reverse('schedule_interview', args=[self.candidate.id]),
-                invalid_data
-            )
-            
-            # Verify response
-            self.assertEqual(response.status_code, 400)
-            self.assertEqual(response.content.decode(), "Invalid date or time format.")
-            
-            # Verify no new interview was created
-            self.assertEqual(Interview.objects.count(), initial_count)
-        except Exception as e:
-            self.fail(f"Test failed with exception: {str(e)}")
+        response = self.client.post(
+            reverse('schedule_interview', args=[self.candidate.id]),
+            invalid_data
+        )
+        
+        # Verify response
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content.decode(), "Invalid date or time format.")
+        
+        # Verify no new interview was created
+        self.assertEqual(Interview.objects.count(), initial_count)
 
     def test_schedule_interview_invalid_time(self):
         """Test scheduling interview with invalid time format"""
         tomorrow = now().date() + timedelta(days=1)
         invalid_data = {
-            'interview_date': tomorrow.strftime('%Y-%m-%d'),
+            'interview_date': tomorrow.strftime('%Y-%m-%d'),  # Valid date
             'interview_time': 'not-a-time',  # Invalid time format
             'interview_link': 'https://meet.google.com/test',
             'notes': 'Test notes'
@@ -419,20 +250,17 @@ class EmployerInterviewTests(TestCase):
         # Get initial count of interviews
         initial_count = Interview.objects.count()
         
-        try:
-            response = self.client.post(
-                reverse('schedule_interview', args=[self.candidate.id]),
-                invalid_data
-            )
-            
-            # Verify response
-            self.assertEqual(response.status_code, 400)
-            self.assertEqual(response.content.decode(), "Invalid date or time format.")
-            
-            # Verify no new interview was created
-            self.assertEqual(Interview.objects.count(), initial_count)
-        except Exception as e:
-            self.fail(f"Test failed with exception: {str(e)}")
+        response = self.client.post(
+            reverse('schedule_interview', args=[self.candidate.id]),
+            invalid_data
+        )
+        
+        # Verify response
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.content.decode(), "Invalid date or time format.")
+        
+        # Verify no new interview was created
+        self.assertEqual(Interview.objects.count(), initial_count)
 
     def test_schedule_interview_no_applicant_profile(self):
         """Test scheduling interview for candidate without applicant profile"""

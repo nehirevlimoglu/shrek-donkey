@@ -80,7 +80,7 @@ class EmployerJobEditTests(TestCase):
             'description': 'Updated description',
             'location': 'Updated Location',
             'job_type': 'Part Time',
-            'salary': '120000',
+            'salary': '120000.00',
             'requirements': 'Updated requirements',
             'application_deadline': (now().date() + timedelta(days=45)).strftime('%Y-%m-%d'),
             'company_name': 'Tech Corp',
@@ -103,7 +103,7 @@ class EmployerJobEditTests(TestCase):
         self.assertEqual(self.job.description, updated_data['description'])
         self.assertEqual(self.job.location, updated_data['location'])
         self.assertEqual(self.job.job_type, updated_data['job_type'])
-        self.assertEqual(self.job.salary, updated_data['salary'])
+        self.assertEqual(str(self.job.salary), updated_data['salary'])
         self.assertEqual(self.job.requirements, updated_data['requirements'])
 
         # Check redirect

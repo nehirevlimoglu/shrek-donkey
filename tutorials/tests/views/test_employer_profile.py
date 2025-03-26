@@ -1,6 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
+from django.contrib.messages import get_messages
 from tutorials.models.employer_models import Employer
 from tutorials.forms.employer_forms import EmployerProfileForm
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -78,9 +79,14 @@ class EmployerProfileTests(TestCase):
         
         response = self.client.get(reverse('edit_company_profile'), follow=True)
         
-        # Check redirect and error message
-        self.assertRedirects(response, reverse('employer_settings'))
-        messages = list(response.context['messages'])
-        self.assertEqual(str(messages[0]), "Employer profile not found")
+        # Should redirect to home page instead of employer_home_page
+        self.assertRedirects(
+            response, 
+            reverse('home'),
+            status_code=302,
+            target_status_code=200
+        )
+        messages = list(get_messages(response.wsgi_request))
+        self.assertEqual(str(messages[0]), "You must complete your employer profile first.")
 
     

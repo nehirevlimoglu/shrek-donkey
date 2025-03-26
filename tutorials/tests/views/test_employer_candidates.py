@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils.timezone import now, timedelta
 from tutorials.models.employer_models import Employer, Job, Candidate
-from tutorials.models.applicants_models import Applicant
+from tutorials.models.applicants_models import Applicant, Application
 from django.contrib import messages
 from django.contrib.messages import get_messages
 
@@ -194,11 +194,27 @@ class EmployerCandidatesTests(TestCase):
 
     def test_applicant_profile_view(self):
         """Test viewing applicant profile"""
+        # First create an Applicant instance for the candidate's user
+        applicant = Applicant.objects.create(
+            user=self.candidate1.user,
+            degree='Computer Science',
+            salary_preferences='50000-70000',
+            location_preferences='Remote'
+        )
+        
+        # Create an Application instance
+        application = Application.objects.create(
+            applicant=applicant,
+            job=self.job1,
+            status='pending'
+        )
+        
         response = self.client.get(reverse('applicant_profile', args=[self.candidate1.id]))
         
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'applicant_profile.html')
-        self.assertEqual(response.context['applicant'], self.candidate1)
+        self.assertEqual(response.context['candidate'], self.candidate1)
+        self.assertEqual(response.context['application'], application)
 
     def test_applicant_profile_nonexistent(self):
         """Test viewing profile of non-existent applicant"""
@@ -209,6 +225,20 @@ class EmployerCandidatesTests(TestCase):
 
     def test_applicant_profile_update_status(self):
         """Test updating applicant status via POST"""
+        # Create necessary Applicant and Application instances
+        applicant = Applicant.objects.create(
+            user=self.candidate1.user,
+            degree='Computer Science',
+            salary_preferences='50000-70000',
+            location_preferences='Remote'
+        )
+        
+        application = Application.objects.create(
+            applicant=applicant,
+            job=self.job1,
+            status='pending'
+        )
+        
         response = self.client.post(
             reverse('applicant_profile', args=[self.candidate1.id]),
             {'status': 'Interview'}
@@ -287,6 +317,20 @@ class EmployerCandidatesTests(TestCase):
 
     def test_invalid_status_update(self):
         """Test updating applicant status with invalid status"""
+        # Create necessary Applicant and Application instances
+        applicant = Applicant.objects.create(
+            user=self.candidate1.user,
+            degree='Computer Science',
+            salary_preferences='50000-70000',
+            location_preferences='Remote'
+        )
+        
+        application = Application.objects.create(
+            applicant=applicant,
+            job=self.job1,
+            status='pending'
+        )
+        
         response = self.client.post(
             reverse('applicant_profile', args=[self.candidate1.id]),
             {'status': 'InvalidStatus'}

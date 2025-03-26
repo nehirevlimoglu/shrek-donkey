@@ -6,6 +6,7 @@ from tutorials.models.employer_models import Employer, Job, Candidate, EmployerN
 from tutorials.forms.forms import SignUpForm
 from django.contrib.messages import get_messages
 from tutorials.forms.employer_forms import CustomPasswordChangeForm
+from django.contrib.auth.forms import PasswordChangeForm
 
 User = get_user_model()
 
@@ -148,8 +149,10 @@ class EmployerHomePageViewTests(TestCase):
         response = self.client.get(reverse('change_password'))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'change_password.html')
-        self.assertTrue(isinstance(response.context['form'], CustomPasswordChangeForm))
-
+        
+        # Check for Django's built-in PasswordChangeForm instead
+        self.assertTrue(isinstance(response.context['form'], PasswordChangeForm))
+        
         # Test successful password change
         data = {
             'old_password': 'password123',
@@ -195,7 +198,7 @@ class EmployerHomePageViewTests(TestCase):
         response = self.client.get(reverse('change_password'))
         self.assertRedirects(
             response, 
-            f"{reverse('log-in')}?next={reverse('change_password')}"
+            f"{reverse('log_in')}?next={reverse('change_password')}"
         )
 
 
