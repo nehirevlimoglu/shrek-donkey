@@ -133,7 +133,7 @@ def applicants_notifications(request):
     notifications = ApplicantNotification.objects.filter(applicant=applicant).order_by('-timestamp')
     return render(request, 'applicants_notifications.html', {'notifications': notifications})
 
-
+@applicant_only
 @login_required
 def applicants_account(request):
     tab = request.GET.get('tab', 'profile')
@@ -146,7 +146,7 @@ def applicants_account(request):
             form = ApplicantEditForm(request.POST, request.FILES, instance=applicant, user=request.user)
             if form.is_valid():
                 form.save()
-                messages.success(request, "Profile updated successfully.")
+                messages.add_message(request, messages.SUCCESS, "Profile updated successfully.", extra_tags="profile_edit")
                 return redirect('applicants-account')
         else:
             form = ApplicantEditForm(instance=applicant, user=request.user)
@@ -158,7 +158,7 @@ def applicants_account(request):
             if form.is_valid():
                 user = form.save()
                 update_session_auth_hash(request, user)
-                messages.success(request, "Password changed successfully.")
+                messages.add_message(request, messages.SUCCESS, "Password changed successfully.", extra_tags="profile_edit")
                 return redirect('applicants-account')
         else:
             form = CustomPasswordChangeForm(user=request.user)
@@ -172,8 +172,6 @@ def applicants_account(request):
         'user': request.user,
     }
     return render(request, 'applicants_account.html', context)
-
-
 
 @login_required
 def job_detail(request, job_id):

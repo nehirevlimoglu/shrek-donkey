@@ -26,6 +26,8 @@ from tutorials.utils import match_candidates_to_job
 from datetime import datetime, date
 from tutorials.helpers import clear_feedback_messages
 from django.db.models.functions import Lower
+from django.contrib.auth import update_session_auth_hash
+
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +139,7 @@ def employer_settings(request):
             if form.is_valid():
                 form.save()
                 request.user.refresh_from_db()  # to reflect updated names immediately
-                messages.success(request, "Company profile updated successfully.")
+                messages.add_message(request, messages.SUCCESS, "Company profile updated successfully.", extra_tags="profile_edit")
                 return redirect('employer_settings')  # or redirect with ?tab=profile
         else:
             form = EmployerProfileForm(instance=employer, user=request.user)
@@ -151,8 +153,8 @@ def employer_settings(request):
             if form.is_valid():
                 user = form.save()
                 update_session_auth_hash(request, user)
-                messages.success(request, "Password changed successfully.")
-                return redirect('applicants-account')
+                messages.success(request, "Password changed successfully.", extra_tags="profile_edit")
+                return redirect('employer_settings')
 
     context = {
         'tab': tab,
