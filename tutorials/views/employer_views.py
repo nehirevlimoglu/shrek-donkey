@@ -25,6 +25,7 @@ from django.urls import reverse
 from tutorials.utils import match_candidates_to_job
 from datetime import datetime, date
 from tutorials.helpers import clear_feedback_messages
+from django.db.models.functions import Lower
 
 logger = logging.getLogger(__name__)
 
@@ -220,9 +221,6 @@ def edit_job_view(request, pk):
     return render(request, 'edit_job.html', {'form': form, 'job': job})
 
 
-
-
-
 @login_required
 def employer_candidates(request):
     """Retrieve all candidates who applied for jobs posted by the employer, with filtering options."""
@@ -231,19 +229,22 @@ def employer_candidates(request):
     except Employer.DoesNotExist:
         return HttpResponseForbidden("You are not authorized to view this page.")
 
-    # ✅ Get all jobs posted by this employer
-    employer_jobs = Job.objects.filter(employer=employer)
+    DISCIPLINE_LABELS = {
+    'bachelors': 'Bachelors',
+    'masters': 'Masters',
+    'phd': 'PhD',
+    'diploma': 'Diploma',
+    'associate': 'Associate Degree',
+    'certificate': 'Certificate',
+    }
 
-    # ✅ Retrieve all candidates who applied to these jobs
+    employer_jobs = Job.objects.filter(employer=employer)
     candidates = Candidate.objects.filter(job__in=employer_jobs).select_related('user', 'job')
 
-    # ✅ Get distinct degrees from candidates for the dropdown
-    degrees = Candidate.objects.exclude(degree__isnull=True).exclude(degree="").values_list('degree', flat=True).distinct()
-
-    # ✅ Filtering
-    job_id = request.GET.get("job")  # Job filter
-    status = request.GET.get("status")  # Application status filter
-    degree = request.GET.get("degree")  # Degree filter
+    # Get filters
+    job_id = request.GET.get("job")
+    status = request.GET.get("status")
+    discipline = request.GET.get("discipline")
 
     if job_id:
         candidates = candidates.filter(job_id=job_id)
@@ -251,14 +252,28 @@ def employer_candidates(request):
     if status:
         candidates = candidates.filter(application_status=status)
 
-    if degree:
-        candidates = candidates.filter(degree=degree)
+    if discipline:
+        candidates = candidates.filter(discipline=discipline)  # exact match now that we store lowercase
+
+    # ✅ Get distinct lowercase disciplines for the dropdown
+    disciplines_raw = (
+        Candidate.objects
+        .filter(job__in=employer_jobs)
+        .exclude(discipline__isnull=True)
+        .exclude(discipline="")
+        .annotate(d_lower=Lower("discipline"))
+        .values_list("d_lower", flat=True)
+        .distinct()
+    )
+
+    disciplines = [(val, DISCIPLINE_LABELS.get(val, val.title())) for val in disciplines_raw]
+
 
     return render(request, 'employer_candidates.html', {
         'candidates': candidates,
-        'jobs': employer_jobs,  # Pass job listings for dropdown
-        'statuses': Candidate.STATUS_CHOICES,  # Pass statuses for dropdown
-        'degrees': degrees,  # Pass degrees for dropdown
+        'jobs': employer_jobs,
+        'statuses': Candidate.STATUS_CHOICES,
+        'disciplines': disciplines,  # ✅ make sure this matches template
     })
 
 @login_required

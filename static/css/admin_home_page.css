@@ -347,3 +347,11 @@ table td {
     background: #007bff;
     color: white;
 } 
+
+/* Consistent Heading Styling */
+h1, h2 {
+    font-size: 30px;
+    font-weight: 600;
+    color: #1A202C;
+    margin-bottom: 20px;
+}

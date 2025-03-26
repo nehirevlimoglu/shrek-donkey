@@ -325,7 +325,9 @@ def apply_for_job(request, job_id):
             candidate.address = form.cleaned_data.get("address")
             candidate.school = form.cleaned_data.get("school")
             candidate.degree = form.cleaned_data.get("degree")
-            candidate.discipline = form.cleaned_data.get("discipline")
+            discipline_list = request.POST.getlist("discipline[]")
+            discipline_value = discipline_list[0] if discipline_list else None
+            candidate.discipline = discipline_value.lower() if discipline_value else None
             candidate.start_date = form.cleaned_data.get("start_date")
             candidate.end_date = form.cleaned_data.get("end_date")
             candidate.linkedin_profile = form.cleaned_data.get("linkedin_profile")
@@ -435,7 +437,7 @@ def apply_for_job(request, job_id):
             'current_employer': getattr(applicant, 'current_employer', ''),
             'skills': getattr(applicant, 'skills', ''),
         })
-    
+
     return render(request, "applicants_application.html", {
         "form": form,
         "job": job,
