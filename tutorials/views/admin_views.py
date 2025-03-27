@@ -697,7 +697,6 @@ def update_candidate_status(request, candidate_id):
 import logging
 logger = logging.getLogger(__name__)
 
-
 @csrf_exempt
 def update_job_status(request):
     if request.method == "POST":
@@ -795,7 +794,7 @@ def update_job_status(request):
             logger.error(f"[update_job_status] Unexpected error: {str(e)}")
             return JsonResponse({"success": False, "error": str(e)}, status=500)
     
-    return JsonResponse({"success": False, "error": "Method not allowed"}, status=405)
+    return JsonResponse({"success": False, "error": "Method not allowed"}, status=405) 
 
 
 @login_required
