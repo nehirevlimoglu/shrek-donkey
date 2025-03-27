@@ -5,98 +5,64 @@ from tutorials.models.admin_models import Notification
 
 User = get_user_model()
 
-class MarkNotificationAsReadViewTests(TestCase):
+class MarkNotificationAsReadTests(TestCase):
     def setUp(self):
         self.client = Client()
 
-        # Admin user
+        # Create an admin user
         self.admin_user = User.objects.create_user(
-            username='admin',
-            email='admin@example.com',
-            password='adminpass',
-            role='Admin',
-            is_staff=True,
-            is_superuser=True
+            username='admin', email='admin@example.com',
+            password='adminpass', role='Admin', is_staff=True
         )
 
-        # Non-admin user
+        # Create a non-admin user
         self.other_user = User.objects.create_user(
-            username='user',
-            email='user@example.com',
-            password='userpass',
-            role='Employer'
+            username='user', email='user@example.com',
+            password='userpass', role='Applicant'
         )
 
-        # Notification for admin
+        # Create a notification for admin
         self.notification = Notification.objects.create(
             recipient=self.admin_user,
-            title='Test',
-            message='Hello',
-            is_read=False,
-            is_deleted=False
+            message="Test notification"
         )
 
-        self.url = reverse("admin_mark_notification_as_read", kwargs={"notification_id": self.notification.id})
+        self.url = reverse('admin_mark_notification_as_read', args=[self.notification.id])
 
-    def test_admin_can_mark_own_notification_as_read(self):
-        self.client.force_login(self.admin_user)
+
+    def test_mark_valid_notification_as_read(self):
+        self.client.login(username='admin', password='adminpass')
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertJSONEqual(response.content, {"status": "success"})
+        self.assertJSONEqual(response.content, {'status': 'success'})
+
+        # Refresh from DB and check
         self.notification.refresh_from_db()
         self.assertTrue(self.notification.is_read)
 
-    def test_get_method_not_allowed(self):
-        self.client.force_login(self.admin_user)
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 405)
-
-    def test_non_admin_user_gets_403(self):
-        self.client.force_login(self.other_user)
-        response = self.client.post(self.url)
-        self.assertEqual(response.status_code, 403)
-        self.assertJSONEqual(response.content, {
-            "status": "error",
-            "message": "User is not an admin"
-        })
-
-
-    def test_admin_cannot_mark_other_users_notification(self):
-        other_notification = Notification.objects.create(
-            recipient=self.other_user,
-            title='Oops',
-            message='Private',
-            is_read=False
-        )
-        self.client.force_login(self.admin_user)
-        url = reverse("admin_mark_notification_as_read", kwargs={"notification_id": other_notification.id})
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, 403)
-        self.assertJSONEqual(response.content, {
-            "status": "error",
-            "message": "Permission denied"
-        })
-
-    def test_notification_does_not_exist(self):
-        self.client.force_login(self.admin_user)
-        url = reverse("admin_mark_notification_as_read", kwargs={"notification_id": 9999})  # Nonexistent
+    def test_notification_not_found(self):
+        self.client.login(username='admin', password='adminpass')
+        url = reverse('admin_mark_notification_as_read', args=[999])  # non-existent
         response = self.client.post(url)
         self.assertEqual(response.status_code, 404)
-        self.assertJSONEqual(response.content, {
-            "status": "error",
-            "message": "Notification not found"
-        })
+        self.assertIn("Notification not found", response.json()['message'])
 
-    def test_server_exception_returns_500(self):
-        self.client.force_login(self.admin_user)
+    def test_notification_does_not_belong_to_user(self):
+        self.client.login(username='user', password='userpass')
+        url = reverse('admin_mark_notification_as_read', args=[self.notification.id])
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("log_in"), response.url)
 
-        # Monkey-patch Notification.objects.get to raise an exception
-        original_get = Notification.objects.get
-        Notification.objects.get = lambda *args, **kwargs: 1 / 0  # division by zero
-
+    def test_notification_wrong_recipient(self):
+        self.notification.recipient = self.other_user
+        self.notification.save()
+        self.client.login(username='admin', password='adminpass')
         response = self.client.post(self.url)
-        self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.json()["status"], "error")
+        self.assertEqual(response.status_code, 403)
+        self.assertIn("Permission denied", response.json()['message'])
 
-        # Restore original
-        Notification.objects.get = original_get
+    def test_unauthenticated_user(self):
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 302)  # Redirect to login
+

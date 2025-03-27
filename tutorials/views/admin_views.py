@@ -502,14 +502,7 @@ def admin_edit_job(request, job_id):
         job.contact_email = request.POST.get('contact_email')
         
         job.save()
-
-        EmployerNotification.objects.create(
-            employer=job.employer,
-            title="Job Listing Updated ✏️",
-            message=f"Your job listing '{job.title}' has been updated by the admin team.",
-            is_read=False
-        )
-
+        
         return redirect('admin_job_detail', job_id=job.id)
     
     return render(request, 'admin_edit_job.html', {
@@ -520,16 +513,6 @@ def admin_edit_job(request, job_id):
 @require_POST
 def admin_delete_job(request, job_id):
     job = get_object_or_404(Job, id=job_id)
-    
-    # Notify the employer before deleting
-    if job.employer:
-        EmployerNotification.objects.create(
-            employer=job.employer,
-            title="Job Listing Deleted ❌",
-            message=f"Your job listing '{job.title}' has been deleted by the admin team.",
-            is_read=False
-        )
-
     job.delete()
     return JsonResponse({'status': 'success'})
 
@@ -781,17 +764,6 @@ def update_job_status(request):
             # If the job is approved, send a notification
             if new_status.lower() in ["approved", "rejected"] and job.employer:
                 print("[DEBUG] Hitting approved block in update_job_status")
-
-                EmployerNotification.objects.create(
-                        employer=job.employer,
-                        title=f"Job {new_status.capitalize()}",
-                        message=(
-                            f"Your job listing '{job.title}' has been approved and is now visible to applicants."
-                            if new_status.lower() == "approved"
-                            else f"Your job listing '{job.title}' has been rejected by the admin team."
-                        ),
-                        is_read=False
-                    )
 
                 Notification.objects.create(
                     recipient=job.employer.user,

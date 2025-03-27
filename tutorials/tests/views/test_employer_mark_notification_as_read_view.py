@@ -1,13 +1,10 @@
-import json
 from django.test import TestCase, Client
 from django.urls import reverse
-from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from tutorials.models.admin_models import Admin, Notification
 from tutorials.models.employer_models import Employer
-from tutorials.views.admin_views import is_admin  # For reference if needed
 
 User = get_user_model()
 
@@ -44,14 +41,14 @@ class MarkNotificationAsReadViewTests(TestCase):
             created_at=timezone.now(),
             recipient=self.admin_user  # Make sure the recipient is set to admin_user
         )
-        # Construct URL for marking notification as read.
-        self.url = reverse("mark_notification_as_read", kwargs={"notification_id": self.notification.id})
+        # Use the correct URL name (e.g. "admin_mark_notification_as_read") here.
+        self.url = reverse("admin_mark_notification_as_read", kwargs={"notification_id": self.notification.id})
         self.client.force_login(self.admin_user)
 
     def test_mark_notification_as_read_successful(self):
         """Test that a valid POST request marks the notification as read and returns JSON success."""
         response = self.client.post(self.url)
-        self.assertEqual(response.status_code, 200)cov
+        self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data.get("status"), "success")
         # Reload the notification from the DB.

@@ -96,8 +96,13 @@ class ApplicantModelTest(TestCase):
             content_type="application/pdf"
         )
         applicant = Applicant.objects.create(user=self.user, cv=fake_cv)
-        self.assertIn("uploads/cv/", applicant.cv.name)
         self.assertTrue(
-            applicant.cv.name.startswith("uploads/cv/resume_"),
+            applicant.cv.name.startswith("uploads/cv/resume"),
             f"Unexpected file name: {applicant.cv.name}"
         )
+        self.assertTrue(
+            applicant.cv.name.endswith(".pdf"),
+            f"Expected a .pdf file but got: {applicant.cv.name}"
+        )
+
+

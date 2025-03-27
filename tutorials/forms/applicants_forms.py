@@ -250,6 +250,11 @@ class ApplicantEditForm(forms.ModelForm):
         required=False, label='Upload CV'
     )
 
+    email = forms.EmailField(
+        required=True,
+        label='Email'
+    )
+
     job_preferences = forms.ModelMultipleChoiceField(
         queryset=JobTitle.objects.all(),  # ✅ FIXED
         widget=forms.SelectMultiple(attrs={'class': 'form-select'}),
@@ -265,7 +270,9 @@ class ApplicantEditForm(forms.ModelForm):
             'job_preferences',
             'location_preferences',
             'cv',
+            'email',  # ✅ Include email
         ]
+
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
@@ -274,6 +281,8 @@ class ApplicantEditForm(forms.ModelForm):
         if self.user:
             self.fields['first_name'].initial = self.user.first_name
             self.fields['last_name'].initial = self.user.last_name
+            self.fields['email'].initial = self.user.email  # ✅ Add this line
+
 
     def save(self, commit=True):
         applicant = super().save(commit=False)
@@ -281,8 +290,10 @@ class ApplicantEditForm(forms.ModelForm):
         if self.user:
             self.user.first_name = self.cleaned_data.get('first_name', self.user.first_name)
             self.user.last_name = self.cleaned_data.get('last_name', self.user.last_name)
+            self.user.email = self.cleaned_data.get('email', self.user.email)  # ✅ Add this line
             if commit:
                 self.user.save()
+
 
         if commit:
             applicant.save()
