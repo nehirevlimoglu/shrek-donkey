@@ -5,3 +5,4 @@ Pillow==11.1.0
 django-browser-reload
 schedule
 keybert
+gunicorn
