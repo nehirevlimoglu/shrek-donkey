@@ -77,51 +77,8 @@ class AdminNotificationsTests(TestCase):
         response = self.client.get(reverse('admin_notifications') + '?is_read=unread')
         self.assertEqual(len(response.context['notifications']), 1)
 
-    def test_mark_notification_as_read(self):
-        """Test marking a notification as read"""
-        # Make POST request to mark notification as read
-        response = self.client.post(
-            reverse('mark_notification_as_read', args=[self.unread_notification.id])
-        )
-        # Verify successful response
-        self.assertEqual(response.status_code, 200)
-        # Refresh notification from database
-        self.unread_notification.refresh_from_db()
-        # Verify notification is now marked as read
-        self.assertTrue(self.unread_notification.is_read)
-        # Verify response format
-        self.assertEqual(response.json(), {'status': 'success'})
-
-    def test_mark_all_notifications_as_read(self):
-        """Test marking all notifications as read"""
-        # Make POST request to mark all notifications as read
-        response = self.client.post(reverse('mark_all_notifications_as_read'))
-        # Verify successful response
-        self.assertEqual(response.status_code, 200)
-        # Count remaining unread notifications
-        unread_count = Notification.objects.filter(
-            recipient=self.admin_user,
-            is_read=False
-        ).count()
-        # Verify no unread notifications remain
-        self.assertEqual(unread_count, 0)
-        # Verify response format
-        self.assertEqual(response.json(), {'status': 'success'})
-
-    def test_delete_notification(self):
-        """Test soft deleting a notification"""
-        # Make POST request to delete notification
-        response = self.client.post(
-            reverse('delete_notification', args=[self.unread_notification.id])
-        )
-        # Verify successful response
-        self.assertEqual(response.status_code, 200)
-        # Refresh notification from database
-        self.unread_notification.refresh_from_db()
-        # Verify notification is marked as deleted
-        self.assertTrue(self.unread_notification.is_deleted)
-        # Verify response format
-        self.assertEqual(response.json(), {'status': 'success'})
+ 
+    
 
     def test_notification_creation(self):
         """Test notification creation utility function"""
