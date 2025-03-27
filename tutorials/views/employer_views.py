@@ -24,15 +24,12 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from tutorials.utils import match_candidates_to_job
-<<<<<<< HEAD
 from datetime import datetime, date, timedelta
-=======
 from datetime import datetime, date
 from tutorials.helpers import clear_feedback_messages
 from django.db.models.functions import Lower
 from django.contrib.auth import update_session_auth_hash
 
->>>>>>> main-at-commit2
 
 logger = logging.getLogger(__name__)
 

@@ -561,13 +561,6 @@ def applicants_analytics(request):
     else:
         offer_acceptance_rate = 0
 
-<<<<<<< HEAD
-    # Applications over time (last 6 months)
-    applications_over_time = [0] * 6  # Initialize with zeros
-    
-    # Create offer acceptance breakdown
-    offer_acceptance_breakdown = json.dumps([accepted_offers, declined_offers])
-=======
     # Just count all hired applications as accepted
     accepted_offers = Application.objects.filter(applicant=applicant, status="hired").count()
     declined_offers = Application.objects.filter(applicant=applicant, status="rejected").count()
@@ -602,7 +595,6 @@ def applicants_analytics(request):
     offer_labels = ["Accepted", "Declined"]
     offer_data = [accepted_offers, declined_offers]
     offer_colors = ["#34A853", "#EA4335"]
->>>>>>> main-at-commit2
 
     return render(request, 'applicants_analytics.html', {
         "total_applications": total_applications,
