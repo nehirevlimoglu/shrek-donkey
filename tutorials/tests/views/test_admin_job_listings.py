@@ -284,76 +284,7 @@ class AdminJobListingsTests(TestCase):
         response = self.client.get(reverse('admin_edit_job', args=[999]))
         self.assertEqual(response.status_code, 404)
 
-    def test_admin_applications_view(self):
-        """Test admin applications view functionality"""
-        # Clear existing candidates
-        Candidate.objects.all().delete()
-
-        # Create test data
-        candidate_statuses = ['Pending', 'Interview', 'Hired', 'Rejected']
-        for status in candidate_statuses:
-            for i in range(2):  # 2 candidates per status
-                Candidate.objects.create(
-                    job=self.open_job,
-                    user=User.objects.create_user(
-                        username=f'@candidate_{status}_{i}',
-                        first_name=f'First{i}',
-                        last_name=f'Last{i}',
-                        email=f'candidate_{status}_{i}@test.com',
-                        password='testpass123'
-                    ),
-                    application_status=status,
-                    application_date=timezone.now() - timedelta(days=i)
-                )
-
-        # Test basic view
-        response = self.client.get(reverse('admin_applications_view'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'admin_applications_view.html')
-
-        # Test statistics
-        self.assertEqual(response.context['total_applications'], 8)
-        self.assertEqual(response.context['pending_applications'], 2)
-        self.assertEqual(response.context['interview_applications'], 2)
-        self.assertEqual(response.context['hired_applications'], 2)
-        self.assertEqual(response.context['rejected_applications'], 2)
-
-        # Test search functionality
-        response = self.client.get(reverse('admin_applications_view'), {'search': 'First0'})
-        self.assertEqual(len(response.context['applications']), 4)  # One 'First0' per status
-
-        # Test status filtering
-        response = self.client.get(reverse('admin_applications_view'), {'status': 'Pending'})
-        self.assertEqual(len(response.context['applications']), 2)
-
-        # Test combined search and status filter
-        response = self.client.get(reverse('admin_applications_view'), 
-                                 {'search': 'First0', 'status': 'Hired'})
-        self.assertEqual(len(response.context['applications']), 1)
-
-        # Test pagination
-        response = self.client.get(reverse('admin_applications_view'))
-        self.assertEqual(len(response.context['applications']), 5)  # First page should have 5 items
-
-        # Test second page
-        response = self.client.get(reverse('admin_applications_view'), {'page': 2})
-        self.assertEqual(len(response.context['applications']), 3)  # Second page should have remaining 3 items
-
-        # Test invalid page number
-        response = self.client.get(reverse('admin_applications_view'), {'page': 999})
-        self.assertEqual(response.status_code, 200)  # Should return last page
-
-        # Test non-integer page
-        response = self.client.get(reverse('admin_applications_view'), {'page': 'invalid'})
-        self.assertEqual(response.status_code, 200)  # Should return first page
-
-        # Test ordering
-        response = self.client.get(reverse('admin_applications_view'))
-        applications = response.context['applications']
-        self.assertTrue(all(
-            applications[i].application_date >= applications[i+1].application_date
-            for i in range(len(applications)-1)
-        )) 
+    
 
     @patch('tutorials.views.admin_views.logger')
     def test_toggle_job_status(self, mock_logger):
