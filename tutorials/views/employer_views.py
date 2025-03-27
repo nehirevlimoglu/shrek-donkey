@@ -24,7 +24,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from tutorials.utils import match_candidates_to_job
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -254,28 +254,25 @@ def employer_calendar(request):
 
 
 def create_interview_event(request):
-    # Suppose you want to schedule an interview for tomorrow:
-    tomorrow = datetime.datetime.now() + datetime.timedelta(days=1)
+    tomorrow = datetime.now() + timedelta(days=1)
 
-    # Grab or create a Calendar to hold interviews:
     interview_calendar, created = Calendar.objects.get_or_create(
         slug='interviews', 
         defaults={'name': 'Interviews Calendar'}
     )
 
-    # Create an Event for the candidate:
-    candidate = Candidate.objects.get(id=1)  # example
-    job_title = "Software Engineer"          # example
+    candidate = Candidate.objects.get(id=1)
+    job_title = "Software Engineer"
 
     event = Event.objects.create(
         start=tomorrow.replace(hour=10, minute=0),
         end=tomorrow.replace(hour=11, minute=0),
         title=f"Interview - {candidate.user.first_name} ({job_title})",
-        creator=request.user,  # or some user
+        creator=request.user,
         calendar=interview_calendar
     )
 
-    return redirect('schedule')  # or wherever your schedule is displayed
+    return redirect('schedule')
 
 
 def interview_detail(request, pk):
