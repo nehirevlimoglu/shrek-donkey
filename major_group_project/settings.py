@@ -25,8 +25,7 @@ SECRET_KEY = 'django-insecure-if(vnx@arrljzcbhxag+))$_5%5d^y1f64$jh@s#*q%onf%9tk
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['junjiezhou.pythonanywhere.com']
 AUTH_USER_MODEL = 'tutorials.User'
 
 
