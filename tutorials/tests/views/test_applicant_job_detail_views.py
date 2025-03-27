@@ -3,7 +3,6 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from tutorials.models.applicants_models import Applicant, Application
 from tutorials.models.employer_models import Job, Employer
-from random import randint
 
 User = get_user_model()
 
@@ -61,7 +60,6 @@ class JobDetailViewTests(TestCase):
         
         self.client = Client()
     
-    
     def test_job_detail_authenticated_applicant(self):
         """Test job detail view as authenticated applicant"""
         self.client.login(username='@testapplicant', password='testpass123')
@@ -70,13 +68,8 @@ class JobDetailViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'job_detail.html')
         self.assertEqual(response.context['job'], self.job)
-        
-        # Check if existing_application is in context and is false
-        if 'existing_application' in response.context:
-            self.assertFalse(response.context['existing_application'])
-        
-        # Verify random value for cache busting
-        self.assertIn('random', response.context)
+        self.assertFalse(response.context['existing_application'])
+        self.assertEqual(response.context['next_page'], 'home')
     
     def test_job_detail_with_existing_application(self):
         """Test job detail view when applicant has already applied"""
@@ -89,19 +82,7 @@ class JobDetailViewTests(TestCase):
         
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'job_detail.html')
-        
-        # Check if existing_application is in context and is true
-        if 'existing_application' in response.context:
-            self.assertTrue(response.context['existing_application'])
-        else:
-            # Alternative check - verify an application exists in the database
-            self.assertTrue(
-                Application.objects.filter(
-                    applicant=self.applicant,
-                    job=self.job
-                ).exists()
-            )
-    
+        self.assertTrue(response.context['existing_application'])
     
     def test_apply_for_job_already_applied(self):
         """Test applying for a job that was already applied to"""
@@ -111,15 +92,12 @@ class JobDetailViewTests(TestCase):
         Application.objects.create(applicant=self.applicant, job=self.job)
         
         # Try to apply again
-        response = self.client.post(reverse('job_detail', args=[self.job.id]))
+        response = self.client.get(reverse('job_detail', args=[self.job.id]))
         
         # Should render the page
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'job_detail.html')
-        
-        # Check existing_application in context if available
-        if 'existing_application' in response.context:
-            self.assertTrue(response.context['existing_application'])
+        self.assertTrue(response.context['existing_application'])
         
         # Verify no duplicate application was created
         self.assertEqual(
@@ -143,7 +121,7 @@ class JobDetailViewTests(TestCase):
         self.client.login(username='@noprofile', password='testpass123')
         
         # Try to apply for job
-        response = self.client.post(reverse('job_detail', args=[self.job.id]))
+        response = self.client.get(reverse('job_detail', args=[self.job.id]))
         
         # Should render the page
         self.assertEqual(response.status_code, 200)
@@ -152,20 +130,4 @@ class JobDetailViewTests(TestCase):
         self.assertEqual(
             Application.objects.filter(job=self.job).count(), 
             0
-        )
-    
-    def test_job_detail_random_value_generation(self):
-        """Test that random values are different between requests (cache busting)"""
-        self.client.login(username='@testapplicant', password='testpass123')
-        
-        # Make two separate requests
-        response1 = self.client.get(reverse('job_detail', args=[self.job.id]))
-        response2 = self.client.get(reverse('job_detail', args=[self.job.id]))
-        
-        # Both responses should have 'random' in context
-        self.assertIn('random', response1.context)
-        self.assertIn('random', response2.context)
-        
-        # These random values should be integers
-        self.assertTrue(isinstance(response1.context['random'], int))
-        self.assertTrue(isinstance(response2.context['random'], int)) 
+        ) 

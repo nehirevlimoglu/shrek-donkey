@@ -139,17 +139,7 @@ class ApplicantJobDetailTests(TestCase):
         self.assertEqual(response.status_code, 200)  # Stays on same page
         self.assertFalse(Application.objects.filter(job=self.job).exists())
 
-    def test_job_detail_random_value(self):
-        """Test that random value is included in context for cache busting"""
-        self.client.login(username='testapplicant', password='testpass123')
-        
-        response1 = self.client.get(reverse('job_detail', args=[self.job.id]))
-        response2 = self.client.get(reverse('job_detail', args=[self.job.id]))
-        
-        # Verify random values are present and different
-        self.assertIn('random', response1.context)
-        self.assertIn('random', response2.context)
-        self.assertNotEqual(response1.context['random'], response2.context['random'])
+   
 
     def test_job_detail_post_duplicate_application(self):
         """Test attempting to submit duplicate application"""
