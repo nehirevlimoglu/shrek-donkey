@@ -1,10 +1,10 @@
-{% extends 'admin_base.html' %}
+{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}Applicant Settings | Swamp Hiring{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/admin_settings.css' %}">
+<link rel="stylesheet" href="{% static 'css/applicants_settings.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -16,12 +16,15 @@
 
     {% if messages %}
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
+            {% if 'profile_edit' in message.tags %}
+                <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
         {% endfor %}
     {% endif %}
+
 
     {% if error %}
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -88,7 +91,7 @@
                         <a href="{{ applicant.cv.url }}" target="_blank">Download CV</a>
                     {% else %}
                         <span class="text-muted">No CV uploaded.</span>
-                    {% endif %}
+                {% endif %}
                 </p>
             </div>
         </div>
@@ -138,18 +141,16 @@
                             <input type="text" class="form-control" id="salary_preferences" name="salary_preferences" value="{{ applicant.salary_preferences|default_if_none:'' }}">
                         </div>
 
-                        <div class="mb-3">
-                            <label for="job_preferences" class="form-label">Job Preferences</label>
-                            <select name="job_preferences" id="job_preferences" class="form-select" multiple>
-                                {% for job in form.fields.job_preferences.queryset %}
-                                    <option value="{{ job.pk }}"
-                                        {% if job in form.initial.job_preferences %}
-                                            selected
-                                        {% endif %}
-                                    >{{ job.title }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                        <select name="job_preferences" id="job_preferences" class="form-select" multiple>
+                            {% for job in form.fields.job_preferences.queryset %}
+                                <option value="{{ job.pk }}"
+                                    {% if job.pk in form.initial.job_preferences %}
+                                        selected
+                                    {% endif %}
+                                >{{ job.title }}</option>
+                            {% endfor %}
+                        </select>
+
                         
 
                         <div class="mb-3">

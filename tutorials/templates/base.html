@@ -5,8 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Admin Dashboard | Swamp Hiring{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/admin_home_page.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <meta charset="UTF-8">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+    <link rel="stylesheet" href="{% static 'css/admin_home_page.css' %}">
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -22,9 +28,9 @@
                             <li><a href="{% url 'employer_job_listings' %}">Job Listings</a></li>
                             <li><a href="{% url 'employer_candidates' %}">Candidates</a></li>
                             <li><a href="{% url 'employer_calendar' %}">Interviews</a></li>
+                            <li><a href="{% url 'employer_notifications' %}">Notifications</a></li>
                             <li><a href="{% url 'employer_analytics' %}">Analytics</a></li>
                             <li><a href="{% url 'employer_settings' %}">Settings</a></li>
-                            <li><a href="{% url 'employer_notifications' %}">Notifications</a></li>
                         {% elif user.role == "Applicant" %}
                             <!-- Your 5 menu items for Applicants -->
                             <li><a href="{% url 'applicants-home-page' %}">Home Page</a></li>

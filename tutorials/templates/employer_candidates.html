@@ -4,31 +4,17 @@
 {% block title %}Job Candidates | Swamp Hiring{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/employer_candidates.css' }">
-    <style>
-        /* Ensure the entire page can scroll */
-        html, body {
-            min-height: 100vh;
-            overflow-y: auto;
-            background: #F8F9FA;
-        }
-        /* Allow the candidates section to expand naturally */
-        .candidates-section {
-            max-height: none;
-            overflow-y: visible;
-            padding: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/employer_candidates.css' %}">
 {% endblock %}
 
 {% block content %}
     <section class="candidates-section">
         <h2>Job Candidates</h2>
 
-        <!-- ✅ Filtering Form -->
+        <!-- Filtering Form -->
         <form method="GET" action="{% url 'employer_candidates' %}" class="filter-form">
             <label for="job">Job Position:</label>
-            <select name="job" id="job">
+            <select name="job" id="job" class="pill-select">
                 <option value="">All Positions</option>
                 {% for job in jobs %}
                     <option value="{{ job.id }}" {% if request.GET.job == job.id|stringformat:"s" %}selected{% endif %}>
@@ -38,7 +24,7 @@
             </select>
 
             <label for="status">Status:</label>
-            <select name="status" id="status">
+            <select name="status" id="status" class="pill-select">
                 <option value="">All Statuses</option>
                 {% for status_code, status_label in statuses %}
                     <option value="{{ status_code }}" {% if request.GET.status == status_code %}selected{% endif %}>
@@ -47,22 +33,17 @@
                 {% endfor %}
             </select>
 
-            <label for="degree">Degree:</label>
-            <input type="text" name="degree" id="degree" placeholder="Enter Degree" value="{{ request.GET.degree|default:'' }}">
-
             <label for="discipline">Discipline:</label>
-            <select name="discipline" id="discipline">
+            <select name="discipline" id="discipline" class="pill-select">
                 <option value="">All Disciplines</option>
-                <option value="bachelors" {% if request.GET.discipline == 'bachelors' %}selected{% endif %}>Bachelors</option>
-                <option value="masters" {% if request.GET.discipline == 'masters' %}selected{% endif %}>Masters</option>
-                <option value="phd" {% if request.GET.discipline == 'phd' %}selected{% endif %}>PhD</option>
-                <option value="diploma" {% if request.GET.discipline == 'diploma' %}selected{% endif %}>Diploma</option>
-                <option value="associate" {% if request.GET.discipline == 'associate' %}selected{% endif %}>Associate Degree</option>
-                <option value="certificate" {% if request.GET.discipline == 'certificate' %}selected{% endif %}>Certificate</option>
+                {% for value, label in disciplines %}
+                    <option value="{{ value }}" {% if request.GET.discipline == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
             </select>
-
-
-            <button type="submit" class="btn-filter">Apply Filters</button>
+            
+            <button type="submit" class="filter-btn">Apply Filters</button>
         </form>
 
         {% if candidates %}
@@ -90,13 +71,17 @@
                             </td>
                             <td>
                                 {% if candidate.resume %}
-                                    <a href="{{ candidate.resume.url }}" target="_blank">View Resume</a>
+                                    <a href="{{ candidate.resume.url }}" target="_blank" class="btn btn-primary details-btn">View Resume</a>
                                 {% else %}
                                     No Resume
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{% url 'applicant_profile' candidate.id %}" class="btn-review" data-review-button="true">Review</a>
+                                <a href="{% url 'applicant_profile' candidate.id %}" 
+                                   class="btn btn-primary details-btn" 
+                                   data-review-button="true">
+                                   Review
+                                </a>
                             </td>
                         </tr>
                     {% empty %}
@@ -106,7 +91,6 @@
                     {% endfor %}
                 </tbody>
             </table>
-        
         {% else %}
             <p class="no-candidates">No candidates have applied yet.</p>
         {% endif %}

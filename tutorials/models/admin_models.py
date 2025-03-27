@@ -51,8 +51,6 @@ class Notification(models.Model):
     related_object_type = models.CharField(max_length=50, null=True, blank=True)
     action_url = models.CharField(max_length=255, blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
-    feedback_type = models.CharField(max_length=50, null=True, blank=True)
-    sender_type = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']

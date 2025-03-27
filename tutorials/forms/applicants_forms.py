@@ -236,7 +236,7 @@ class ApplicantEditForm(forms.ModelForm):
     last_name = forms.CharField(
         max_length=30, required=False, label='Last Name'
     )
-    
+
     degree = forms.CharField(
         max_length=255, required=False, label='Degree'
     )
@@ -249,9 +249,10 @@ class ApplicantEditForm(forms.ModelForm):
     cv = forms.FileField(
         required=False, label='Upload CV'
     )
+
     job_preferences = forms.ModelMultipleChoiceField(
-        queryset=Job.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
+        queryset=JobTitle.objects.all(),  # ✅ FIXED
+        widget=forms.SelectMultiple(attrs={'class': 'form-select'}),
         required=False,
         label='Job Preferences'
     )
@@ -267,10 +268,9 @@ class ApplicantEditForm(forms.ModelForm):
         ]
 
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)  # capture the user instance
+        self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
 
-        # Pre-fill user-related fields if a user is passed
         if self.user:
             self.fields['first_name'].initial = self.user.first_name
             self.fields['last_name'].initial = self.user.last_name
@@ -278,16 +278,9 @@ class ApplicantEditForm(forms.ModelForm):
     def save(self, commit=True):
         applicant = super().save(commit=False)
 
-        # Save user first and last name if present
         if self.user:
-            first_name = self.cleaned_data.get('first_name')
-            last_name = self.cleaned_data.get('last_name')
-
-            if first_name:
-                self.user.first_name = first_name
-            if last_name:
-                self.user.last_name = last_name
-
+            self.user.first_name = self.cleaned_data.get('first_name', self.user.first_name)
+            self.user.last_name = self.cleaned_data.get('last_name', self.user.last_name)
             if commit:
                 self.user.save()
 

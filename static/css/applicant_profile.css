@@ -1,6 +1,4 @@
-/* applicant_profile.css */
-
-/* Base layout */
+/* Layout */
 body {
     font-family: 'Poppins', sans-serif;
     background-color: #f8f9fa;
@@ -18,14 +16,20 @@ body {
     background-color: #ffffff;
     border-radius: 12px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.3s ease-in-out;
 }
 
-/* Headings */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 h1 {
     font-size: 2rem;
     margin-bottom: 30px;
     color: #2d3748;
     text-align: center;
+    font-weight: 700; /* 👈 make it bold */
 }
 
 h2 {
@@ -34,23 +38,11 @@ h2 {
     color: #2d3748;
     border-bottom: 2px solid #e2e8f0;
     padding-bottom: 5px;
+    font-weight: 700; /* 👈 make it bold */
 }
 
-/* Section styling */
 .section {
     margin-bottom: 40px;
-}
-
-/* Blocks */
-.education-block,
-.work-block {
-    margin-bottom: 20px;
-}
-
-hr {
-    border: 0;
-    border-top: 1px solid #e2e8f0;
-    margin: 20px 0;
 }
 
 /* Buttons */
@@ -79,7 +71,6 @@ hr {
     background-color: #1a73e8;
     color: white;
 }
-
 .btn-primary:hover {
     background-color: #1558b5;
 }
@@ -88,7 +79,6 @@ hr {
     background-color: #e2e8f0;
     color: #1a202c;
 }
-
 .btn-secondary:hover {
     background-color: #cbd5e0;
 }
@@ -97,7 +87,6 @@ hr {
     background-color: #38a169;
     color: white;
 }
-
 .btn-accept:hover {
     background-color: #2f855a;
 }
@@ -106,12 +95,23 @@ hr {
     background-color: #e53e3e;
     color: white;
 }
-
 .btn-reject:hover {
     background-color: #c53030;
 }
 
-/* Chips for status */
+.left-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 30px; /* 👈 increase space from above */
+}
+
+.top-back-link {
+    margin-bottom: 20px;
+}
+
+/* Status Chips */
 .status-chip {
     margin: 10px 0 20px;
 }
@@ -138,34 +138,138 @@ hr {
     color: #2b6cb0;
 }
 
-/* Confirmation modal */
-.confirmation-modal {
+/***********************************************************
+ * Modal Overlay
+ ***********************************************************/
+ .confirmation-modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0,0,0,0.4);
-    display: flex;
-    align-items: center;
+    display: none; /* controlled by inline JS (display: flex) when shown */
     justify-content: center;
-    z-index: 1000;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.5); /* semi-transparent black overlay */
+    z-index: 9999; /* ensure it’s on top of other elements */
 }
 
+/***********************************************************
+ * Modal Content Box
+ ***********************************************************/
 .confirmation-content {
-    background-color: white;
-    padding: 30px;
+    background: #ffffff;
+    padding: 25px 30px;
     border-radius: 8px;
-    max-width: 400px;
-    width: 100%;
+    width: 400px; /* adjust as you like */
+    max-width: 90%; /* responsive for smaller screens */
     text-align: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
 }
 
 .confirmation-content h2 {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    font-size: 22px;
+    font-weight: 600;
+    color: #1A202C;
 }
 
+.confirmation-content p {
+    margin-bottom: 20px;
+    font-size: 16px;
+    color: #4A5568;
+}
+
+/***********************************************************
+ * Buttons
+ ***********************************************************/
+/* Generic styling for both buttons */
 .confirmation-content button {
-    margin: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* "Yes, Proceed" button */
+#confirm-button {
+    background: #1A73E8;
+    color: #fff;
+}
+
+#confirm-button:hover {
+    background: #1558B5;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* "Cancel" button (the second one) */
+.confirmation-content button:last-of-type {
+    background: #E2E8F0;
+    color: #1A202C;
+}
+
+.confirmation-content button:last-of-type:hover {
+    background: #CBD5E0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+    .btn-view,
+    .btn-primary,
+    .btn-secondary,
+    .btn-accept,
+    .btn-reject {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .confirmation-content {
+        width: 90%;
+    }
+}
+
+/* Other */
+.cover-letter {
+    margin-top: 5px;
+}
+
+.section p {
+    margin: 6px 0;
+}
+
+.section:not(:last-child) {
+    border-bottom: 1px solid #edf2f7;
+    padding-bottom: 20px;
+}
+
+.btn-warning {
+    background-color: #f6c23e;
+    color: #1a202c;
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+}
+
+.btn-warning:hover {
+    background-color: #dda20a;
+}
+
+.scheduled-info-box {
+    margin-bottom: 20px;
+    background-color: #fefcbf;
+    border: 1px solid #f6e05e;
+    padding: 15px;
+    border-radius: 8px;
 }

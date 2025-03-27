@@ -8,11 +8,37 @@
 body {
     font-family: Arial, sans-serif;
     height: 100%;
-    display: flex;
-    flex-direction: column; /* Align page content vertically */
     padding: 20px;
-    overflow-y: auto; /* Allow vertical scrolling */
+    overflow-y: auto;
+    background-color: #f8f8f8;
 }
+
+/* Container wrapper */
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.dashboard-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+.sidebar {
+    width: 240px; /* adjust based on your layout */
+    flex-shrink: 0;
+}
+
+main.content {
+    flex-grow: 1;
+    padding: 40px 40px 60px; /* Add horizontal padding */
+}
+
+
 
 /* Header styling */
 h2 {
@@ -27,6 +53,7 @@ h2 {
     height: 500px; /* Fixed height for calendar */
     margin-bottom: 20px;
     background-color: #fff;
+    padding-bottom: 15px;
 }
 
 /* Scheduled Interviews Table */
@@ -69,4 +96,38 @@ table tr:nth-child(even) {
 
 ::-webkit-scrollbar-thumb:hover {
     background-color: #555;
+}
+
+/* Make each day cell in the calendar a minimum height */
+.fc-daygrid-day-frame {
+    min-height: 110px !important;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.fc-daygrid-day-events {
+    margin-top: 6px;
+}
+
+/* Improve spacing for events inside the cell */
+.fc-event {
+    font-size: 0.85rem;
+    margin-top: 4px;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+/* Optional: give event titles more spacing/contrast */
+.fc-event-title {
+    font-weight: 500;
+}
+
+/* Make header row (Sun, Mon, etc.) clearer */
+.fc-col-header-cell {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    padding: 8px;
+    border-bottom: 1px solid #dee2e6;
 }

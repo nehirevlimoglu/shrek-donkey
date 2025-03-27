@@ -13,7 +13,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <!-- Base CSS (load first as it contains base styles) -->
-    <link rel="stylesheet" href="{% static 'css/admin_base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <!-- Home page CSS (load after base CSS) -->
     <link rel="stylesheet" href="{% static 'css/admin_home_page.css' %}">
     {% block extra_css %}{% endblock %}
@@ -25,8 +25,8 @@
             <nav>
                 <ul>
                         <li><a href="{% url 'admin_home_page' %}">Dashboard</a></li>
-                        <li><a href="{% url 'admin_job_listings' %}">Job View</a></li>
-                        <li><a href="{% url 'admin_applications_view' %}">Applicants View</a></li>
+                        <li><a href="{% url 'admin_job_listings' %}">Job Listings</a></li>
+                        <li><a href="{% url 'admin_applications_view' %}">Candidates</a></li>
                         <li><a href="{% url 'admin_notifications' %}">Notifications</a></li>
                         <li><a href="{% url 'admin_settings' %}">Settings</a></li>
                 </ul>
@@ -51,11 +51,17 @@
                         </ul>
                     </div>
                 </div>
-                <div class="logout-container">
-                    <form action="{% url 'log-out' %}" method="POST">
-                        {% csrf_token %}
-                        <button type="submit" class="logout-btn">Logout</button>
-                    </form>
+                <div class="header-actions">
+                    <a href="{% url 'admin_notifications' %}" class="notifications-btn">
+                        <span class="notifications-icon"></span>
+                        <span id="notificationCountBadge" class="notifications-count {% if unread_count > 0 %}has-notifications{% endif %}" {% if unread_count == 0 %}style="display:none"{% endif %}>{{ unread_count }}</span>
+                    </a>
+                    <div class="logout-container">
+                        <form action="{% url 'log-out' %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-btn">Logout</button>
+                        </form>
+                    </div>
                 </div>
             </header>
             

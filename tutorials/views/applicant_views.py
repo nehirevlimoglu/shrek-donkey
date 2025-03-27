@@ -18,6 +18,10 @@ from datetime import date
 from tutorials.models.employer_models import Interview
 from tutorials.utils import match_candidates_to_job
 from django.http import HttpResponseForbidden
+from django.views.decorators.http import require_POST
+from tutorials.helpers import clear_feedback_messages
+from django.contrib.auth import update_session_auth_hash
+
 
 
 @applicant_only
@@ -104,10 +108,8 @@ def applicants_edit_profile(request):
 
 @login_required
 def applicants_applied_jobs(request):
-    """ Display jobs that the logged-in applicant has applied to """
     applicant = get_object_or_404(Applicant, user=request.user)
     applied_jobs = Application.objects.filter(applicant=applicant).select_related('job')
-
     return render(request, 'applicants_applied_jobs.html', {
         'applied_jobs': applied_jobs,
     })
@@ -123,6 +125,7 @@ def applicants_favourites(request):
     favorite_jobs = applicant.favorites.all()
     return render(request, 'applicants_favourites.html', {'favorite_jobs': favorite_jobs})
 
+
 @applicant_only
 @login_required
 def applicants_notifications(request):
@@ -130,38 +133,37 @@ def applicants_notifications(request):
     notifications = ApplicantNotification.objects.filter(applicant=applicant).order_by('-timestamp')
     return render(request, 'applicants_notifications.html', {'notifications': notifications})
 
-
-
+@applicant_only
 @login_required
 def applicants_account(request):
-    tab = request.GET.get('tab', 'profile')  # default is profile
-    edit_mode = request.GET.get('edit') == 'true'
+    tab = request.GET.get('tab', 'profile')
     applicant = request.user.applicant
-
     form = None
+   
 
     if tab == 'edit_profile':
-        form = ApplicantEditForm(instance=applicant, user=request.user)
         if request.method == 'POST':
             form = ApplicantEditForm(request.POST, request.FILES, instance=applicant, user=request.user)
             if form.is_valid():
                 form.save()
-                messages.success(request, "Profile updated successfully.")
+                messages.add_message(request, messages.SUCCESS, "Profile updated successfully.", extra_tags="profile_edit")
                 return redirect('applicants-account')
-    
+        else:
+            form = ApplicantEditForm(instance=applicant, user=request.user)
+            selected_job_ids = list(applicant.job_preferences.values_list('id', flat=True))
+
     elif tab == 'password':
-        form = CustomPasswordChangeForm(user=request.user)
         if request.method == 'POST':
             form = CustomPasswordChangeForm(user=request.user, data=request.POST)
             if form.is_valid():
                 user = form.save()
                 update_session_auth_hash(request, user)
-                messages.success(request, "Password changed successfully.")
+                messages.add_message(request, messages.SUCCESS, "Password changed successfully.", extra_tags="profile_edit")
                 return redirect('applicants-account')
+        else:
+            form = CustomPasswordChangeForm(user=request.user)
 
-    elif tab == 'profile':
-        # No form needed — just display info using user and applicant context
-        pass  # nothing to do here, just let it fall through to context
+    # 'profile' tab just displays context
 
     context = {
         'tab': tab,
@@ -171,21 +173,19 @@ def applicants_account(request):
     }
     return render(request, 'applicants_account.html', context)
 
-
 @login_required
 def job_detail(request, job_id):
-    """Display job details and check if the user has applied"""
     job = get_object_or_404(Job, id=job_id)
-    
-    # Check if an Application exists for this user and job.
     existing_application = Application.objects.filter(
         applicant__user=request.user, job=job
     ).exists()
 
+    next_page = request.GET.get("next", "home")  # default to 'home'
+
     return render(request, "job_detail.html", {
         "job": job,
         "existing_application": existing_application,
-        "random": randint(1, 10000)
+        "next_page": next_page,
     })
 
 
@@ -328,7 +328,9 @@ def apply_for_job(request, job_id):
             candidate.address = form.cleaned_data.get("address")
             candidate.school = form.cleaned_data.get("school")
             candidate.degree = form.cleaned_data.get("degree")
-            candidate.discipline = form.cleaned_data.get("discipline")
+            discipline_list = request.POST.getlist("discipline[]")
+            discipline_value = discipline_list[0] if discipline_list else None
+            candidate.discipline = discipline_value.lower() if discipline_value else None
             candidate.start_date = form.cleaned_data.get("start_date")
             candidate.end_date = form.cleaned_data.get("end_date")
             candidate.linkedin_profile = form.cleaned_data.get("linkedin_profile")
@@ -438,7 +440,7 @@ def apply_for_job(request, job_id):
             'current_employer': getattr(applicant, 'current_employer', ''),
             'skills': getattr(applicant, 'skills', ''),
         })
-    
+
     return render(request, "applicants_application.html", {
         "form": form,
         "job": job,
@@ -514,7 +516,7 @@ def applicants_application(request, job_id):
             application.save()
 
             # (Optional) Create/update Candidate, send notifications, etc.
-            messages.success(request, "Your application has been submitted successfully!")
+            clear_feedback_messages(request)
             return redirect('job_detail', job_id=job.id)
         else:
             messages.error(request, "Please fix the errors in your application form.")
@@ -559,11 +561,48 @@ def applicants_analytics(request):
     else:
         offer_acceptance_rate = 0
 
+<<<<<<< HEAD
     # Applications over time (last 6 months)
     applications_over_time = [0] * 6  # Initialize with zeros
     
     # Create offer acceptance breakdown
     offer_acceptance_breakdown = json.dumps([accepted_offers, declined_offers])
+=======
+    # Just count all hired applications as accepted
+    accepted_offers = Application.objects.filter(applicant=applicant, status="hired").count()
+    declined_offers = Application.objects.filter(applicant=applicant, status="rejected").count()
+
+    total_offers = accepted_offers + declined_offers
+    offer_acceptance_rate = (accepted_offers / total_offers * 100) if total_offers > 0 else 0
+
+    accepted_count = accepted_offers
+    declined_count = declined_offers
+
+    applications = Application.objects.filter(applicant=applicant).select_related("job")
+
+    # Fetch all related interviews
+    interviews = Interview.objects.filter(candidate__user=request.user).select_related("candidate")
+
+    # Build a mapping of job id to interview (assuming one interview per job)
+    interview_lookup = {i.candidate.job.id: i for i in interviews}
+
+    # Attach interview info directly to each application
+    for app in applications:
+        interview = interview_lookup.get(app.job.id)
+        app.interview_date = interview.date if interview else None
+        app.interview_time = interview.time if interview else None
+
+
+    # Dynamically build the pie chart data
+    offer_labels = []
+    offer_data = []
+    offer_colors = []
+
+    # Always push Accepted first, then Declined — even if their count is zero
+    offer_labels = ["Accepted", "Declined"]
+    offer_data = [accepted_offers, declined_offers]
+    offer_colors = ["#34A853", "#EA4335"]
+>>>>>>> main-at-commit2
 
     return render(request, 'applicants_analytics.html', {
         "total_applications": total_applications,
@@ -577,8 +616,6 @@ def applicants_analytics(request):
         "applications_over_time": json.dumps(applications_over_time),
         "offer_acceptance_breakdown": offer_acceptance_breakdown
     })
-
-from django.views.decorators.http import require_POST
 
 @login_required
 @csrf_exempt  # Ensure CSRF is handled appropriately (alternatively, include CSRF token in your JS)

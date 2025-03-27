@@ -8,10 +8,13 @@
 {% endblock %}
 
 {% block content %}
-<!-- The job-detail-container is now inserted directly into content -->
-<div class="content-container">
+<div class="job-detail-container">
     <div class="back-link">
-        <a href="{% url 'admin_job_listings' %}">← Back to Job Listings</a>
+        {% if 'admin_applications_view' in referer %}
+            <a href="{% url 'admin_applications_view' %}">← Back to Candidates</a>
+        {% else %}
+            <a href="{% url 'admin_job_listings' %}">← Back to Job Listings</a>
+        {% endif %}
     </div>
     
     <div class="job-header">
@@ -93,16 +96,6 @@
         <p>No employer information available</p>
         {% endif %}
     </div>
-
-    <!-- Modal structure -->
-    <div id="actionModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <p id="modalMessage"></p>
-            <button id="modalOkButton" class="modal-ok-button">OK</button>
-        </div>
-    </div>
-
     
     <div class="candidates-section">
         <h2>Applicants ({{ candidate_count }})</h2>
@@ -143,13 +136,29 @@
             <button class="action-btn close-job" data-job-id="{{ job.id }}">Close Job</button>
             {% else %}
             <button class="action-btn reopen-job" data-job-id="{{ job.id }}">Reopen Job</button>
-        {% endif %}
-
-        <!-- Approve Job Button -->
-        {% if job.status != 'approved' %}
+            {% endif %}
+            
+            <!-- Approve Job Button -->
+            {% if job.status != 'approved' %}
             <button class="action-btn approve-job" data-job-id="{{ job.id }}">Approve Job</button>
-        {% endif %}
+            {% endif %}
+        </div>
     </div>
+
+    <!-- Confirmation Modal (initially hidden) -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="confirmModalClose">&times;</span>
+            <h2 id="confirmModalTitle"></h2>
+            <p id="confirmModalMessage"></p>
+            <div class="confirm-actions">
+                <button id="confirmModalYes" class="update-btn">Confirm</button>
+                <button id="confirmModalNo" class="update-btn" style="margin-left: 10px;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    
 </div>
 
 {% endblock %}

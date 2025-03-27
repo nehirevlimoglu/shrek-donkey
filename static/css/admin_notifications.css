@@ -1,3 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+
 body {
     min-height: 100vh;
     overflow-y: auto;
@@ -20,11 +26,11 @@ body {
     margin: 30px 0 20px;
 }
 
-.notifications-header h2 {
-    font-size: 40px;
-    color: #2d3748;
-    font-weight: bold;
-    margin: 0;
+.notifications-header > h2 {
+    font-size: 30px;
+    font-weight: 600; /* was 800 before */
+    color: #1A202C;
+    margin-bottom: 20px;
 }
 
 /* Action buttons */
@@ -176,6 +182,7 @@ body {
 }
 
 .mark-read-btn,
+.mark-unread-btn,
 .delete-btn {
     background: none;
     border: none;
@@ -192,6 +199,14 @@ body {
 
 .mark-read-btn:hover {
     background-color: rgba(56, 161, 105, 0.1);
+}
+
+.mark-unread-btn {
+    color: #4299e1;
+}
+
+.mark-unread-btn:hover {
+    background-color: rgba(66, 153, 225, 0.1);
 }
 
 .delete-btn {
@@ -258,3 +273,75 @@ body {
 .btn-primary:hover { background: #1558b3; }
 .btn-secondary:hover { background: #596679; }
 .btn-danger:hover { background: #c53030; }
+
+.notification-content {
+    flex: 1; /* let this section expand */
+  }
+  
+.notification-actions {
+    margin-left: auto; /* pushes actions to the far right */
+    display: flex;
+    flex-direction: column; /* keep your two buttons stacked (if that's what you want) */
+    align-items: flex-end;  /* or center, if you'd prefer them centered vertically */
+  }
+  
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 200px; /* adjust this value to control how far down it sits */    
+    z-index: 9999;
+}
+
+.modal-box {
+    background: white;
+    padding: 20px 30px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    margin-left: auto;
+    margin-right: auto;
+}
+  
+  .modal-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+.sidebar,
+.sidebar * {
+      font-weight: 400 !important;
+  }
+
+  .toast-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #38a169; /* green for success */
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.toast-notification.error {
+    background-color: #e53e3e;
+}
+
+.toast-notification.show {
+    opacity: 1;
+}
+
+

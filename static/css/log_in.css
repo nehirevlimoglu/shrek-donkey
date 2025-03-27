@@ -98,3 +98,15 @@ input::placeholder {
 .toggle-link a:hover {
     text-decoration: underline;
 }
+
+.login-error {
+    color: #e53e3e;
+    background-color: #ffe5e5;
+    padding: 10px 15px;
+    border-radius: 6px;
+    text-align: center;
+    margin: 10px 0 20px 0; /* Adjust this line */
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+  

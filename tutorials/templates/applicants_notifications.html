@@ -9,22 +9,8 @@
 </head>
 
 <div class="dashboard-container">
-    <aside class="sidebar">
-        <h2>Swamp Hiring</h2>
-        <nav>
-            <ul>
-                <li><a href="{% url 'applicants-home-page' %}">Home Page</a></li>
-                <li><a href="{% url 'applicants-account' %}">Account</a></li>
-                <li><a href="{% url 'applicants-favourites' %}">Favourites</a></li>
-                <li><a href="{% url 'applicants-applied-jobs' %}">Applied Jobs</a></li>
-                <li><a href="{% url 'applicants-notifications' %}">Notifications</a></li>
-                <li><a href="{% url 'applicants-analytics' %}">Analytics</a></li>
-            </ul>
-        </nav>
-    </aside>
-    
+    <h2>Notifications</h2>
     <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
-        <h2>Applicant Notifications</h2>
         {% if notifications %}
             <ul class="notifications-list">
                 {% for notification in notifications %}

@@ -3,38 +3,39 @@
 
 {% block title %}Admin Dashboard | Swamp Hiring{% endblock %}
 
-
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/admin_home_page.css' %}">
 
-    <section class="overview">
-        <div class="card">
-            <h3>Total Job Listings</h3>
-            <p>{{ total_job_listings }}</p>
+<h2>Dashboard</h2>  {# Add this header #}
+
+<section class="overview">
+    <div class="card">
+        <h3>Total Job Listings</h3>
+        <p>{{ total_job_listings }}</p>
+    </div>
+    <div class="card">
+        <h3>Pending Applications</h3>
+        <p>{{ pending_applications }}</p>
+    </div>
+    <div class="card">
+        <h3>Active Users</h3>
+        <p>{{ total_active_users }}</p>
+    </div>
+    <div class="card">
+        <h3>New Hires This Month</h3>
+        <p>{{ new_hires_this_month }}</p>
+    </div>
+    
+    <div class="active-users-chart">
+        <h2>Active Users Over Time</h2>
+        <div class="time-filters">
+            <button class="filter-btn" data-period="day">Daily</button>
+            <button class="filter-btn" data-period="week">Weekly</button>
+            <button class="filter-btn" data-period="month">Monthly</button>
         </div>
-        <div class="card">
-            <h3>Pending Applications</h3>
-            <p>{{ pending_applications }}</p>
-        </div>
-        <div class="card">
-            <h3>Active Users</h3>
-            <p>{{ total_active_users }}</p>
-        </div>
-        <div class="card">
-            <h3>New Hires This Month</h3>
-            <p>{{ new_hires_this_month }}</p>
-        </div>
-        
-        <div class="active-users-chart">
-            <h2>Active Users Over Time</h2>
-            <div class="time-filters">
-                <button class="filter-btn" data-period="day">Daily</button>
-                <button class="filter-btn" data-period="week">Weekly</button>
-                <button class="filter-btn" data-period="month">Monthly</button>
-            </div>
-            <canvas id="activeUserChart"></canvas>
-        </div>
-    </section>
+        <canvas id="activeUserChart"></canvas>
+    </div>
+</section>
 {% endblock %}
 
 {% block extra_js %}

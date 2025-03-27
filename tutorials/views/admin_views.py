@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout, update_session_auth
 from django.contrib.auth.decorators import user_passes_test
 from tutorials.models.admin_models import Admin
 from tutorials.models.admin_models import Notification, NotificationPreference
-from tutorials.models.employer_models import EmployerNotification
+from tutorials.models.employer_models import EmployerNotification, Interview
 from django.http import JsonResponse, HttpResponse
 from tutorials.models.user_model import User
 from django.db.models import Count, Q
@@ -12,14 +12,19 @@ from datetime import timedelta
 import json
 from tutorials.models.employer_models import Job, Candidate, Employer
 from django.views.decorators.http import require_POST
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib import messages
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 import logging
 
 logger = logging.getLogger(__name__)
+from django.contrib.auth.decorators import login_required
+from tutorials.forms.forms import CustomPasswordChangeForm
+from tutorials.forms.admin_forms import AdminProfileForm
+from django.urls import reverse
+
 
 def is_admin(user):
     if not bool(user) or getattr(user, 'role', None) != 'Admin':
@@ -224,35 +229,110 @@ def admin_notifications_count(request):
 
 @user_passes_test(is_admin)
 @require_POST
+@csrf_exempt
 def mark_notification_as_read(request, notification_id):
-    """Mark a single notification as read"""
-    notification = get_object_or_404(Notification, id=notification_id)
-    notification.is_read = True
-    notification.save()
-    return JsonResponse({'status': 'success'})
+    """Mark a single notification as read for an admin user"""
+    try:
+        # Check if user is an admin
+        if request.user.role != 'Admin':
+            return JsonResponse({'status': 'error', 'message': 'User is not an admin'}, status=403)
+        
+        # Get notification object
+        try:
+            notification = Notification.objects.get(id=notification_id)
+            
+            # Check if notification belongs to the current user
+            if notification.recipient != request.user:
+                return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+                
+        except Notification.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Notification not found'}, status=404)
+        
+        # Mark as read
+        notification.is_read = True
+        notification.save()
+        
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] Exception in mark_notification_as_read: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
-@user_passes_test(is_admin)
+@login_required
 @require_POST
+@csrf_exempt  # Adding CSRF exemption as it may be causing issues
 def mark_all_notifications_as_read(request):
-    """Mark all notifications as read"""
-    Notification.objects.filter(is_read=False).update(is_read=True)
-    return JsonResponse({'status': 'success'})
+    """Mark all notifications as read for the current user"""
+    try:
+        print(f"[DEBUG] Mark all as read request received")
+        print(f"[DEBUG] User: {request.user.username}, ID: {request.user.id}")
+        print(f"[DEBUG] Request method: {request.method}")
+        print(f"[DEBUG] Request body: {request.body}")
+        print(f"[DEBUG] Request headers: {dict(request.headers)}")
+        
+        # Count notifications before update
+        unread_count = Notification.objects.filter(
+            recipient=request.user, 
+            is_read=False,
+            is_deleted=False
+        ).count()
+        
+        if unread_count == 0:
+            print("[INFO] No unread notifications found for user")
+            return JsonResponse({'success': True, 'count': 0, 'message': 'No unread notifications found'})
+        
+        # Update notifications
+        updated_count = Notification.objects.filter(
+            recipient=request.user, 
+            is_read=False,
+            is_deleted=False
+        ).update(is_read=True)
+        
+        print(f"[SUCCESS] Marked {updated_count} notifications as read")
+        return JsonResponse({'success': True, 'count': updated_count})
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] Exception in mark_all_notifications_as_read: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @user_passes_test(is_admin)
 @require_POST
+@csrf_exempt
 def delete_notification(request, notification_id):
     """Soft delete a notification (mark as deleted)"""
-    notification = get_object_or_404(Notification, id=notification_id)
-    notification.is_deleted = True
-    notification.save()
-    return JsonResponse({'status': 'success'})
+    try:
+        # Get the notification
+        notification = get_object_or_404(Notification, id=notification_id)
+        
+        # Ensure notification belongs to current user
+        if notification.recipient.id != request.user.id:
+            return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+        
+        # Mark as deleted
+        notification.is_deleted = True
+        notification.save()
+        
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        print(f"Error deleting notification: {str(e)}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
 
 @user_passes_test(is_admin)
 @require_POST
+@csrf_exempt
 def delete_all_notifications(request):
-    """Soft delete all notifications"""
-    Notification.objects.all().update(is_deleted=True)
-    return JsonResponse({'status': 'success'})
+    """Soft delete notifications for the logged-in admin only"""
+    try:
+        # Only delete notifications for the current logged-in user
+        affected_rows = Notification.objects.filter(recipient=request.user).update(is_deleted=True)
+        print(f"Deleted {affected_rows} notifications for user {request.user.username}")
+        return JsonResponse({'success': True, 'count': affected_rows})
+    except Exception as e:
+        print(f"Error deleting all notifications: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
 @user_passes_test(is_admin)
@@ -405,22 +485,21 @@ def get_active_users_data(request):
     
     return JsonResponse({'error': 'Invalid period'}, status=400)
 
+
+@user_passes_test(is_admin)
 @user_passes_test(is_admin)
 def admin_job_detail(request, job_id):
     job = get_object_or_404(Job, id=job_id)
     candidates = Candidate.objects.filter(job=job).select_related('user')
     employer = job.employer
-    
-    # Debug information
+
+    job.refresh_from_db()
+
     logger.debug(f"[admin_job_detail] Job ID: {job.id}, Title: {job.title}")
     logger.debug(f"[admin_job_detail] Application deadline: {job.application_deadline}")
     logger.debug(f"[admin_job_detail] Current date: {timezone.now().date()}")
     logger.debug(f"[admin_job_detail] Job status from DB: {job.status}")
-    
-    job.refresh_from_db()
-    
-    # Determine if job is open or closed based on deadline
-    # A job is considered closed if its deadline is today or in the past
+
     today = timezone.now().date()
     if job.application_deadline:
         if job.application_deadline <= today:
@@ -430,25 +509,48 @@ def admin_job_detail(request, job_id):
             job.is_open = True
             logger.debug("[admin_job_detail] Job marked as open because deadline is in the future")
     else:
-        # If no deadline is set, check if status is rejected
         if job.status == 'rejected':
             job.is_open = False
             logger.debug("[admin_job_detail] Job marked as closed because status is rejected")
         else:
-            # If no deadline and not rejected, assume job is open
             job.is_open = True
             logger.debug("[admin_job_detail] Job marked as open because no deadline and not rejected")
-    
-    # For the template's conditional display
+
     job.display_status = "Open" if job.is_open else "Closed"
     logger.debug(f"[admin_job_detail] Final display status: {job.display_status}")
-    
+
+    # Create a notification if job is approved or rejected and no notification has been sent yet
+    if job.status in ['approved', 'rejected'] and employer:
+        title = "Job Listing Approved" if job.status == 'approved' else "Job Listing Rejected"
+        message = (
+            f"Your job listing '{job.title}' has been approved by the admin team."
+            if job.status == 'approved'
+            else f"Unfortunately, your job listing '{job.title}' was rejected by the admin team."
+        )
+        already_exists = EmployerNotification.objects.filter(
+            employer=employer,
+            title=title,
+        ).exists()
+
+        if not already_exists:
+            EmployerNotification.objects.create(
+                employer=employer,
+                title=title,
+                message=message,
+                is_read=False
+            )
+            logger.debug(f"[admin_job_detail] EmployerNotification created for job '{job.title}' to employer '{employer.user.username}'")
+
+    referer = request.META.get('HTTP_REFERER', '')
+
     return render(request, 'admin_job_detail.html', {
         'job': job,
         'candidates': candidates,
         'employer': employer,
         'candidate_count': candidates.count(),
+        'referer': referer,
     })
+
 
 @user_passes_test(is_admin)
 def admin_edit_job(request, job_id):
@@ -518,10 +620,10 @@ def admin_applications_view(request):
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', 'all')
     
-    # Base query
+    # Base query for applications
     applications_query = Candidate.objects.all().select_related('user', 'job')
     
-    # Apply search filter
+    # Apply search filter if provided
     if search_query:
         applications_query = applications_query.filter(
             Q(user__username__icontains=search_query) | 
@@ -531,23 +633,23 @@ def admin_applications_view(request):
             Q(job__company_name__icontains=search_query)
         )
     
-    # Apply status filter
+    # Apply status filter if not 'all'
     if status_filter != 'all':
         applications_query = applications_query.filter(application_status=status_filter)
     
-    # Order by application date (newest first)
+    # Order applications by application_date descending
     applications_query = applications_query.order_by('-application_date')
     
     # Get statistics
     total_applications = Candidate.objects.count()
     pending_applications = Candidate.objects.filter(application_status='Pending').count()
-    interview_applications = Candidate.objects.filter(application_status='Interview').count()
+    total_interviews = Interview.objects.count()  # Count all interviews
     hired_applications = Candidate.objects.filter(application_status='Hired').count()
     rejected_applications = Candidate.objects.filter(application_status='Rejected').count()
-    
-    # Pagination - show 5 applications per page for better pagination testing
+
+    # Pagination: show 5 applications per page
     page = request.GET.get('page', 1)
-    paginator = Paginator(applications_query, 5)  # Show 5 applications per page
+    paginator = Paginator(applications_query, 5)
     
     try:
         applications_page = paginator.page(page)
@@ -562,10 +664,11 @@ def admin_applications_view(request):
         'status_filter': status_filter,
         'total_applications': total_applications,
         'pending_applications': pending_applications,
-        'interview_applications': interview_applications,
+        'interview_applications': total_interviews,  # Use this key in your template
         'hired_applications': hired_applications,
         'rejected_applications': rejected_applications,
     })
+
 
 @user_passes_test(is_admin)
 def get_candidate_info(request, candidate_id):
@@ -612,6 +715,7 @@ def get_candidate_info(request, candidate_id):
         import traceback
         logger.error(f"[get_candidate_info] Traceback: {traceback.format_exc()}")
         return JsonResponse({'error': str(e)}, status=500)
+
 
 @user_passes_test(is_admin)
 @require_POST
@@ -686,7 +790,6 @@ def update_job_status(request):
                 logger.error(f"[update_job_status] Job with id {job_id} does not exist.")
                 return JsonResponse({"success": False, "error": "Job not found"}, status=404)
 
-            # 记录当前状态，用于比较更改后
             original_status = job.status
             original_deadline = job.application_deadline
             
@@ -730,14 +833,26 @@ def update_job_status(request):
             logger.debug(f"[update_job_status] Deadline changed from {original_deadline} to {job.application_deadline}")
 
             # If the job is approved, send a notification
-            if new_status.lower() == "approved" and job.employer:
-                EmployerNotification.objects.create(
-                    employer=job.employer,
-                    title="Job Approved",
-                    message=f"🎉 Your job listing '{job.title}' has been approved!",
-                    is_read=False
+            if new_status.lower() in ["approved", "rejected"] and job.employer:
+                print("[DEBUG] Hitting approved block in update_job_status")
+
+                Notification.objects.create(
+                    recipient=job.employer.user,
+                    sender=request.user,  # the admin performing the action
+                    title=f"Job Listing {new_status.capitalize()}",
+                    message=(
+                        f"Your job listing '{job.title}' has been {new_status.lower()} by the admin team."
+                        if new_status.lower() == "approved"
+                        else f"Unfortunately, your job listing '{job.title}' was rejected."
+                    ),
+                    notification_type=Notification.TYPE_JOB,
+                    priority=Notification.PRIORITY_HIGH if new_status.lower() == "rejected" else Notification.PRIORITY_MEDIUM,
+                    related_object_id=job.id,
+                    related_object_type='Job',
+                    action_url=f"/job_detail/{job.id}/"  # adjust to your actual job detail route
                 )
-                logger.debug(f"[update_job_status] Sent approval notification to employer {job.employer.id}")
+                logger.debug(f"[update_job_status] Sent '{new_status}' notification to employer {job.employer.user.username}")
+
 
             try:
                 cache.delete(f'job_{job_id}_status')
@@ -752,136 +867,111 @@ def update_job_status(request):
     
     return JsonResponse({"success": False, "error": "Method not allowed"}, status=405)
 
-#write test for this !!!!! yani gecsin testleri
-@user_passes_test(is_admin)
+
+@login_required
 def admin_settings(request):
-    # Get the currently logged in admin user
-    user = request.user
-    try:
-        admin = Admin.objects.get(id=user.id)
-    except Admin.DoesNotExist:
-        admin = None
-    
-    # Get the tab parameter, default to 'profile'
     tab = request.GET.get('tab', 'profile')
-    
-    error = None
-    
-    # Handle profile update
-    if request.method == 'POST' and 'update_profile' in request.POST:
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        phone_number = request.POST.get('phone_number')
-        
-        # Check if the username already exists (excluding the current user)
-        if User.objects.filter(username=username).exclude(id=user.id).exists():
-            error = "Username already exists. Please choose a different one."
+    admin_user = get_object_or_404(Admin, user=request.user)
+
+    form = None
+    password_form = None
+
+    # Profile editing
+    if tab == 'change-profile':
+        if request.method == 'POST':
+            form = AdminProfileForm(request.POST, instance=admin_user, user=request.user)
+            if form.is_valid():
+                form.save()
+                request.user.refresh_from_db()
+                messages.success(request, "Admin profile updated successfully.")
+                return redirect('admin_settings')
         else:
-            # Update the user profile
-            user.username = username
-            user.email = email
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
-            
-            # Update admin-specific fields
-            if admin:
-                admin.phone_number = phone_number
-                admin.save(update_fields=['username', 'email', 'first_name', 'last_name', 'phone_number'])
-            
-            messages.success(request, "Profile updated successfully.")
-            return redirect('admin_settings')
-    
-    # Handle password change
-    elif request.method == 'POST' and 'change_password' in request.POST:
-        current_password = request.POST.get('current_password')
-        new_password = request.POST.get('new_password')
-        confirm_password = request.POST.get('confirm_password')
-        
-        # Check if current password is correct
-        if not user.check_password(current_password):
-            error = "Current password is incorrect."
-            tab = 'password'
-        elif new_password != confirm_password:
-            error = "New passwords do not match."
-            tab = 'password'
-        elif len(new_password) < 8:
-            error = "Password must be at least 8 characters long."
-            tab = 'password'
-        else:
-            # Set the new password
-            user.set_password(new_password)
-            user.save()
-            
-            # Update the session to prevent the user from being logged out
-            update_session_auth_hash(request, user)
-            
-            messages.success(request, "Password changed successfully.")
-            return redirect('admin_settings')
-    
-    # Handle notification preferences update
-    elif request.method == 'POST' and 'update_notification_prefs' in request.POST:
-        # Get notification preferences
-        job_notifications = 'job_notifications' in request.POST
-        application_notifications = 'application_notifications' in request.POST
-        user_notifications = 'user_notifications' in request.POST
-        system_notifications = 'system_notifications' in request.POST
-        
-        # Get delivery methods
-        email_delivery = 'email_delivery' in request.POST
-        dashboard_delivery = 'dashboard_delivery' in request.POST
-        
-        # Save notification preferences to admin user
-        if admin:
-            # Get or create notification preferences
-            notification_prefs, created = NotificationPreference.objects.get_or_create(admin=admin)
-            
-            # Update the preferences
-            notification_prefs.job_notifications = job_notifications
-            notification_prefs.application_notifications = application_notifications
-            notification_prefs.user_notifications = user_notifications
-            notification_prefs.system_notifications = system_notifications
-            notification_prefs.email_delivery = email_delivery
-            notification_prefs.dashboard_delivery = dashboard_delivery
-            notification_prefs.save()
-            
-            messages.success(request, "Notification preferences updated successfully.")
-            return redirect('admin_settings')
-    
-    # Get notification preferences from database or use defaults
-    notification_prefs = None
-    if admin:
-        try:
-            notification_prefs = NotificationPreference.objects.get(admin=admin)
-        except NotificationPreference.DoesNotExist:
-            # Use default values
-            notification_prefs = {
-                'job_notifications': True,
-                'application_notifications': True,
-                'user_notifications': True,
-                'system_notifications': True,
-                'email_delivery': True,
-                'dashboard_delivery': True
-            }
-    else:
-        # Use default values
-        notification_prefs = {
-            'job_notifications': True,
-            'application_notifications': True,
-            'user_notifications': True,
-            'system_notifications': True,
-            'email_delivery': True,
-            'dashboard_delivery': True
-        }
-    
+            form = AdminProfileForm(instance=admin_user, user=request.user)
+
+    # Password changing
+    elif tab == 'password':
+        form = CustomPasswordChangeForm(user=request.user)
+        if request.method == 'POST':
+            form = CustomPasswordChangeForm(user=request.user, data=request.POST)
+            if form.is_valid():
+                user = form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, "Password changed successfully.")
+                return redirect('admin_settings')
+
     context = {
         'tab': tab,
-        'admin': admin,
-        'user': user,
-        'error': error,
-        'notification_prefs': notification_prefs
+        'admin_user': admin_user,
+        'form': form,
+        'password_form': password_form,
+        'user': request.user,
+    }
+    return render(request, 'admin_settings.html', context)
+
+@user_passes_test(is_admin)
+def admin_notifications_stats(request):
+    """Get updated notification statistics for the current admin user"""
+    # Base queryset: filter by recipient = current admin user
+    notifications = Notification.objects.filter(
+        recipient=request.user,
+        is_deleted=False
+    )
+    
+    # Count totals for statistics
+    total_count = notifications.count()
+    unread_count = notifications.filter(is_read=False).count()
+    
+    # Count by type
+    type_counts = {
+        'general': notifications.filter(notification_type='general').count(),
+        'job': notifications.filter(notification_type='job').count(),
+        'application': notifications.filter(notification_type='application').count(),
+        'user': notifications.filter(notification_type='user').count(),
+        'system': notifications.filter(notification_type='system').count(),
     }
     
-    return render(request, 'admin_settings.html', context)
+    # Count by priority
+    priority_counts = {
+        'high': notifications.filter(priority='high').count(),
+        'medium': notifications.filter(priority='medium').count(),
+        'low': notifications.filter(priority='low').count(),
+    }
+    
+    # Add feedback count if needed
+    feedback_count = notifications.filter(notification_type='feedback').count() if hasattr(Notification, 'TYPE_FEEDBACK') else 0
+    
+    return JsonResponse({
+        'total_count': total_count,
+        'unread_count': unread_count,
+        'type_counts': type_counts,
+        'priority_counts': priority_counts,
+        'feedback_count': feedback_count
+    })
+
+@user_passes_test(is_admin)
+@require_POST
+@csrf_exempt
+def mark_notification_as_unread(request, notification_id):
+    """Mark a notification as unread."""
+    try:
+        # Get notification object
+        try:
+            notification = Notification.objects.get(id=notification_id)
+            
+            # Check if notification belongs to the current user
+            if notification.recipient != request.user:
+                return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+                
+        except Notification.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Notification not found'}, status=404)
+        
+        # Mark as unread
+        notification.is_read = False
+        notification.save()
+        
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] Exception in mark_notification_as_unread: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

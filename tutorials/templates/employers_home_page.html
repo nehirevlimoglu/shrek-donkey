@@ -3,72 +3,79 @@
 
 {% block title %}Employer Dashboard | Swamp Hiring{% endblock %}
 
+{# 
+  Load your employer-specific CSS AFTER Bootstrap 
+  (Bootstrap is presumably loaded in 'base.html'). 
+#}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/employers_home_page.css' %}">
+{% endblock %}
+
 {% block content %}
-
-<link rel="stylesheet" type="text/css" href="{% static 'css/employers_home_page.css' %}">
-
-    <section class="overview">
-        <div class="card" id="total-jobs">
-            <h3>Total Jobs Posted</h3>
-            <p>{{ total_jobs }}</p> <!-- Total Jobs -->
-        </div>
-        <div class="card" id="active-listings">
-            <h3>Active Listings</h3>
-            <p>{{ active_listings }}</p>
-        </div>
-        <div class="card" id="total-applicants">
-            <h3>Total Applicants</h3>
-            <p>{{ total_applicants }}</p>
-        </div>
-    </section>
-
-        <section class="recent-applicants" id="recent-applicants">
-            <h2>Recent Applicants</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Applicant Name</th>
-                        <th>Job Applied</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for application in recent_applicants %}
-                        <tr>
-                            <td>{{ application.user.first_name }} {{ application.user.last_name }}</td>
-                            <td>{{ application.job.title }}</td>
-                            <td>
-                                {% if application.application_status == "Pending" %}
-                                    <span class="badge under-review">Under Review</span>
-                                {% elif application.application_status == "Interview" %}
-                                    <span class="badge interviewed">Interview Scheduled</span>
-                                {% elif application.application_status == "Hired" %}
-                                    <span class="badge hired">Hired</span>
-                                {% elif application.application_status == "Rejected" %}
-                                    <span class="badge rejected">Rejected</span>
-                                {% else %}
-                                    <span class="badge">Pending</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="3">No recent applicants yet.</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </section>
-        {% endblock %}
+<div class="page-header">
+    <h1>Dashboard</h1>
+</div>
+  
+<section class="overview">
+    <div class="card" id="total-jobs">
+        <h3>Total Jobs Posted</h3>
+        <p>{{ total_jobs }}</p> <!-- total_jobs from your context -->
     </div>
+    <div class="card" id="active-listings">
+        <h3>Active Listings</h3>
+        <p>{{ active_listings }}</p>
+    </div>
+    <div class="card" id="total-applicants">
+        <h3>Total Applicants</h3>
+        <p>{{ total_applicants }}</p>
+    </div>
+</section>
 
-    <!-- Intro.js -->
-    <script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
+<section class="recent-applicants" id="recent-applicants">
+    <h2>Recent Applicants</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Applicant Name</th>
+                <th>Job Applied</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for application in recent_applicants %}
+                <tr>
+                    <td>{{ application.user.first_name }} {{ application.user.last_name }}</td>
+                    <td>{{ application.job.title }}</td>
+                    <td>
+                        {% if application.application_status == "Pending" %}
+                            <span>Under Review</span>
+                        {% elif application.application_status == "Interview" %}
+                            <span>Interview Scheduled</span>
+                        {% elif application.application_status == "Hired" %}
+                            <span>Hired</span>
+                        {% elif application.application_status == "Rejected" %}
+                            <span>Rejected</span>
+                        {% else %}
+                            <span>Pending</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="3">No recent applicants yet.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}
 
-    <!-- Additional JS (tutorial.js, if used) -->
-    <script src="{% static 'js/tutorial.js' %}"></script>
-
-    <!-- Main JS (Separated) -->
-    <script src="{% static 'js/employer_dashboard.js' %}"></script>
-</body>
-</html>
+{# 
+  If you have JS blocks, put them in extra_js or directly here. 
+  For example:
+#}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/intro.js/minified/intro.min.js"></script>
+<script src="{% static 'js/tutorial.js' %}"></script>
+<script src="{% static 'js/employer_dashboard.js' %}"></script>
+{% endblock %}

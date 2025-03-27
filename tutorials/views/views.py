@@ -13,9 +13,11 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.middleware.csrf import get_token
 from tutorials.models.employer_models import Job
 from tutorials.utils import match_candidates_to_job
+from tutorials.helpers import clear_feedback_messages
 
 # Custom CSRF failure view
 def csrf_failure(request, reason=""):
+    clear_feedback_messages(request)
     """
     Custom CSRF validation failure view
     """
@@ -36,6 +38,7 @@ def csrf_failure(request, reason=""):
 @ensure_csrf_cookie
 def log_in(request):
     # Clear any feedback messages before rendering login page
+
     
     if request.method == 'POST':
         username = request.POST['username']
@@ -62,8 +65,10 @@ def log_in(request):
             print("Authentication failed")  # ❌ This means the username/password is incorrect.
             # Add error message
             messages.error(request, "Incorrect username or password", extra_tags="login")
+
+
     
-    # Force set CSRF Cookie
+    # Force set CSRF Cookies
     response = render(request, 'log_in.html')
     response.set_cookie('csrftoken', request.META.get('CSRF_COOKIE', ''), samesite='Lax')
     return response
@@ -164,56 +169,6 @@ def job_matching_view(request, job_id):
         "job": job,
         "matched_candidates": matched_candidates
     })
-
-
-@login_required
-def submit_feedback(request):
-    """
-    View for allowing applicants and employers to submit feedback
-    """
-    if request.method == 'POST':
-        feedback_type = request.POST.get('feedback_type')
-        subject = request.POST.get('subject')
-        message = request.POST.get('message')
-        priority = request.POST.get('priority', 'medium')
-        
-        # Validate required fields
-        if not all([feedback_type, subject, message]):
-            messages.error(request, "All required fields must be filled out.")
-            return render(request, 'feedback_form.html')
-            
-        try:
-            # Save feedback to database
-            # Note: assuming you have a Feedback model, if not, you need to create one
-            from tutorials.models.admin_models import Notification
-            
-            # Determine user type
-            user_type = 'applicant' if hasattr(request.user, 'applicant') else 'employer'
-            
-            # Create notification
-            notification = Notification.objects.create(
-                title=f"New Feedback: {subject}",
-                message=message,
-                notification_type='feedback',
-                priority=priority,
-                sender=request.user,
-                is_read=False,
-                action_url=None,
-                feedback_type=feedback_type,
-                sender_type=user_type
-            )
-            
-            # Don't use messages framework here to avoid it appearing in other pages
-            # Instead, pass the success message directly to the template
-            return render(request, 'feedback_form.html', {
-                'success_message': 'Thank you for your feedback! We will process it as soon as possible.'
-            })
-            
-        except Exception as e:
-            print(f"Error saving feedback: {str(e)}")
-            messages.error(request, f"Error submitting feedback: {str(e)}")
-            
-    return render(request, 'feedback_form.html')
 
 
 def sign_up(request):

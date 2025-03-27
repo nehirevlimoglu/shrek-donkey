@@ -16,7 +16,7 @@
     <main class="content" style="margin-left: 0; padding-left: 2rem; width: 100%;">
         <!-- Filter Options -->
         <div class="filter-options" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-            <h2>Available Jobs</h2>
+            <h2>Dashboard</h2>
             <form method="get" action="" style="display: flex; gap: 1rem; align-items: center;">
                 <select name="location" class="pill-select">
                     <option value="">All Locations</option>
@@ -88,7 +88,7 @@
                         </td>
                         <td>
                             <!-- Changed class from 'btn btn-primary' to 'details-btn' -->
-                            <a href="{% url 'job_detail' job.id %}" class="btn btn-primary details-btn">View </a>
+                            <a href="{% url 'job_detail' job.id %}?next=home" class="btn btn-primary details-btn">View</a>
                         </td>
                     </tr>
                     {% empty %}

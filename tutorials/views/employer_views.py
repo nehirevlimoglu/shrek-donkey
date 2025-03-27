@@ -6,7 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from tutorials.models.employer_models import Employer, Job, Candidate, Interview, EmployerNotification, EmployerEvent
 from tutorials.models.admin_models import Notification 
 from tutorials.forms.forms import SignUpForm, LogInForm
-from tutorials.forms.employer_forms import JobForm, EmployerProfileForm, CustomPasswordChangeForm, InterviewForm
+from tutorials.forms.employer_forms import JobForm, EmployerProfileForm, CustomPasswordChangeForm, InterviewForm, RescheduleInterviewForm
 from tutorials.forms.forms import CustomPasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
@@ -24,7 +24,15 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from tutorials.utils import match_candidates_to_job
+<<<<<<< HEAD
 from datetime import datetime, date, timedelta
+=======
+from datetime import datetime, date
+from tutorials.helpers import clear_feedback_messages
+from django.db.models.functions import Lower
+from django.contrib.auth import update_session_auth_hash
+
+>>>>>>> main-at-commit2
 
 logger = logging.getLogger(__name__)
 
@@ -50,8 +58,8 @@ def employer_home_page(request):
         # ✅ Fetch Analytics Data
         total_jobs = Job.objects.filter(employer=employer).count()
         active_listings = Job.objects.filter(
-            employer=employer, 
-            application_deadline__gte=now()  # ✅ Only count jobs with valid deadlines
+            employer=employer,
+            status='approved'
         ).count()
         total_applicants = Candidate.objects.filter(job__employer=employer).count()  # ✅ Fix: Count applicants for employer's jobs
 
@@ -124,12 +132,50 @@ def view_employer_analytics(request):
 
 @login_required
 def employer_settings(request):
-    return render(request, 'employer_settings.html')
+    tab = request.GET.get('tab', 'profile')
+    employer = Employer.objects.get(user=request.user)
+
+    form = None
+    password_form = None
+
+    # Handle profile editing
+    if tab == 'edit_profile':
+        if request.method == 'POST':
+            form = EmployerProfileForm(request.POST, request.FILES, instance=employer, user=request.user)
+            if form.is_valid():
+                form.save()
+                request.user.refresh_from_db()  # to reflect updated names immediately
+                messages.add_message(request, messages.SUCCESS, "Company profile updated successfully.", extra_tags="profile_edit")
+                return redirect('employer_settings')  # or redirect with ?tab=profile
+        else:
+            form = EmployerProfileForm(instance=employer, user=request.user)
+
+
+    # Handle password change
+    elif tab == 'password':
+        form = CustomPasswordChangeForm(user=request.user)
+        if request.method == 'POST':
+            form = CustomPasswordChangeForm(user=request.user, data=request.POST)
+            if form.is_valid():
+                user = form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, "Password changed successfully.", extra_tags="profile_edit")
+                return redirect('employer_settings')
+
+    context = {
+        'tab': tab,
+        'employer': employer,
+        'form': form,
+        'password_form': password_form,
+        'user': request.user,
+    }
+    return render(request, 'employer_settings.html', context)
 
 
 @login_required
 def create_job_listings(request):
     """ Allow employers to create job listings while handling missing employer profiles. """
+    clear_feedback_messages(request)
 
     try:
         employer = Employer.objects.get(username=request.user.username)
@@ -183,27 +229,6 @@ def edit_job_view(request, pk):
     return render(request, 'edit_job.html', {'form': form, 'job': job})
 
 
-
-
-@login_required
-def change_password(request):
-    if request.method == 'POST':
-        form = CustomPasswordChangeForm(user=request.user, data=request.POST)
-        
-        if form.is_valid():
-            form.save()
-            update_session_auth_hash(request, form.user)  # Prevents logout after password change
-            messages.success(request, "Your password has been successfully changed.")  # Success message
-            return redirect('employer_settings')  # Redirect to settings
-        else:
-            messages.error(request, "There was an issue with your password change. Please check and try again.")
-
-    else:
-        form = CustomPasswordChangeForm(user=request.user)
-    
-    return render(request, 'change_password.html', {'form': form})
-
-
 @login_required
 def employer_candidates(request):
     """Retrieve all candidates who applied for jobs posted by the employer, with filtering options."""
@@ -212,19 +237,22 @@ def employer_candidates(request):
     except Employer.DoesNotExist:
         return HttpResponseForbidden("You are not authorized to view this page.")
 
-    # ✅ Get all jobs posted by this employer
-    employer_jobs = Job.objects.filter(employer=employer)
+    DISCIPLINE_LABELS = {
+    'bachelors': 'Bachelors',
+    'masters': 'Masters',
+    'phd': 'PhD',
+    'diploma': 'Diploma',
+    'associate': 'Associate Degree',
+    'certificate': 'Certificate',
+    }
 
-    # ✅ Retrieve all candidates who applied to these jobs
+    employer_jobs = Job.objects.filter(employer=employer)
     candidates = Candidate.objects.filter(job__in=employer_jobs).select_related('user', 'job')
 
-    # ✅ Get distinct degrees from candidates for the dropdown
-    degrees = Candidate.objects.exclude(degree__isnull=True).exclude(degree="").values_list('degree', flat=True).distinct()
-
-    # ✅ Filtering
-    job_id = request.GET.get("job")  # Job filter
-    status = request.GET.get("status")  # Application status filter
-    degree = request.GET.get("degree")  # Degree filter
+    # Get filters
+    job_id = request.GET.get("job")
+    status = request.GET.get("status")
+    discipline = request.GET.get("discipline")
 
     if job_id:
         candidates = candidates.filter(job_id=job_id)
@@ -232,14 +260,28 @@ def employer_candidates(request):
     if status:
         candidates = candidates.filter(application_status=status)
 
-    if degree:
-        candidates = candidates.filter(degree=degree)
+    if discipline:
+        candidates = candidates.filter(discipline=discipline)  # exact match now that we store lowercase
+
+    # ✅ Get distinct lowercase disciplines for the dropdown
+    disciplines_raw = (
+        Candidate.objects
+        .filter(job__in=employer_jobs)
+        .exclude(discipline__isnull=True)
+        .exclude(discipline="")
+        .annotate(d_lower=Lower("discipline"))
+        .values_list("d_lower", flat=True)
+        .distinct()
+    )
+
+    disciplines = [(val, DISCIPLINE_LABELS.get(val, val.title())) for val in disciplines_raw]
+
 
     return render(request, 'employer_candidates.html', {
         'candidates': candidates,
-        'jobs': employer_jobs,  # Pass job listings for dropdown
-        'statuses': Candidate.STATUS_CHOICES,  # Pass statuses for dropdown
-        'degrees': degrees,  # Pass degrees for dropdown
+        'jobs': employer_jobs,
+        'statuses': Candidate.STATUS_CHOICES,
+        'disciplines': disciplines,  # ✅ make sure this matches template
     })
 
 @login_required
@@ -279,20 +321,26 @@ def interview_detail(request, pk):
     interview = get_object_or_404(Interview, pk=pk)
     return render(request, 'interview_detail.html', {'interview': interview})
 
+
+@login_required
 def reschedule_interview(request, pk):
     interview = get_object_or_404(Interview, pk=pk)
 
     if request.method == 'POST':
-        # For example, get new date/time from the form
-        new_date = request.POST.get('date')
-        new_time = request.POST.get('time')
-        # Update the interview
-        interview.date = new_date
-        interview.time = new_time
-        interview.save()
-        return redirect('interview_detail', pk=interview.pk)
+        form = RescheduleInterviewForm(request.POST, instance=interview)
+        if form.is_valid():
+            form.save()  # This updates the interview with the new date/time
+            messages.success(request, "Interview rescheduled successfully!")
+            return redirect('employer_calendar')
     else:
-        return render(request, 'reschedule_interview.html', {'interview': interview})
+        form = RescheduleInterviewForm(instance=interview)
+
+    context = {
+        'form': form,
+        'interview': interview,
+    }
+    return render(request, 'reschedule_interview.html', context)
+
 
 @user_passes_test(is_employer)
 @login_required
@@ -314,25 +362,6 @@ def get_interviews(request):
     ]
 
     return JsonResponse(events, safe=False)
-
-
-@login_required
-def edit_company_profile(request):
-    try:
-        # FIX: Use 'username' instead of 'user'
-        employer = Employer.objects.get(username=request.user.username)
-    except Employer.DoesNotExist:
-        return render(request, "error.html", {"message": "Employer not found"})
-
-    if request.method == "POST":
-        form = EmployerProfileForm(request.POST, request.FILES, instance=employer)
-        if form.is_valid():
-            form.save()
-            return redirect("employer_settings")  # Redirect to settings after update
-    else:
-        form = EmployerProfileForm(instance=employer)
-
-    return render(request, "edit_company_profile.html", {"form": form})
 
 
 @login_required
@@ -456,50 +485,70 @@ def calculate_duration(start_date, end_date):
 
 @login_required
 def applicant_profile(request, applicant_id):
-    """View full applicant details for an employer."""
     try:
-        # Get the candidate instance (used in employer views)
         candidate = Candidate.objects.get(id=applicant_id)
     except Candidate.DoesNotExist:
         return HttpResponse("Candidate does not exist.", status=404)
-    
+
     try:
-        # Retrieve the Applicant instance linked to the candidate's user
         applicant_obj = Applicant.objects.get(user=candidate.user)
     except Applicant.DoesNotExist:
         return HttpResponse("Applicant profile not found.", status=404)
-    
+
     try:
-        # Retrieve the Application instance for this applicant and job
         application = Application.objects.get(applicant=applicant_obj, job=candidate.job)
     except Application.DoesNotExist:
-        application = None  # Handle as needed
-    
-    # Add duration info to each work experience entry if available.
-    if application and application.work_experience:
-        for work in application.work_experience:
-            work['duration'] = calculate_duration(work.get('work_start_date'), work.get('work_end_date'))
-    
-    # Handle status update submissions.
+        application = None
+
+    # Handle POST: update candidate status if provided and valid, then redirect.
     if request.method == "POST":
         new_status = request.POST.get("status")
-        if new_status in ["Pending", "Interview", "Hired", "Rejected"]:
+        valid_statuses = ["Hired", "Rejected", "Pending", "under_review"]
+        if new_status in valid_statuses:
             candidate.application_status = new_status
             candidate.save()
-            messages.success(request, "Application status updated successfully!")
-        return redirect("applicant_profile", applicant_id=candidate.id)
-    
-    return render(request, "applicant_profile.html", {
-        "candidate": candidate,
-        "application": application
-    })
+        return redirect("applicant_profile", applicant_id=applicant_id)
+
+    # For GET: compute duration for each work_experience entry.
+    if application and application.work_experience:
+        for work in application.work_experience:
+            start = work.get("work_start_date")
+            end = work.get("work_end_date")
+            work["duration"] = calculate_duration(start, end)
+
+    # Only get interviews that belong to this exact candidate.
+    latest_interview = Interview.objects.filter(candidate=candidate).order_by('-date', '-time').first()
+
+    return render(
+        request,
+        "applicant_profile.html",
+        {
+            "candidate": candidate,
+            "application": application,
+            "latest_interview": latest_interview,
+        }
+    )
 
 @csrf_exempt
 @login_required
 def mark_notification_as_read(request, notification_id):
+    """Mark a notification as read for an employer"""
     try:
-        employer = Employer.objects.get(user=request.user)
-        notification = EmployerNotification.objects.get(id=notification_id, employer=employer)
+        # First check if user is an employer
+        if request.user.role != 'Employer':
+            return JsonResponse({"success": False, "error": "User is not an employer"}, status=403)
+        
+        # Then try to get the employer object
+        try:
+            employer = Employer.objects.get(user=request.user)
+        except Employer.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Employer not found"}, status=403)
+        
+        # Try to get the notification
+        try:
+            notification = EmployerNotification.objects.get(id=notification_id, employer=employer)
+        except EmployerNotification.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
 
         if request.method == "POST":
             notification.is_read = True
@@ -508,10 +557,11 @@ def mark_notification_as_read(request, notification_id):
 
         return JsonResponse({"success": False, "error": "Invalid request method"}, status=405)
 
-    except Employer.DoesNotExist:
-        return JsonResponse({"success": False, "error": "Employer not found"}, status=403)
-    except EmployerNotification.DoesNotExist:
-        return JsonResponse({"success": False, "error": "Notification not found"}, status=404)
+    except Exception as e:
+        import traceback
+        print(f"[ERROR] Exception in employer mark_notification_as_read: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
 @login_required
@@ -628,3 +678,5 @@ def reject_candidate(request, candidate_id):
         logger.warning(f"Could not update Application for rejected candidate {candidate.id}")
 
     return JsonResponse({"message": "Candidate rejected successfully!", "status": "Rejected"})
+
+

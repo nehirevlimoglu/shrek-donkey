@@ -4,11 +4,8 @@ from django.db import models
 from libgravatar import Gravatar
 from tutorials.models.user_model import User
 from django.utils import timezone
+from datetime import date
 import json
-
-
-
-
 
 
 class Employer(models.Model):
@@ -25,8 +22,44 @@ class Employer(models.Model):
         ('Healthcare', 'Healthcare'),
         ('Education', 'Education'),
         ('Retail', 'Retail'),
-        ('Other', 'Other')
+        ('Manufacturing', 'Manufacturing'),
+        ('Construction', 'Construction'),
+        ('Transportation', 'Transportation'),
+        ('Hospitality', 'Hospitality'),
+        ('Legal', 'Legal'),
+        ('Government', 'Government'),
+        ('Telecommunications', 'Telecommunications'),
+        ('Real Estate', 'Real Estate'),
+        ('Media', 'Media'),
+        ('Entertainment', 'Entertainment'),
+        ('Energy', 'Energy'),
+        ('Agriculture', 'Agriculture'),
+        ('Non-Profit', 'Non-Profit'),
+        ('Consulting', 'Consulting'),
+        ('Logistics', 'Logistics'),
+        ('Automotive', 'Automotive'),
+        ('Aerospace', 'Aerospace'),
+        ('Defense', 'Defense'),
+        ('Environmental Services', 'Environmental Services'),
+        ('Food & Beverage', 'Food & Beverage'),
+        ('Pharmaceuticals', 'Pharmaceuticals'),
+        ('Fashion', 'Fashion'),
+        ('Marketing', 'Marketing'),
+        ('E-commerce', 'E-commerce'),
+        ('Architecture', 'Architecture'),
+        ('Sports', 'Sports'),
+        ('Travel & Tourism', 'Travel & Tourism'),
+        ('Biotechnology', 'Biotechnology'),
+        ('Publishing', 'Publishing'),
+        ('Cybersecurity', 'Cybersecurity'),
+        ('Animation', 'Animation'),
+        ('Human Resources', 'Human Resources'),
+        ('Insurance', 'Insurance'),
+        ('Mining', 'Mining'),
+        ('Petroleum', 'Petroleum'),
+        ('Other', 'Other'),
     ])
+
     company_size = models.PositiveIntegerField(default=1)
     company_logo = models.ImageField(upload_to='company_logos/', blank=True, null=True)
     
@@ -176,10 +209,6 @@ class Candidate(models.Model):
                 print(f"DEBUG: {self.user.username} - {exp.job_title}: Start {exp.start_date}, End {exp.end_date}, Days {delta}")
                 total_days += delta
         return total_days / 365.25 if total_days > 0 else 0
-
-
-
-
 
 
 class Interview(models.Model):
