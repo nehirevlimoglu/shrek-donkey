@@ -2,15 +2,15 @@
 html, body {
     margin: 0;
     padding: 0;
-    height: 100%;
+    min-height: 100%;
 }
 
 /* Container for the entire page (dashboard) */
 .dashboard-container {
     display: flex;
     width: 100%;
-    height: 100vh; /* Full viewport height */
-    overflow: hidden; /* We will scroll inside the .content instead */
+    /* Remove fixed height and overflow settings */
+    min-height: 100vh;
 }
 
 /* Sidebar */
@@ -22,20 +22,18 @@ html, body {
     bottom: 0;
     background: #f5f5f5;
     padding-top: 20px;
-    overflow-y: auto; /* If the sidebar has more items than fit vertically, it can scroll too */
 }
 
 /* Main Content */
 .content {
     margin-left: 250px;   /* Leave space for the sidebar */
     flex-grow: 1;         /* Fill remaining width */
-    height: 100vh;        /* Match the parent's height */
-    overflow-y: auto;     /* Make this area scrollable */
+    min-height: 100vh;
     padding: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-sizing: border-box; 
+    box-sizing: border-box;
 }
 
 /* Notification List */
@@ -99,7 +97,7 @@ html, body {
         margin-left: 0;
         width: 100%;
         height: auto;
-        overflow-y: visible; /* or auto, depending on how you want it to behave */
+        overflow-y: visible;
         padding: 1rem;
     }
 
@@ -107,3 +105,4 @@ html, body {
         max-width: 100%;
     }
 }
+

@@ -1,7 +1,8 @@
+/* Remove or change the background color here */
 body {
     margin: 0;
     padding: 0;
-    background: #3C4A52; /* Original dark background */
+    background: #FFFFFF; /* Changed to white */
     font-family: 'Arial', sans-serif;
     color: #fff;
     min-height: 100vh;
@@ -12,16 +13,17 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 120px; /* Push everything down */
+    padding-top: 120px;
     padding-bottom: 60px;
 }
 
+/* Make Swamp Hiring bigger, bold, and centered */
 .header-title {
-    font-size: 48px; /* Bigger title */
-    font-weight: bold;
-    text-align: center;
+    font-size: 60px;       /* Increased size */
+    font-weight: 900;      /* Bolder text */
+    text-align: center;    /* Centered */
     margin-bottom: 40px;
-    color: white;
+    color: #1A202C;        /* Dark text for better contrast on white background */
 }
 
 .auth-container {
@@ -49,10 +51,10 @@ h2 {
 input {
     width: 100%;
     padding: 14px;
-    margin-bottom: 18px; /* 🔥 This adds space between fields */
+    margin-bottom: 18px;
     border: 1px solid #E2E8F0;
     border-radius: 8px;
-    font-size: 18px; /* ✅ Larger text */
+    font-size: 18px;
     background: #F8F9FA;
     color: #1A202C;
     box-sizing: border-box;
@@ -60,7 +62,7 @@ input {
 }
 
 input::placeholder {
-    font-size: 18px; /* ✅ Larger placeholder text */
+    font-size: 18px;
 }
 
 .button {
@@ -99,14 +101,14 @@ input::placeholder {
     text-decoration: underline;
 }
 
+/* The error message styling remains the same, pinkish background for contrast */
 .login-error {
     color: #e53e3e;
     background-color: #ffe5e5;
     padding: 10px 15px;
     border-radius: 6px;
     text-align: center;
-    margin: 10px 0 20px 0; /* Adjust this line */
+    margin: 10px 0 20px 0;
     font-size: 0.95rem;
     font-weight: 500;
-  }
-  
+}

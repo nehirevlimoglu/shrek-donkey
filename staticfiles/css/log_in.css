@@ -1,64 +1,76 @@
+/* Remove or change the background color here */
 body {
-    font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background: linear-gradient(to bottom, #E4E4DE, #C4C5BA);
+    background: #FFFFFF; /* Changed to white */
+    font-family: 'Arial', sans-serif;
+    color: #fff;
+    min-height: 100vh;
+    overflow-y: auto;
 }
-.section {
-    height: 100vh;
+
+.page-wrapper {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    text-align: center;
-    background: rgba(52,73,94,0.8);
+    padding-top: 120px;
+    padding-bottom: 60px;
 }
-.title {
-    font-size: 36px;
-    font-weight: bold;
-    color: white;
+
+/* Make Swamp Hiring bigger, bold, and centered */
+.header-title {
+    font-size: 60px;       /* Increased size */
+    font-weight: 900;      /* Bolder text */
+    text-align: center;    /* Centered */
+    margin-bottom: 40px;
+    color: #1A202C;        /* Dark text for better contrast on white background */
 }
+
 .auth-container {
-    height: 100vh;
-    background: #FFFFFF;
     display: flex;
     justify-content: center;
-    align-items: center;
+    width: 100%;
 }
+
 .card {
     background: white;
+    color: #1A202C;
     padding: 40px;
     border-radius: 12px;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
     text-align: center;
+    max-width: 400px;
     width: 100%;
-    max-width: 400px; /* Prevents excessive width */
-    min-width: 320px; /* Ensures responsiveness */
-    margin: auto; /* Centers the card */
 }
 
 h2 {
     color: #1A202C;
-    font-size: 24px;
-    font-weight: bold;
     margin-bottom: 20px;
 }
+
 input {
     width: 100%;
     padding: 14px;
+    margin-bottom: 18px;
     border: 1px solid #E2E8F0;
     border-radius: 8px;
-    font-size: 16px;
-    margin-bottom: 14px;
+    font-size: 18px;
     background: #F8F9FA;
     color: #1A202C;
-    box-sizing: border-box; /* Fix width calculation */
+    box-sizing: border-box;
+    text-align: center;
+}
+
+input::placeholder {
+    font-size: 18px;
 }
 
 .button {
     display: block;
-    width: 100%;
+    width: 90%;
+    margin: 0 auto;
     padding: 14px;
-    background: #1A73E8; /* Indeed Blue */
+    background: #1A73E8;
     color: white;
     border: none;
     border-radius: 8px;
@@ -68,14 +80,15 @@ input {
     transition: background 0.3s ease;
     box-shadow: 0 3px 6px rgba(26, 115, 232, 0.3);
 }
+
 .button:hover {
     background: rgba(26, 115, 232, 0.8);
 }
 
 .toggle-link {
     margin-top: 15px;
-    color: #1A202C;
     font-size: 16px;
+    color: #1A202C;
 }
 
 .toggle-link a {
@@ -86,4 +99,16 @@ input {
 
 .toggle-link a:hover {
     text-decoration: underline;
+}
+
+/* The error message styling remains the same, pinkish background for contrast */
+.login-error {
+    color: #e53e3e;
+    background-color: #ffe5e5;
+    padding: 10px 15px;
+    border-radius: 6px;
+    text-align: center;
+    margin: 10px 0 20px 0;
+    font-size: 0.95rem;
+    font-weight: 500;
 }
