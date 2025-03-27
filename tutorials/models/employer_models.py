@@ -4,6 +4,7 @@ from django.db import models
 from libgravatar import Gravatar
 from tutorials.models.user_model import User
 from django.utils import timezone
+from datetime import date
 import json
 
 

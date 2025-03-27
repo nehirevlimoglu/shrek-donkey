@@ -387,6 +387,7 @@ class ApplicantEditFormTest(TestCase):
         self.valid_edit_data = {
             'first_name': 'UpdatedFirst',
             'last_name': 'UpdatedLast',
+            'email': 'updated@example.com',  # <-- ADDED
             'degree': 'masters',
             'salary_preferences': '70000',
             'location_preferences': 'Remote',
@@ -396,12 +397,15 @@ class ApplicantEditFormTest(TestCase):
     def test_applicant_edit_form_updates_user_fields(self):
         """
         Test that saving the ApplicantEditForm with commit=True updates the linked User fields
-        (first_name and last_name) and that the job_preferences are saved.
+        (first_name, last_name, and email) and that the job_preferences are saved.
         """
         form = ApplicantEditForm(data=self.valid_edit_data, instance=self.applicant, user=self.user)
         self.assertTrue(form.is_valid(), form.errors)
         applicant = form.save(commit=True)
+        
+        # Refresh from DB
         self.user.refresh_from_db()
         self.assertEqual(self.user.first_name, 'UpdatedFirst')
         self.assertEqual(self.user.last_name, 'UpdatedLast')
+        self.assertEqual(self.user.email, 'updated@example.com')  # Confirm email updated
         self.assertIn(self.job_title, applicant.job_preferences.all())

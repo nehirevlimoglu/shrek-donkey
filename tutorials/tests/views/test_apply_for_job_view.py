@@ -5,6 +5,8 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.messages import get_messages
+from io import StringIO
+import sys 
 
 from tutorials.models.applicants_models import Applicant, Application
 from tutorials.models.employer_models import Job, Employer, JobTitle
@@ -273,8 +275,8 @@ class ApplyForJobViewTests(TestCase):
     def test_keybert_extraction_fallback_and_exception(self):
         self.login_applicant()
 
-        # Import and override the actual view's extract_skills_nlp function
-        from tutorials.views.applicant_views import apply_for_job as apply_view_module
+        from tutorials import views as tutorials_views
+        from tutorials.views import applicant_views
 
         post_data = {
             "first_name": "John",
@@ -307,21 +309,36 @@ class ApplyForJobViewTests(TestCase):
             "job_description[]": ["Developed features"],
         }
 
-        # CASE 1: Force empty skills extraction
-        apply_view_module.extract_skills_nlp = lambda text: []
+        # CASE 1 — fallback triggered
+        def return_empty_skills(text):
+            return []
+
+        applicant_views.extract_skills_nlp = return_empty_skills
+
+        captured_output = StringIO()
+        sys.stdout = captured_output
+
         response = self.client.post(self.apply_url, post_data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+
+        sys.stdout = sys.__stdout__
         self.assertEqual(response.status_code, 200)
         self.assertJSONEqual(response.content, {"success": True})
+        self.assertIn("⚠️ KeyBERT did not extract any skills.", captured_output.getvalue())
 
-        # Clean up application so we can try the second case
         Application.objects.all().delete()
 
-        # CASE 2: Force an exception in skill extraction
-        def exploding_nlp(text):
-            raise Exception("NLP failure")
-        apply_view_module.extract_skills_nlp = exploding_nlp
+        # CASE 2 — exception triggered
+        def raise_exception(text):
+            raise Exception("KeyBERT failure")
+
+        applicant_views.extract_skills_nlp = raise_exception
+
+        captured_output = StringIO()
+        sys.stdout = captured_output
 
         response = self.client.post(self.apply_url, post_data, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
+
+        sys.stdout = sys.__stdout__
         self.assertEqual(response.status_code, 200)
         self.assertJSONEqual(response.content, {"success": True})
-
+        self.assertIn("❌ Error in KeyBERT extraction", captured_output.getvalue())
