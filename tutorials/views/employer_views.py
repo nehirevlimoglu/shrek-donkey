@@ -326,7 +326,24 @@ def reschedule_interview(request, pk):
     if request.method == 'POST':
         form = RescheduleInterviewForm(request.POST, instance=interview)
         if form.is_valid():
-            form.save()  # This updates the interview with the new date/time
+            form.save()
+
+            # ✅ Send notification to applicant
+            try:
+                applicant_obj = Applicant.objects.get(user=interview.candidate.user)
+                ApplicantNotification.objects.create(
+                    applicant=applicant_obj,
+                    title="Interview Rescheduled",
+                    message=(
+                        f"Your interview for '{interview.job.title}' has been rescheduled "
+                        f"to {interview.date.strftime('%Y-%m-%d')} at {interview.time.strftime('%H:%M')}.\n\n"
+                        f"Link/Location: {interview.interview_link or 'See employer message'}\n"
+                        f"Additional Notes: {interview.notes or 'N/A'}"
+                    )
+                )
+            except Applicant.DoesNotExist:
+                logger.warning(f"No matching Applicant found for user {interview.candidate.user.username}. Cannot create reschedule notification.")
+
             messages.success(request, "Interview rescheduled successfully!")
             return redirect('employer_calendar')
     else:
