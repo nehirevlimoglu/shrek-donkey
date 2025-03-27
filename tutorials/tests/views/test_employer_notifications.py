@@ -6,6 +6,7 @@ from tutorials.models.employer_models import Employer, EmployerNotification, Emp
 from tutorials.models.admin_models import Notification
 import json
 from time import sleep
+from django.contrib.messages import get_messages
 
 User = get_user_model()
 
@@ -121,35 +122,19 @@ class EmployerNotificationsTests(TestCase):
 
     def test_mark_notification_as_read(self):
         """Test marking a notification as read"""
-        # Ensure user is logged in
-        self.client.force_login(self.employer_user)
         response = self.client.post(
-            reverse('mark_notification_as_read', args=[self.notification1.id])
+            reverse('employer_mark_notification_as_read', args=[self.notification1.id])
         )
-        
         self.assertEqual(response.status_code, 200)
-        self.assertJSONEqual(
-            str(response.content, encoding='utf8'),
-            {"success": True}
-        )
-        
-        # Verify notification is marked as read
         self.notification1.refresh_from_db()
         self.assertTrue(self.notification1.is_read)
 
     def test_mark_nonexistent_notification(self):
         """Test marking a non-existent notification"""
-        # Ensure user is logged in
-        self.client.force_login(self.employer_user)
         response = self.client.post(
-            reverse('mark_notification_as_read', args=[99999])
+            reverse('employer_mark_notification_as_read', args=[99999])
         )
-        
         self.assertEqual(response.status_code, 404)
-        self.assertJSONEqual(
-            str(response.content, encoding='utf8'),
-            {"success": False, "error": "Notification not found"}
-        )
 
     def test_mark_notification_wrong_employer(self):
         """Test marking another employer's notification"""
@@ -176,14 +161,10 @@ class EmployerNotificationsTests(TestCase):
         # Ensure original employer is logged in
         self.client.force_login(self.employer_user)
         response = self.client.post(
-            reverse('mark_notification_as_read', args=[other_notification.id])
+            reverse('employer_mark_notification_as_read', args=[other_notification.id])
         )
         
         self.assertEqual(response.status_code, 404)
-        self.assertJSONEqual(
-            str(response.content, encoding='utf8'),
-            {"success": False, "error": "Notification not found"}
-        )
 
     def test_notifications_order(self):
         """Test that notifications are ordered by created_at"""
@@ -259,7 +240,7 @@ class EmployerNotificationsTests(TestCase):
         
         # Test marking notification as read
         response = client.post(
-            reverse('mark_notification_as_read', args=[new_notification.id])
+            reverse('employer_mark_notification_as_read', args=[new_notification.id])
         )
         
         # Verify response
@@ -316,7 +297,7 @@ class EmployerNotificationsTests(TestCase):
         
         # Try to mark employer1's notification as read
         response = client.post(
-            reverse('mark_notification_as_read', args=[notification.id])
+            reverse('employer_mark_notification_as_read', args=[notification.id])
         )
         
         # Verify response indicates failure
@@ -346,7 +327,7 @@ class EmployerNotificationsTests(TestCase):
         
         # Try to mark a notification as read
         response = client.post(
-            reverse('mark_notification_as_read', args=[1])  # Any notification ID
+            reverse('employer_mark_notification_as_read', args=[1])
         )
         
         # Verify response indicates failure

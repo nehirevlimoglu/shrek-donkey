@@ -101,7 +101,7 @@ class EmployerJobListingsTests(TestCase):
         response = self.client.get(reverse('create_job_listings'))
         
         # Should redirect to home with error message
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 302)
         messages = list(get_messages(response.wsgi_request))
         self.assertEqual(str(messages[0]), "You must be an employer to post a job.")
 

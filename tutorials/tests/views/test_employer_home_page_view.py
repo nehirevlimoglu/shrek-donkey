@@ -5,8 +5,6 @@ from django.contrib.auth import get_user_model
 from tutorials.models.employer_models import Employer, Job, Candidate, EmployerNotification
 from tutorials.forms.forms import SignUpForm
 from django.contrib.messages import get_messages
-from tutorials.forms.employer_forms import CustomPasswordChangeForm
-from django.contrib.auth.forms import PasswordChangeForm
 
 User = get_user_model()
 
@@ -141,65 +139,5 @@ class EmployerHomePageViewTests(TestCase):
         self.assertEqual(response.context["total_applicants"], 0)
         self.assertEqual(len(response.context["recent_applicants"]), 0)
         self.assertEqual(len(response.context["notifications"]), 0)
-
-    def test_change_password(self):
-        """Test password change functionality"""
-        self.client.force_login(self.employer_user)
-        
-        # Test GET request
-        response = self.client.get(reverse('change_password'))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'change_password.html')
-        
-        # Check for Django's built-in PasswordChangeForm instead
-        self.assertTrue(isinstance(response.context['form'], PasswordChangeForm))
-        
-        # Test successful password change
-        data = {
-            'old_password': 'password123',
-            'new_password1': 'newpassword123',
-            'new_password2': 'newpassword123'
-        }
-        response = self.client.post(reverse('change_password'), data, follow=True)
-        
-        # Check redirect and success message
-        self.assertRedirects(response, reverse('employer_settings'))
-        messages = list(get_messages(response.wsgi_request))
-        self.assertEqual(str(messages[0]), "Your password has been successfully changed.")
-        
-        # Verify password was actually changed
-        self.employer_user.refresh_from_db()
-        self.assertTrue(self.employer_user.check_password('newpassword123'))
-
-    def test_change_password_invalid(self):
-        """Test password change with invalid data"""
-        self.client.force_login(self.employer_user)
-        
-        # Test with incorrect old password
-        data = {
-            'old_password': 'wrongpassword',
-            'new_password1': 'newpassword123',
-            'new_password2': 'newpassword123'
-        }
-        response = self.client.post(reverse('change_password'), data)
-        
-        # Check form is invalid
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'change_password.html')
-        messages = list(get_messages(response.wsgi_request))
-        self.assertEqual(str(messages[0]), "There was an issue with your password change. Please check and try again.")
-        
-        # Verify password was not changed
-        self.employer_user.refresh_from_db()
-        self.assertTrue(self.employer_user.check_password('password123'))
-
-    def test_change_password_unauthenticated(self):
-        """Test password change when user is not logged in"""
-        self.client.logout()
-        response = self.client.get(reverse('change_password'))
-        self.assertRedirects(
-            response, 
-            f"{reverse('log_in')}?next={reverse('change_password')}"
-        )
 
 

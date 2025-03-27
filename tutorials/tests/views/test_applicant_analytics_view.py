@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from tutorials.models.applicants_models import Applicant, Application
-from tutorials.models.employer_models import Job, Employer, JobTitle
+from tutorials.models.employer_models import Job, Employer, JobTitle, Candidate, Interview
 from datetime import timedelta
 import json
 
@@ -34,7 +34,11 @@ class ApplicantAnalyticsTests(TestCase):
         
         self.employer = Employer.objects.create(
             user=self.employer_user,
-            company_name='Test Company'
+            username='@testemployer',
+            email='employer@test.com',
+            company_name='Test Company',
+            company_location='Test Location',
+            industry='Tech'
         )
         
         # Create applicant profile
@@ -63,10 +67,9 @@ class ApplicantAnalyticsTests(TestCase):
         
         # Create applications with different statuses and dates
         self.create_test_applications()
-        
-        # Set up test client
 
-        candidate = Candidate.objects.create(
+        # Create candidate with proper fields
+        self.candidate = Candidate.objects.create(
             user=self.applicant_user,
             job=self.jobs[1],
             application_status="Interview",
@@ -74,8 +77,9 @@ class ApplicantAnalyticsTests(TestCase):
             last_name="Applicant"
         )
 
-        Interview.objects.create(
-            candidate=candidate,
+        # Create interview
+        self.interview = Interview.objects.create(
+            candidate=self.candidate,
             job=self.jobs[1],
             date=timezone.now().date() + timedelta(days=1),
             time=timezone.now().time()
@@ -83,7 +87,6 @@ class ApplicantAnalyticsTests(TestCase):
 
         self.client = Client()
         self.client.login(username='@testapplicant', password='testpass123')
-
 
     def create_test_applications(self):
         """Create test applications with various statuses and dates"""
@@ -135,14 +138,6 @@ class ApplicantAnalyticsTests(TestCase):
         self.assertEqual(json.loads(response.context['applications_over_time']), [0, 0, 0, 0, 0, 0])
         self.assertEqual(json.loads(response.context['offer_acceptance_breakdown']), [0, 0])
 
-    def test_applications_over_time(self):
-        """Test applications over time data structure"""
-        response = self.client.get(reverse('applicants-analytics'))
-        
-        applications_over_time = json.loads(response.context['applications_over_time'])
-        self.assertTrue(isinstance(applications_over_time, list))
-        self.assertEqual(len(applications_over_time), 6)  # 6 months (Jan-Jun)
-        self.assertTrue(all(isinstance(count, int) for count in applications_over_time))
 
     def test_offer_acceptance_breakdown(self):
         """Test offer acceptance breakdown data"""

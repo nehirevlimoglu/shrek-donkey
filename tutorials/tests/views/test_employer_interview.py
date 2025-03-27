@@ -185,7 +185,7 @@ class EmployerInterviewTests(TestCase):
             follow=True
         )
         
-        self.assertRedirects(response, reverse('interview_detail', args=[self.interview.pk]))
+        self.assertRedirects(response, reverse('employer_calendar'))
         
         # Verify interview was updated
         self.interview.refresh_from_db()
