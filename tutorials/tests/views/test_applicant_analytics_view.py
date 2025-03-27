@@ -44,18 +44,10 @@ class ApplicantAnalyticsTests(TestCase):
             salary_preferences='80000-100000',
             location_preferences='Remote'
         )
-<<<<<<< HEAD
-        
-        # Create job titles
-        self.job_title = JobTitle.objects.create(title="Software Engineer")
-        
-        # Create jobs with different statuses
-=======
 
         # Use get_or_create to avoid unique constraint issues
         self.job_title, created = JobTitle.objects.get_or_create(title="Software Engineer")
 
->>>>>>> main-at-commit2
         self.jobs = []
         for i in range(5):
             job = Job.objects.create(
@@ -71,10 +63,8 @@ class ApplicantAnalyticsTests(TestCase):
         
         # Create applications with different statuses and dates
         self.create_test_applications()
-<<<<<<< HEAD
         
         # Set up test client
-=======
 
         candidate = Candidate.objects.create(
             user=self.applicant_user,
@@ -91,7 +81,6 @@ class ApplicantAnalyticsTests(TestCase):
             time=timezone.now().time()
         )
 
->>>>>>> main-at-commit2
         self.client = Client()
         self.client.login(username='@testapplicant', password='testpass123')
 

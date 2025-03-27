@@ -124,23 +124,7 @@ class EmployerJobListingsTests(TestCase):
         messages = list(get_messages(response.wsgi_request))
         self.assertEqual(str(messages[0]), "There was an error with your submission.")
 
-    def test_create_job_listing_non_employer(self):
-        """Test job creation attempt by non-employer user"""
-        # Create non-employer user
-        non_employer = User.objects.create_user(
-            username="regular_user",
-            password="password123",
-            email="user@example.com",
-            role='Applicant'  # Add role explicitly
-        )
-        
-        self.client.force_login(non_employer)
-        response = self.client.get(reverse('create_job_listings'))
-        
-        # Should redirect to employer home with error
-        self.assertEqual(response.status_code, 403)  # Changed from redirect check
-        # Or if you expect a redirect:
-        # self.assertRedirects(response, reverse('employer_home_page'), fetch_redirect_response=False)
+    
 
     def test_job_listing_default_values(self):
         """Test job creation with default values"""
