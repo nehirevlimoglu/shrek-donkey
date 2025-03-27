@@ -51,7 +51,7 @@ $ python3 manage.py test
 ```
 
 ## Project structure
-The project is called `task_manager`.  It currently consists of a single app `tasks`.
+The project is called `major_group_project`.  It currently consists of a single app `tutorials`.
 
 ## Deployed version of the application
 The deployed version of the application can be found at (https://junjiezhou1.pythonanywhere.com/log_in/).
